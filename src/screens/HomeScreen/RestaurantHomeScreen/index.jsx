@@ -7,7 +7,7 @@ import Add from 'common/Add'
 import colors from 'constants/colors'
 import { useSelector, useDispatch } from 'react-redux'
 import firestore from '@react-native-firebase/firestore'
-import { addToCart, removeFromCart } from 'slices/cartSlice'
+import { addToCart, removeFromCart, setRestaurantId } from 'slices/cartSlice'
 import CustomButton from 'common/CustomButton'
 import { createSelector } from 'reselect'
 
@@ -120,8 +120,27 @@ const FoodItem = ({ data, dispatch, openModal }) => {
   )
 }
 
-const RestaurantHomeScreen = ({ navigation }) => {
+const createOrUpdateCart = async (cartState, customerId, restaurantId) => {
+  try {
+    const cartRef = firestore().collection('carts').doc(customerId)
+    // Set the cart data
+    await cartRef.set({
+      ...cartState, 
+      customerId, 
+      restaurantId, 
+      orderComplete: false
+    }, { merge: true }) // Use merge to update the document without overwriting the entire document
+
+    console.log('Cart successfully created or updated')
+  } catch (error) {
+    console.log('Error creating or updating cart: ', error)
+  }
+}
+
+const RestaurantHomeScreen = ({ navigation,route }) => {
   const restaurant = useSelector(state => state.restaurants.currentRestaurant)
+  const customerId = useSelector(state => state.authentication.customer.id)
+  const restaurantId = route.params.restaurantId
   const { selectedTimeSlot } = useSelector(state => state.restaurants)
   const cart = useSelector(state => state.cart)
   const dispatch = useDispatch()
@@ -139,6 +158,11 @@ const RestaurantHomeScreen = ({ navigation }) => {
   const [selectedCustomisations, setSelectedCustomisations] = useState({})
   const [lastUsedCustomisations, setLastUsedCustomisations] = useState({})
   const [isUsingLastCustomizations, setIsUsingLastCustomizations] = useState(false)
+  
+
+  useEffect(() => {
+    dispatch(setRestaurantId(restaurantId))
+  }, [dispatch, restaurantId])
 
   useEffect(() => {
     setIsLoading(true)
@@ -146,7 +170,7 @@ const RestaurantHomeScreen = ({ navigation }) => {
       try {
         const menuSnapshot = await firestore()
           .collection('restaurants')
-          .doc(restaurant.id)
+          .doc(restaurantId)
           .collection('menu')
           .get()
 
@@ -400,6 +424,11 @@ const RestaurantHomeScreen = ({ navigation }) => {
     </TouchableOpacity>
   )
 
+  const handleCartNavigation = async () => {
+    navigation.navigate('CartScreen')
+    await createOrUpdateCart(cart, customerId, restaurantId)
+  }
+
   return (
     <Layout
       backTitle={restaurant?.name}
@@ -411,7 +440,7 @@ const RestaurantHomeScreen = ({ navigation }) => {
       next
       btnText="My Cart"
       showBtn={cart.subTotal.toString()}
-      onBtnPress={() => navigation.navigate('CartScreen')}
+      onBtnPress={handleCartNavigation}
     >
       <SearchBar
         style={{ marginBottom: 10 }}
@@ -459,12 +488,12 @@ const RestaurantHomeScreen = ({ navigation }) => {
           onRequestClose={closeModal}
         >
           <TouchableOpacity style={styles.modalOverlay} onPress={closeModal}>
+          <TouchableOpacity onPress={closeModal}>
+                  <Image style={{ width: 30, height: 30, marginBottom: 6 }} source={require('images/close.png')} />
+          </TouchableOpacity>
             <TouchableOpacity activeOpacity={1} style={styles.bottomModalView}>
               <View style={styles.bottomModalHeader}>
                 <Text style={styles.modalTitle}>{selectedItem?.name}</Text>
-                <TouchableOpacity onPress={closeModal}>
-                  <Image style={{ width: 30, height: 30 }} source={require('images/close.png')} />
-                </TouchableOpacity>
               </View>
               {selectedItem && (
                 <ScrollView style={styles.modalScrollView}>
@@ -477,7 +506,7 @@ const RestaurantHomeScreen = ({ navigation }) => {
                       <Text style={styles.modalSubtitle}>
                         {generateSubtitle(customisation.required, customisation.multiOption, customisation.limit)}
                       </Text>
-                      <View style={GlobalStyles.lightBorder}>
+                      <View style={styles.sectionCard}>
                         {customisation.choices.map((choice, idx) => (
                           <View key={idx} style={styles.modalItem}>
                             <View>
@@ -511,7 +540,7 @@ const RestaurantHomeScreen = ({ navigation }) => {
                   />} */}
                 </ScrollView>
               )}
-              <CustomButton title='Add to Cart' onPress={confirmAddItem} />
+              <CustomButton style={styles.button} title='Add to Cart' onPress={confirmAddItem} />
             </TouchableOpacity>
           </TouchableOpacity>
         </Modal>
@@ -701,7 +730,7 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
     justifyContent: 'flex-end',
     alignItems: 'center',
   },
@@ -725,7 +754,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderTopRightRadius: 20,
     borderTopLeftRadius: 20,
-    padding: 20,
+    padding: 10,
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: {
@@ -755,7 +784,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     marginTop: 10,
-    marginBottom: 5,
+    marginBottom: 6,
     textTransform: 'capitalize'
   },
   modalItem: {
@@ -774,6 +803,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     padding: 6,
     textAlign: 'center',
+  },
+  sectionCard: {
+    backgroundColor: 'rgba(228, 233, 237, 0.5)',
+    borderRadius: 8,
+    paddingTop: 12,
+    paddingBottom: 6,
   },
   radioButton: {
     height: 16,
@@ -809,6 +844,10 @@ const styles = StyleSheet.create({
     color: 'gray',
     fontWeight: '600',
     fontSize: 12,
-    marginBottom: 5,
+    marginBottom: 8,
+  },
+  button: {
+    marginTop: 6,
+    marginBottom: 12,
   },
 })

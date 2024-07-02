@@ -25,6 +25,7 @@ const HomeScreen = ({ navigation }) => {
   const [filteredCategories, setFilteredCategories] = useState([])
   const [selectedCategory, setSelectedCategory] = useState(null)
 
+
   useEffect(() => {
     setIsLoading(true)
     const fetchRestaurants = async () => {
@@ -206,8 +207,8 @@ const HomeScreen = ({ navigation }) => {
 
   const handleRestaurantPress = (item) => {
     dispatch(setCurrentRestaurant(item))
-    dispatch(resetCart())
-    navigation.navigate('RestaurantHomeScreen')
+    // dispatch(resetCart())
+    navigation.navigate('RestaurantHomeScreen', {restaurantId: item.id})
   }
 
   const renderRestaurantItem = ({ item }) => (
