@@ -25,9 +25,11 @@ const authenticationSlice = createSlice({
       state.isFirstTime = true;
     },
     updateCustomer(state, action) {
-      const { name, photoUrl } = action.payload
-      state.customer.name = name
-      state.customer.photoUrl = photoUrl
+      const { name, photoUrl } = action.payload;
+      if (state.customer) {
+        state.customer.name = name;
+        state.customer.photoUrl = photoUrl;
+      }
     },
   },
 });
@@ -35,5 +37,3 @@ const authenticationSlice = createSlice({
 export const { login, logout, register, updateCustomer } = authenticationSlice.actions;
 
 export default authenticationSlice.reducer;
-
-

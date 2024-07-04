@@ -14,7 +14,7 @@ const TimeSlotScreen = ({ navigation }) => {
   const [selectedTime, setSelectedTime] = useState('')
   const [showModal, setShowModal] = useState(false)
   const customer = useSelector(state => state.authentication.customer)
-  console.log('cus', customer.id)
+  console.log('cus', customer?.id)
   const dispatch = useDispatch()
 
   const populateTimeSlots = (startFromTime) => {

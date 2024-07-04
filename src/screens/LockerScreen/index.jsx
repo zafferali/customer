@@ -125,6 +125,11 @@ const LockerScreen = ({ navigation }) => {
     const orderData = {
       customer: customerRef,
       restaurant: restaurantRef,
+      customerId: customer.id,
+      restaurantId: currentRestaurant.id,
+      restaurantName: currentRestaurant.name,
+      branchName: currentRestaurant.branch,
+      restaurantImage: currentRestaurant.thumbnailUrl,
       deliveryTime: selectedTimeSlot,
       orderNum: orderId,
       pickupCode: pickupCode,

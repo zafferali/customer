@@ -123,6 +123,10 @@ const LoginScreen = () => {
                                         keyboardType='phone-pad'
                                         inputMode='numeric'
                                         maxLength={10}
+                                        onSubmitEditing={() => {
+                                            sendOtp(`+91${phoneNumber}`)
+                                            phoneNumberInputRef.current?.blur()
+                                        }}
                                         style={[styles.phoneNumberInput, { paddingLeft: 24 }]}
                                         onChangeText={(text) => {
                                             const filteredText = text.replace(/[^0-9]/g, '')
@@ -171,6 +175,11 @@ const LoginScreen = () => {
                                         keyboardType='phone-pad'
                                         inputMode='numeric'
                                         maxLength={6}
+                                        onSubmitEditing={() => {
+                                            verifyOtp(confirmationObject, otp)
+                                                otpInputRef.current?.blur()
+                                                setOtp('')
+                                        }}
                                         style={[styles.phoneNumberInput, { paddingLeft: 24 }]}
                                         onChangeText={(text) => {
                                             const filteredText = text.replace(/[^0-9]/g, '')

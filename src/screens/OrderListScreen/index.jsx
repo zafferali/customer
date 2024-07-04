@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react'
-import { View, FlatList, Text, TouchableOpacity, Image, StyleSheet, ActivityIndicator } from 'react-native'
+import { View, FlatList, Text, TouchableOpacity, Image, StyleSheet, ActivityIndicator, Alert } from 'react-native'
+import { useFocusEffect } from '@react-navigation/native'
 import Layout from 'common/Layout'
 import SearchBar from 'common/SearchBar'
 import { GlobalStyles } from 'constants/GlobalStyles'
@@ -11,6 +12,7 @@ const OrderListScreen = ({ navigation }) => {
   const [orders, setOrders] = useState([])
   const [searchQuery, setSearchQuery] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [selectedTab, setSelectedTab] = useState('ongoing')
   const customerId = useSelector(state => state.authentication.customer.id)
 
   const fetchOrders = useCallback(async () => {
@@ -21,19 +23,14 @@ const OrderListScreen = ({ navigation }) => {
         .where('customer', '==', customerRef)
         .get()
 
-      const orderDocs = ordersQuerySnapshot.docs
-      const restaurantPromises = orderDocs.map(orderDoc => orderDoc.data().restaurant.get())
-      const restaurantDocs = await Promise.all(restaurantPromises)
-
-      const loadedOrders = orderDocs.map((orderDoc, index) => {
+      const loadedOrders = ordersQuerySnapshot.docs.map(orderDoc => {
         const data = orderDoc.data()
-        const restaurantData = restaurantDocs[index]?.data()
-        if (!data || !restaurantData) return null
+        if (!data) return null
 
         const status = data.orderStatus
-        const statusText = status === 'completed' ? 'Completed' : 'Ongoing'
-        const displayDate = data.timeStamps.orderCompleted
-          ? new Date(data.timeStamps.orderCompleted.toDate()).toLocaleDateString('en-GB', {
+        const statusText = status === 'completed' || status === 'cancelled' ? 'Past' : 'Ongoing'
+        const displayDate = data.timeStamps.orderPlaced
+          ? new Date(data.timeStamps.orderPlaced.toDate()).toLocaleDateString('en-GB', {
               day: 'numeric',
               month: 'long',
               year: 'numeric'
@@ -43,8 +40,10 @@ const OrderListScreen = ({ navigation }) => {
 
         return {
           id: orderDoc.id,
-          name: restaurantData.name,
-          image: restaurantData.thumbnailUrl,
+          name: data.restaurantName,
+          branch: data.branchName,
+          image: data.restaurantImage,
+          orderNum: data.orderNum,
           date: displayDate,
           status: statusText,
           deliveryTime
@@ -52,25 +51,28 @@ const OrderListScreen = ({ navigation }) => {
       }).filter(order => order !== null)
 
       const sortedOrders = loadedOrders.sort((a, b) => {
-        if (a.status === 'Ongoing' && b.status === 'Completed') return -1
-        if (a.status === 'Completed' && b.status === 'Ongoing') return 1
+        if (a.status === 'Ongoing' && b.status === 'Past') return -1
+        if (a.status === 'Past' && b.status === 'Ongoing') return 1
         return 0
       })
 
       setOrders(sortedOrders)
     } catch (error) {
-      Alert.alert('Error fetching order')
+      Alert.alert('Error fetching orders')
     } finally {
       setIsLoading(false)
     }
   }, [customerId])
 
-  useEffect(() => {
-    fetchOrders()
-  }, [fetchOrders])
+  useFocusEffect(
+    useCallback(() => {
+      fetchOrders()
+    }, [fetchOrders])
+  )
 
-  const filteredOrders = orders.filter(order =>
-    order.name.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredOrders = orders.filter(order => 
+    order.name.toLowerCase().includes(searchQuery.toLowerCase()) && 
+    (selectedTab === 'ongoing' ? order.status === 'Ongoing' : order.status === 'Past')
   )
 
   const RenderItem = useCallback(({ item }) => (
@@ -81,11 +83,12 @@ const OrderListScreen = ({ navigation }) => {
       <Image source={{ uri: item.image }} style={styles.thumbnail} />
       <View style={styles.infoContainer}>
         <>
-          <Text style={styles.title}>{item.name}</Text>
-          {item.date && <Text style={styles.date}>{item.date}</Text>}
+          <Text style={styles.title}>{item.name}{item.branch && `, ${item.branch}`}</Text>
+          {item.status == 'Past' && <Text style={styles.date}>{item.date}</Text>}
+          <Text style={styles.orderNum}>Order# {item.orderNum}</Text>
           {item.status === 'Ongoing' && item.deliveryTime && <Text style={styles.date}>Pickup Time: {item.deliveryTime}</Text>}
         </>
-        <Text style={item.status === 'Completed' ? styles.subtitle : styles.ongoing}>{item.status}</Text>
+        {/* <Text style={item.status === 'Past' ? styles.subtitle : styles.ongoing}>{item.status}</Text> */}
       </View>
     </TouchableOpacity>
   ), [navigation])
@@ -97,6 +100,20 @@ const OrderListScreen = ({ navigation }) => {
         placeholder='Search Restaurants..' 
         onSearch={setSearchQuery}
       />
+      <View style={styles.tabsContainer}>
+        <TouchableOpacity
+          style={[styles.tab, selectedTab === 'ongoing' && styles.selectedTab]}
+          onPress={() => setSelectedTab('ongoing')}
+        >
+          <Text style={styles.tabText}>Ongoing Orders</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.tab, selectedTab === 'past' && styles.selectedTab]}
+          onPress={() => setSelectedTab('past')}
+        >
+          <Text style={styles.tabText}>Past Orders</Text>
+        </TouchableOpacity>
+      </View>
       {isLoading ? (
         <ActivityIndicator size="large" />
       ) : filteredOrders.length === 0 ? (
@@ -130,8 +147,7 @@ const styles = StyleSheet.create({
   infoContainer: {
     flex: 1,
     marginLeft: 20,
-    paddingVertical: 4,
-    justifyContent: 'space-between'
+    paddingVertical: 10,
   },
   title: {
     fontSize: 14,
@@ -148,7 +164,12 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     color: 'black',
-    marginTop: -20,
+  },
+  orderNum: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: 'black',
+    marginTop: 5,
   },
   ongoing: {
     fontSize: 12,
@@ -168,5 +189,24 @@ const styles = StyleSheet.create({
   noOrderText: {
     fontSize: 16,
     color: 'gray'
+  },
+  tabsContainer: {
+    flexDirection: 'row',
+    marginBottom: 15,
+  },
+  tab: {
+    flex: 1,
+    padding: 10,
+    alignItems: 'center',
+    borderBottomWidth: 2,
+    borderBottomColor: 'transparent',
+  },
+  selectedTab: {
+    borderBottomColor: colors.theme,
+  },
+  tabText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: 'black'
   }
 })

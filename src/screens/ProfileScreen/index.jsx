@@ -11,6 +11,7 @@ import { makeCall } from 'utils/makeCall'
 const ProfileScreen = ({navigation}) => {
   const dispatch = useDispatch()
   const customer = useSelector(state => state.authentication.customer)
+  console.log('cus', customer)
   const handleSettingsPress = () => {
     navigation.navigate('SettingsScreen')
   };
@@ -80,9 +81,10 @@ const styles = StyleSheet.create({
   },
   userName: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: '600',
     color: 'black',
     marginBottom: 20,
+    textTransform: 'capitalize'
   },
   buttonGroup: {
     borderRadius: 10,
@@ -101,7 +103,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: '500',
     color: colors.theme,
   },
 })

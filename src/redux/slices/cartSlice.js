@@ -225,7 +225,7 @@ const cartSlice = createSlice({
       state.discountCode = null
       state.discountDescription = null
       state.instructions = ''
-      state.restaurantId = ''  // Reset restaurantId
+      state.restaurantId = ''
     },
     setRestaurantId: (state, action) => {
       state.restaurantId = action.payload
