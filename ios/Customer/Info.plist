@@ -47,5 +47,31 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>app-1-959474970060-ios-1c69efc024549c7b464169</string>
+			</array>
+		</dict>
+	</array>
+	<key>NSCameraUsageDescription</key>
+	<string>We need access to your camera to take photos.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>We need access to your photo library to select photos.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>We need access to your location to provide a better experience</string>
+	<key>NSLocationUsageDescription</key>
+	<string>We need access to your location to provide a better experience</string>
+	<key>NSCellularUsageDescription</key>
+	<string>We need access to your cellular data to provide a better experience</string>
+	<key>NSNotificationsUsageDescription</key>
+	<string>We need access to notifications to provide you with timely updates and alerts</string>
 </dict>
 </plist>
+
+
+
