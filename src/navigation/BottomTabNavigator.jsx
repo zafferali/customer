@@ -37,7 +37,7 @@ function BottomTabNavigator() {
           return {
             tabBarStyle: {
               display: hideOnScreens.includes(routeName) ? 'none' : 'flex',
-              height: 70,
+              height: 65,
               paddingTop: 10,
             },
             tabBarIcon: ({ focused }) => (
@@ -58,7 +58,7 @@ function BottomTabNavigator() {
         options={({ route }) => ({
           tabBarStyle: {
             display: getFocusedRouteNameFromRoute(route) === 'OrderStatusScreen' ? 'none' : 'flex',
-            height: 70,
+            height: 65,
             paddingTop: 10,
           },
           tabBarIcon: ({ focused }) => (
@@ -78,7 +78,8 @@ function BottomTabNavigator() {
         options={({ route }) => ({
           tabBarStyle: {
             display: getFocusedRouteNameFromRoute(route) === 'SettingsScreen' ? 'none' : 'flex',
-            height: 70,
+            height: 65,
+            justifyContent: 'center',
             paddingTop: 10,
           },
           tabBarIcon: ({ focused }) => (

@@ -26,7 +26,7 @@ function App() {
   
   return (
     <SafeAreaView style={{flex: 1}}>
-      <StatusBar backgroundColor="transparent" translucent={true} />
+      {/* <StatusBar backgroundColor="transparent" translucent={true} /> */}
         <NavigationContainer>
           {!isAuthenticated ? 
           <AuthStackNavigator/> 

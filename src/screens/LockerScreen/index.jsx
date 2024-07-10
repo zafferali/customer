@@ -128,8 +128,9 @@ const LockerScreen = ({ navigation }) => {
       customerId: customer.id,
       restaurantId: currentRestaurant.id,
       restaurantName: currentRestaurant.name,
-      branchName: currentRestaurant.branch,
-      restaurantImage: currentRestaurant.thumbnailUrl,
+      customerName: customer.name,
+      ...(currentRestaurant.branch && { branchName: currentRestaurant.branch }),
+      restaurantImage: currentRestaurant.thumbnailUrl || '',
       deliveryTime: selectedTimeSlot,
       orderNum: orderId,
       pickupCode: pickupCode,
@@ -228,7 +229,7 @@ const LockerScreen = ({ navigation }) => {
           transparent={true}
           visible={paymentSuccess}
           onRequestClose={() => {
-            setPaymentSuccess(false); // This will close the modal when the back button is pressed on Android.
+            setPaymentSuccess(false); 
           }}
         >
           <View style={styles.centeredView}>
@@ -240,11 +241,11 @@ const LockerScreen = ({ navigation }) => {
           </View>
         </Modal>
       </Layout>
-      {isLoading ? (
+      {isLoading && (
         <View style={styles.overlayStyle}>
           <ActivityIndicator size='large' color={colors.theme} />
         </View>
-      ) : null}
+      ) }
     </>
   );
 };

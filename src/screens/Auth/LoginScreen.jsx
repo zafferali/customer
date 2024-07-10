@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react'
-import { View, Text, TextInput, ImageBackground, TouchableOpacity, StyleSheet, Image, KeyboardAvoidingView, ActivityIndicator, Alert } from 'react-native'
+import { View, Text, TextInput, ImageBackground, TouchableOpacity, StyleSheet, StatusBar, Image, KeyboardAvoidingView, ActivityIndicator, Alert } from 'react-native'
 import colors from 'constants/colors'
 import auth from '@react-native-firebase/auth'
 import { useDispatch, useSelector } from 'react-redux'
@@ -95,9 +95,10 @@ const LoginScreen = () => {
 
     return (
         <KeyboardAvoidingView
-            behavior="padding"
+            behavior="height"
             style={styles.container}
         >
+            {/* <StatusBar translucent backgroundColor="transparent" /> */}
             <ImageBackground
                 source={require('images/home.png')}
                 style={styles.backgroundImage}
@@ -274,10 +275,10 @@ const styles = StyleSheet.create({
     logoContainer: {
         alignItems: 'center',
         justifyContent: 'flex-end',
-        height: '30%'
+        height: '30%',
     },
     content: {
-        flex: 1,
+        // flex: 1,
         paddingTop: '15%',
         alignItems: 'center',
         justifyContent: 'center',

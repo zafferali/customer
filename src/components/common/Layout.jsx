@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, Text, Image, TouchableOpacity, KeyboardAvoidingView, SafeAreaView } from 'react-native';
+import { View, StyleSheet, Text, Image, TouchableOpacity, KeyboardAvoidingView, SafeAreaView, StatusBar } from 'react-native';
 import { useSelector } from 'react-redux';
 import colors from 'constants/colors';
 
@@ -32,7 +32,8 @@ const Layout = (
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       // keyboardVerticalOffset={Platform.OS === "ios" ? 24 : 0}
     >
-      <SafeAreaView style={{flex: 1}}>
+      <StatusBar barStyle="dark-content" backgroundColor="white" />
+      {/* <SafeAreaView style={{flex: 1}}> */}
         <View style={styles.container}>
         <View style={styles.headerContainer}>
           {backTitle ?
@@ -72,7 +73,7 @@ const Layout = (
               </TouchableOpacity>
             </View>}
         </View>}
-        </SafeAreaView>
+        {/* </SafeAreaView> */}
     </KeyboardAvoidingView>
     
   )}

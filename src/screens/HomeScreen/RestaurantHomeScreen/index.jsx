@@ -1,4 +1,6 @@
-import { StyleSheet, TouchableOpacity, View, Text, Image, SectionList, ActivityIndicator, Modal, ScrollView, Button } from 'react-native'
+import {
+  StyleSheet, TouchableOpacity, View, Text, Image, SectionList, ActivityIndicator, Modal, ScrollView, Button
+} from 'react-native'
 import React, { useState, useEffect, useRef } from 'react'
 import { GlobalStyles } from 'constants/GlobalStyles'
 import Layout from 'common/Layout'
@@ -71,11 +73,9 @@ const selectItemQuantity = createSelector(
   }
 )
 
-
 const FoodItem = ({ data, dispatch, openModal }) => {
   const count = useSelector(state => selectItemQuantity(state, data))
   const cartItems = useSelector(state => state.cart.items.filter(item => item.itemId === data.id))
-
 
   const Counter = () => {
     const customisations = useSelector(state => state.cart.items.find(item => item.itemId === data.id)?.customisations || [])
@@ -85,8 +85,7 @@ const FoodItem = ({ data, dispatch, openModal }) => {
     }
     const handleDecrement = () => {
       if (cartItems.length > 0) {
-        // Remove the last added item with this itemId
-        const lastAddedItem = cartItems[cartItems.length - 1];
+        const lastAddedItem = cartItems[cartItems.length - 1]
         removeItem(lastAddedItem.cartItemId, dispatch)
       }
     }
@@ -123,21 +122,19 @@ const FoodItem = ({ data, dispatch, openModal }) => {
 const createOrUpdateCart = async (cartState, customerId, restaurantId) => {
   try {
     const cartRef = firestore().collection('carts').doc(customerId)
-    // Set the cart data
     await cartRef.set({
       ...cartState, 
       customerId, 
       restaurantId, 
       orderComplete: false
-    }, { merge: true }) // Use merge to update the document without overwriting the entire document
-
+    }, { merge: true })
     console.log('Cart successfully created or updated')
   } catch (error) {
     console.log('Error creating or updating cart: ', error)
   }
 }
 
-const RestaurantHomeScreen = ({ navigation,route }) => {
+const RestaurantHomeScreen = ({ navigation, route }) => {
   const restaurant = useSelector(state => state.restaurants.currentRestaurant)
   const customerId = useSelector(state => state.authentication.customer.id)
   const restaurantId = route.params.restaurantId
@@ -158,7 +155,6 @@ const RestaurantHomeScreen = ({ navigation,route }) => {
   const [selectedCustomisations, setSelectedCustomisations] = useState({})
   const [lastUsedCustomisations, setLastUsedCustomisations] = useState({})
   const [isUsingLastCustomizations, setIsUsingLastCustomizations] = useState(false)
-  
 
   useEffect(() => {
     dispatch(setRestaurantId(restaurantId))
@@ -315,7 +311,6 @@ const RestaurantHomeScreen = ({ navigation,route }) => {
     setSelectedItem(item)
     if (lastUsedCustomisations[item.id]) {
       setSelectedCustomisations(lastUsedCustomisations[item.id])
-      // Optionally set a flag to indicate these are last used customizations
       setIsUsingLastCustomizations(true)
     } else {
       initializeCustomisations(item.customisations)
@@ -337,10 +332,6 @@ const RestaurantHomeScreen = ({ navigation,route }) => {
     }
   }
 
-  // const resetCustomizations = () => {
-  //   initializeCustomisations(selectedItem.customisations)
-  // }
-
   const closeModal = () => {
     setAddItemModalVisible(false)
     setSelectedItem(null)
@@ -348,7 +339,7 @@ const RestaurantHomeScreen = ({ navigation,route }) => {
 
   const confirmAddItem = () => {
     const customisationsWithPrice = Object.entries(selectedCustomisations).map(([key, choices]) => {
-      const originalCustomisation = selectedItem.customisations.find(c => c.title === key);
+      const originalCustomisation = selectedItem.customisations.find(c => c.title === key)
       return {
         title: key,
         choices: Array.isArray(choices)
@@ -358,10 +349,9 @@ const RestaurantHomeScreen = ({ navigation,route }) => {
             }))
           : [],
         multiOption: originalCustomisation ? originalCustomisation.multiOption : false
-      };
-    });
+      }
+    })
 
-    // Save the last used customisations for this item
     setLastUsedCustomisations(prev => ({
       ...prev,
       [selectedItem.id]: selectedCustomisations
@@ -448,120 +438,117 @@ const RestaurantHomeScreen = ({ navigation,route }) => {
         value={searchQuery}
         onSearch={setSearchQuery}
       />
-      <View style={styles.categoryContainer}>
-        <View style={styles.filterContainer}>
-          <MultiSelectButton label="Veg" />
-          <MultiSelectButton label="Non-Veg" />
-          <MultiSelectButton label="Vegan" />
-        </View>
-        <TouchableOpacity style={styles.floatingButton} onPress={() => setMenuModalVisible(true)}>
-          <Image style={styles.menuIcon} source={require('images/menuIcon.png')} />
-          <Text style={styles.floatingButtonText}>Menu</Text>
-        </TouchableOpacity>
-        <Modal
-          animationType="slide"
-          transparent={true}
-          visible={menuModalVisible}
-          onRequestClose={() => setMenuModalVisible(false)}
-        >
-          <TouchableOpacity style={[styles.modalOverlay, { justifyContent: 'center' }]} onPress={() => setMenuModalVisible(false)}>
-            <TouchableOpacity activeOpacity={1} style={styles.modalView}>
-              <Text style={styles.modalTitle}>Menu</Text>
-              <ScrollView style={styles.modalScrollView}>
-                {filteredAvailableItems.map((section) => (
-                  <TouchableOpacity key={section.key} onPress={() => {
-                    scrollToCategory(section.key)
-                    setMenuModalVisible(false)
-                  }}>
-                    <Text style={styles.modalCategory}>{section.title}</Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-              <Button title="Close" onPress={() => setMenuModalVisible(false)} />
-            </TouchableOpacity>
-          </TouchableOpacity>
-        </Modal>
-        <Modal
-          animationType="slide"
-          transparent={true}
-          visible={addItemModalVisible}
-          onRequestClose={closeModal}
-        >
-          <TouchableOpacity style={styles.modalOverlay} onPress={closeModal}>
-          <TouchableOpacity onPress={closeModal}>
-                  <Image style={{ width: 30, height: 30, marginBottom: 6 }} source={require('images/close.png')} />
-          </TouchableOpacity>
-            <TouchableOpacity activeOpacity={1} style={styles.bottomModalView}>
-              <View style={styles.bottomModalHeader}>
-                <Text style={styles.modalTitle}>{selectedItem?.name}</Text>
-              </View>
-              {selectedItem && (
-                <ScrollView style={styles.modalScrollView}>
-                  {/* {isUsingLastCustomizations && (
-                    <Text style={styles.lastUsedNotice}>Using your last customizations</Text>
-                  )} */}
-                  {selectedItem.customisations && selectedItem.customisations.length > 0 && selectedItem.customisations.map((customisation, index) => (
-                    <View key={index}>
-                      <Text style={styles.modalSectionTitle}>{customisation.title}</Text>
-                      <Text style={styles.modalSubtitle}>
-                        {generateSubtitle(customisation.required, customisation.multiOption, customisation.limit)}
-                      </Text>
-                      <View style={styles.sectionCard}>
-                        {customisation.choices.map((choice, idx) => (
-                          <View key={idx} style={styles.modalItem}>
-                            <View>
-                              <Text style={styles.modalItemText}>{choice.name}</Text>
-                            </View>
-                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                              {choice.price !== undefined && (
-                                <Text style={styles.price}>+ ₹{choice.price}</Text>
-                              )}
-                              {customisation.multiOption ? (
-                                <CustomCheckbox
-                                  isSelected={selectedCustomisations[customisation.title]?.some(selectedChoice => selectedChoice.name === choice.name) || false}
-                                  onPress={() => handleCustomisationSelect(customisation.title, choice, customisation.multiOption, customisation.limit)}
-                                />
-                              ) : (
-                                <CustomRadioButton
-                                  isSelected={selectedCustomisations[customisation.title]?.some(selectedChoice => selectedChoice.name === choice.name) || false}
-                                  onPress={() => handleCustomisationSelect(customisation.title, choice, customisation.multiOption, customisation.limit)}
-                                />
-                              )}
-                            </View>
-                          </View>
-                        ))}
-                      </View>
-                    </View>
-                  ))}
-                 {/* { isUsingLastCustomizations && <CustomButton
-                    title="Reset to Default"
-                    onPress={resetCustomizations}
-                    style={styles.resetButton}
-                  />} */}
-                </ScrollView>
-              )}
-              <CustomButton style={styles.button} title='Add to Cart' onPress={confirmAddItem} />
-            </TouchableOpacity>
-          </TouchableOpacity>
-        </Modal>
-      </View>
       {isLoading && <ActivityIndicator size="large" />}
-      <SectionList
-        ref={sectionListRef}
-        sections={filteredAvailableItems}
-        keyExtractor={(item, index) => item.id + index}
-        renderItem={({ item }) => <FoodItem data={item} dispatch={dispatch} openModal={openModal} />}
-        renderSectionHeader={({ section: { title } }) => (
-          <Text style={styles.sectionHeader}>{title}</Text>
-        )}
-        stickySectionHeadersEnabled={false}
-        ListFooterComponent={renderUnavailableItems}
-      />
+      {!isLoading && (
+        <>
+          <View style={styles.categoryContainer}>
+            <View style={styles.filterContainer}>
+              <MultiSelectButton label="Veg" />
+              <MultiSelectButton label="Non-Veg" />
+              <MultiSelectButton label="Vegan" />
+            </View>
+            <TouchableOpacity style={styles.floatingButton} onPress={() => setMenuModalVisible(true)}>
+              <Image style={styles.menuIcon} source={require('images/menuIcon.png')} />
+              <Text style={styles.floatingButtonText}>Menu</Text>
+            </TouchableOpacity>
+            <Modal
+              animationType="slide"
+              transparent={true}
+              visible={menuModalVisible}
+              onRequestClose={() => setMenuModalVisible(false)}
+            >
+              <TouchableOpacity style={[styles.modalOverlay, { justifyContent: 'center' }]} onPress={() => setMenuModalVisible(false)}>
+                <TouchableOpacity activeOpacity={1} style={styles.modalView}>
+                  <Text style={styles.modalTitle}>Menu</Text>
+                  <ScrollView style={styles.modalScrollView}>
+                    {filteredAvailableItems.map((section) => (
+                      <TouchableOpacity key={section.key} onPress={() => {
+                        scrollToCategory(section.key)
+                        setMenuModalVisible(false)
+                      }}>
+                        <Text style={styles.modalCategory}>{section.title}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                  <Button title="Close" onPress={() => setMenuModalVisible(false)} />
+                </TouchableOpacity>
+              </TouchableOpacity>
+            </Modal>
+            <Modal
+              animationType="slide"
+              transparent={true}
+              visible={addItemModalVisible}
+              onRequestClose={closeModal}
+            >
+              <TouchableOpacity style={styles.modalOverlay} onPress={closeModal}>
+                <TouchableOpacity onPress={closeModal}>
+                  <Image style={{ width: 30, height: 30, marginBottom: 6 }} source={require('images/close.png')} />
+                </TouchableOpacity>
+                <TouchableOpacity activeOpacity={1} style={styles.bottomModalView}>
+                  <View style={styles.bottomModalHeader}>
+                    <Text style={styles.modalTitle}>{selectedItem?.name}</Text>
+                  </View>
+                  {selectedItem && (
+                    <ScrollView style={styles.modalScrollView}>
+                      {selectedItem.customisations && selectedItem.customisations.length > 0 && selectedItem.customisations.map((customisation, index) => (
+                        <View key={index}>
+                          <Text style={styles.modalSectionTitle}>{customisation.title}</Text>
+                          <Text style={styles.modalSubtitle}>
+                            {generateSubtitle(customisation.required, customisation.multiOption, customisation.limit)}
+                          </Text>
+                          <View style={styles.sectionCard}>
+                            {customisation.choices.map((choice, idx) => (
+                              <View key={idx} style={styles.modalItem}>
+                                <View>
+                                  <Text style={styles.modalItemText}>{choice.name}</Text>
+                                </View>
+                                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                  {choice.price !== undefined && (
+                                    <Text style={styles.price}>+ ₹{choice.price}</Text>
+                                  )}
+                                  {customisation.multiOption ? (
+                                    <CustomCheckbox
+                                      isSelected={selectedCustomisations[customisation.title]?.some(selectedChoice => selectedChoice.name === choice.name) || false}
+                                      onPress={() => handleCustomisationSelect(customisation.title, choice, customisation.multiOption, customisation.limit)}
+                                    />
+                                  ) : (
+                                    <CustomRadioButton
+                                      isSelected={selectedCustomisations[customisation.title]?.some(selectedChoice => selectedChoice.name === choice.name) || false}
+                                      onPress={() => handleCustomisationSelect(customisation.title, choice, customisation.multiOption, customisation.limit)}
+                                    />
+                                  )}
+                                </View>
+                              </View>
+                            ))}
+                          </View>
+                        </View>
+                      ))}
+                    </ScrollView>
+                  )}
+                  <CustomButton style={styles.button} title='Add to Cart' onPress={confirmAddItem} />
+                </TouchableOpacity>
+              </TouchableOpacity>
+            </Modal>
+          </View>
+          <SectionList
+            ref={sectionListRef}
+            sections={filteredAvailableItems}
+            keyExtractor={(item, index) => item.id + index}
+            renderItem={({ item }) => <FoodItem data={item} dispatch={dispatch} openModal={openModal} />}
+            renderSectionHeader={({ section: { title } }) => (
+              <Text style={styles.sectionHeader}>{title}</Text>
+            )}
+            stickySectionHeadersEnabled={false}
+            ListFooterComponent={renderUnavailableItems}
+          />
+        </>
+      )}
     </Layout>
   )
 }
 
 export default RestaurantHomeScreen
+
 
 const styles = StyleSheet.create({
   card: {
