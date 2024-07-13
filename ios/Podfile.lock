@@ -2056,7 +2056,7 @@ PODS:
   - react-native-razorpay (2.3.0):
     - razorpay-pod
     - React
-  - react-native-safe-area-context (4.10.4):
+  - react-native-safe-area-context (4.10.8):
     - React-Core
   - React-nativeconfig (0.73.4)
   - React-NativeModulesApple (0.73.4):
@@ -2226,7 +2226,7 @@ PODS:
     - React-logger (= 0.73.4)
     - React-perflogger (= 0.73.4)
   - RecaptchaInterop (100.0.0)
-  - RNCAsyncStorage (1.23.1):
+  - RNCAsyncStorage (1.24.0):
     - React-Core
   - RNCCheckbox (0.5.17):
     - BEMCheckBox (~> 1.4)
@@ -2256,13 +2256,13 @@ PODS:
     - Firebase/Storage (= 10.27.0)
     - React-Core
     - RNFBApp
-  - RNGestureHandler (2.16.2):
+  - RNGestureHandler (2.17.1):
     - glog
     - RCT-Folly (= 2022.05.16.00)
     - React-Core
   - RNPermissions (4.1.5):
     - React-Core
-  - RNScreens (3.31.1):
+  - RNScreens (3.32.0):
     - glog
     - RCT-Folly (= 2022.05.16.00)
     - React-Core
@@ -2565,7 +2565,7 @@ SPEC CHECKSUMS:
   react-native-get-random-values: 21325b2244dfa6b58878f51f9aa42821e7ba3d06
   react-native-image-picker: fefff630cfa3ee6a809f6ac6569981f4a34e0050
   react-native-razorpay: 0272dd684bc9148828c54a72e05059e3e2e8b813
-  react-native-safe-area-context: 399a5859f6acbdf67f671c69b53113f535f3b5b0
+  react-native-safe-area-context: b7daa1a8df36095a032dff095a1ea8963cb48371
   React-nativeconfig: ca8b90c736cf3be019cb332ca42d93dd95b32e05
   React-NativeModulesApple: 1fdffcce7772e274baeab33a1900f45feba86cbd
   React-perflogger: 8a1e1af5733004bdd91258dcefbde21e0d1faccd
@@ -2587,7 +2587,7 @@ SPEC CHECKSUMS:
   React-utils: 21a798438d45e70ed9c2e2fe0894ee32ba7b7c5b
   ReactCommon: dcc65c813041388dead6c8b477444757425ce961
   RecaptchaInterop: 7d1a4a01a6b2cb1610a47ef3f85f0c411434cb21
-  RNCAsyncStorage: 826b603ae9c0f88b5ac4e956801f755109fa4d5c
+  RNCAsyncStorage: ec53e44dc3e75b44aa2a9f37618a49c3bc080a7a
   RNCCheckbox: a3ca9978cb0846b981d28da4e9914bd437403d77
   RNFBApp: 9acbe359ef3559d6f8ca5c350db471f2b352f98a
   RNFBAppCheck: 436e6e12b4a6e9cc71e601dc480a704c4b620a16
@@ -2595,9 +2595,9 @@ SPEC CHECKSUMS:
   RNFBFirestore: a60f00920799fa7bb71a1ecb682e4e6918f6f2b0
   RNFBMessaging: b82ef70d252500d3ad104284c0c7f8e1cd22b51e
   RNFBStorage: d4935d5db062e552edb623d77e7c460dc45d35d1
-  RNGestureHandler: a51b249f3c779e38a5d9ec45cb107d8780b39fb2
+  RNGestureHandler: 3e87b5059b54bf1315bba9bc0252fb08d8e2d7b2
   RNPermissions: 294531ede5a64d1528463e88fffef05675842042
-  RNScreens: 35f3344904f6bba888c0e61532278436e275de3c
+  RNScreens: e9eece68a6303235ba9c31a5b816cb416a88ae98
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
   Yoga: 1b901a6d6eeba4e8a2e8f308f708691cdb5db312
 
