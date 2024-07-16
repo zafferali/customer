@@ -4,10 +4,10 @@ import colors from 'constants/colors';
 
 const Add = ({ onPress }) => {
   return (
-      <TouchableOpacity style={styles.button} onPress={onPress}>
-          <Image style={styles.icon} source={require('images/plus.png')}/>
-          <Text style={styles.text}>Add</Text>
-      </TouchableOpacity>
+    <TouchableOpacity style={styles.button} onPress={onPress}>
+      <Image style={styles.icon} source={require('assets/images/plus.png')} />
+      <Text style={styles.text}>Add</Text>
+    </TouchableOpacity>
   );
 };
 

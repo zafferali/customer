@@ -3,7 +3,7 @@ import firestore from '@react-native-firebase/firestore';
 /**
  * Generates a pickup code using the full vendor code from the restaurant and the last part of the order ID,
  * which consists of either the last 3 or 4 digits, depending on the order ID length.
- * 
+ *
  * @param {string} restaurantId The ID of the restaurant to fetch the vendor code.
  * @param {string} orderId The generated order ID which includes the date prefix.
  * @returns {Promise<string>} A promise that resolves to the pickup code.
@@ -14,12 +14,12 @@ async function generatePickupCode(restaurantId, orderId) {
     const restaurantRef = firestore().collection('restaurants').doc(restaurantId);
     const restaurantDoc = await restaurantRef.get();
     if (!restaurantDoc.exists) {
-      throw new Error("Restaurant not found");
+      throw new Error('Restaurant not found');
     }
 
-    const vendorCode = restaurantDoc.data().vendorCode;
+    const { vendorCode } = restaurantDoc.data();
     if (!vendorCode) {
-      throw new Error("Vendor code is missing");
+      throw new Error('Vendor code is missing');
     }
 
     // Extract the last 3 or 4 digits from the order ID (excluding the YYMMDD part)

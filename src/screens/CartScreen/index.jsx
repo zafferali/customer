@@ -1,179 +1,208 @@
-import { StyleSheet, Text, View, TextInput, ScrollView, TouchableOpacity, Image, Keyboard, ActivityIndicator } from 'react-native'
-import React, { useState, useEffect } from 'react'
-import Layout from 'common/Layout'
-import InputWithButton from 'common/InputWithButton'
-import colors from 'constants/colors'
-import DiscountPopup from './DiscountPopup'
-import { useDispatch, useSelector } from 'react-redux'
-import { addToCart, removeFromCart, specialInstructions, applyDiscount, removeDiscount } from 'slices/cartSlice'
-import firestore from '@react-native-firebase/firestore'
+import {
+  StyleSheet,
+  Text,
+  View,
+  TextInput,
+  ScrollView,
+  TouchableOpacity,
+  Image,
+  Keyboard,
+  ActivityIndicator,
+} from 'react-native';
+import React, { useState, useEffect } from 'react';
+import Layout from 'components/common/Layout';
+import InputWithButton from 'components/common/InputWithButton';
+import colors from 'constants/colors';
+import { useDispatch, useSelector } from 'react-redux';
+import {
+  addToCart,
+  removeFromCart,
+  specialInstructions,
+  applyDiscount,
+  removeDiscount,
+} from 'redux/slices/cartSlice';
+import firestore from '@react-native-firebase/firestore';
+import DiscountPopup from './DiscountPopup';
 
 const CartScreen = ({ navigation }) => {
-  const dispatch = useDispatch()
-  const [instructions, setInstructions] = useState('')
-  const [discountCode, setDiscountCode] = useState('')
-  const [isPopupVisible, setPopupVisible] = useState(false)
-  const [discountError, setDiscountError] = useState(null)
-  const [additionalAmountNeeded, setAdditionalAmountNeeded] = useState(null)
-  const [isLoading, setIsLoading] = useState(false)
+  const dispatch = useDispatch();
+  const [instructions, setInstructions] = useState('');
+  const [discountCode, setDiscountCode] = useState('');
+  const [isPopupVisible, setPopupVisible] = useState(false);
+  const [discountError, setDiscountError] = useState(null);
+  const [additionalAmountNeeded, setAdditionalAmountNeeded] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const cart = useSelector(state => state.cart)
-  const restaurantId = useSelector(state => state.restaurants.currentRestaurant.id)
-  const userOrderCount = useSelector(state => state.authentication.customer.orderCount)
-  const appliedDiscount = useSelector(state => state.cart.discountCode)
+  const cart = useSelector(state => state.cart);
+  const restaurantId = useSelector(state => state.restaurants.currentRestaurant.id);
+  const userOrderCount = useSelector(state => state.authentication.customer.orderCount);
+  const appliedDiscount = useSelector(state => state.cart.discountCode);
 
   const validateDiscountCode = async (code, autoApply = false) => {
     try {
-      setIsLoading(true)
-      const discountCodesSnapshot = await firestore().collection('discountCodes').where('code', '==', code).get()
+      setIsLoading(true);
+      const discountCodesSnapshot = await firestore()
+        .collection('discountCodes')
+        .where('code', '==', code)
+        .get();
 
       if (discountCodesSnapshot.empty) {
-        throw new Error('Discount code is not valid')
+        throw new Error('Discount code is not valid');
       }
 
-      const discount = discountCodesSnapshot.docs[0].data()
-      const { restaurants, userRestrictions, minimumBillAmount, amount, percentage, expiryDate } = discount
+      const discount = discountCodesSnapshot.docs[0].data();
+      const { restaurants, userRestrictions, minimumBillAmount, amount, percentage, expiryDate } = discount;
 
-      const fetchRestaurantRefs = async (restaurants) => {
-        if (!restaurants || restaurants.length === 0) return true
+      const fetchRestaurantRefs = async restaurants => {
+        if (!restaurants || restaurants.length === 0) return true;
         const restaurantIds = await Promise.all(
-          restaurants.map(async (ref) => {
-            const restaurantDoc = await ref.get()
-            return restaurantDoc.id
-          })
-        )
-        return restaurantIds.includes(restaurantId)
-      }
+          restaurants.map(async ref => {
+            const restaurantDoc = await ref.get();
+            return restaurantDoc.id;
+          }),
+        );
+        return restaurantIds.includes(restaurantId);
+      };
 
-      const applicableForRestaurant = await fetchRestaurantRefs(restaurants)
-      const applicableForUser = !userRestrictions || (
+      const applicableForRestaurant = await fetchRestaurantRefs(restaurants);
+      const applicableForUser =
+        !userRestrictions ||
         !userRestrictions.firstTimeOnly ||
-        (userRestrictions.maxUsagePerUser === 0 || userRestrictions.maxUsagePerUser == null) ||
-        (userOrderCount < userRestrictions.maxUsagePerUser)
-      )
-      const isMinimumAmountMet = !minimumBillAmount || cart.subTotal >= minimumBillAmount
+        userRestrictions.maxUsagePerUser === 0 ||
+        userRestrictions.maxUsagePerUser == null ||
+        userOrderCount < userRestrictions.maxUsagePerUser;
+      const isMinimumAmountMet = !minimumBillAmount || cart.subTotal >= minimumBillAmount;
 
-      const now = new Date()
-      const isExpired = expiryDate && expiryDate.toDate().setHours(23, 59, 59, 999) < now
+      const now = new Date();
+      const isExpired = expiryDate && expiryDate.toDate().setHours(23, 59, 59, 999) < now;
 
       if (isExpired) {
-        setDiscountError('Discount code is expired')
-        setAdditionalAmountNeeded(null)
-        return
+        setDiscountError('Discount code is expired');
+        setAdditionalAmountNeeded(null);
+        return;
       }
 
       if (!applicableForRestaurant || !applicableForUser || !isMinimumAmountMet) {
         if (!isMinimumAmountMet && minimumBillAmount) {
-          setAdditionalAmountNeeded(minimumBillAmount - cart.subTotal)
-          if (!autoApply) setDiscountError(null)
+          setAdditionalAmountNeeded(minimumBillAmount - cart.subTotal);
+          if (!autoApply) setDiscountError(null);
         } else {
-          if (!autoApply) setDiscountError('Discount code is not applicable')
-          setAdditionalAmountNeeded(null)
+          if (!autoApply) setDiscountError('Discount code is not applicable');
+          setAdditionalAmountNeeded(null);
         }
-        return
+        return;
       }
 
-      let discountAmount = 0
+      let discountAmount = 0;
 
       if (amount) {
-        discountAmount = amount
+        discountAmount = amount;
       } else if (percentage) {
-        discountAmount = (cart.subTotal * percentage) / 100
+        discountAmount = (cart.subTotal * percentage) / 100;
       }
 
-      dispatch(applyDiscount({
-        discountAmount,
-        discountCode: code,
-        discountDescription: discount.description
-      }))
-      setDiscountError(null)
-      setDiscountCode('')
-      setAdditionalAmountNeeded(null)
+      dispatch(
+        applyDiscount({
+          discountAmount,
+          discountCode: code,
+          discountDescription: discount.description,
+        }),
+      );
+      setDiscountError(null);
+      setDiscountCode('');
+      setAdditionalAmountNeeded(null);
     } catch (error) {
-      if (!autoApply) setDiscountError(error.message)
-      setAdditionalAmountNeeded(null)
+      if (!autoApply) setDiscountError(error.message);
+      setAdditionalAmountNeeded(null);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleValidate = () => {
-    validateDiscountCode(discountCode)
-  }
+    validateDiscountCode(discountCode);
+  };
 
   const saveCartDetails = () => {
-    if (instructions) dispatch(specialInstructions(instructions))
-    navigation.navigate('LockerScreen')
-  }
+    if (instructions) dispatch(specialInstructions(instructions));
+    navigation.navigate('LockerScreen');
+  };
 
   const handleRemoveDiscount = () => {
-    dispatch(removeDiscount())
-  }
+    dispatch(removeDiscount());
+  };
 
   useEffect(() => {
     const checkMinimumBillAmount = async () => {
       if (appliedDiscount) {
-        const discountCodesSnapshot = await firestore().collection('discountCodes').where('code', '==', appliedDiscount).get()
+        const discountCodesSnapshot = await firestore()
+          .collection('discountCodes')
+          .where('code', '==', appliedDiscount)
+          .get();
 
         if (!discountCodesSnapshot.empty) {
-          const discount = discountCodesSnapshot.docs[0].data()
-          const { minimumBillAmount } = discount
+          const discount = discountCodesSnapshot.docs[0].data();
+          const { minimumBillAmount } = discount;
 
           if (minimumBillAmount && cart.subTotal < minimumBillAmount) {
-            dispatch(removeDiscount())
-            setAdditionalAmountNeeded(minimumBillAmount - cart.subTotal)
+            dispatch(removeDiscount());
+            setAdditionalAmountNeeded(minimumBillAmount - cart.subTotal);
           } else if (minimumBillAmount && cart.subTotal >= minimumBillAmount) {
-            validateDiscountCode(appliedDiscount, true)
+            validateDiscountCode(appliedDiscount, true);
           } else {
-            setAdditionalAmountNeeded(null)
+            setAdditionalAmountNeeded(null);
           }
         }
       }
-    }
+    };
 
-    checkMinimumBillAmount()
-  }, [cart.subTotal, appliedDiscount, dispatch])
+    checkMinimumBillAmount();
+  }, [cart.subTotal, appliedDiscount, dispatch]);
 
   const LineItem = ({ data }) => {
-    const count = useSelector(state => state.cart.items.find(item => item.cartItemId === data.cartItemId)?.quantity || 0)
+    const count = useSelector(
+      state => state.cart.items.find(item => item.cartItemId === data.cartItemId)?.quantity || 0,
+    );
 
     const customisationNames = data.customisations
       .filter(cust => !cust.multiOption)
       .flatMap(cust => cust.choices.map(choice => choice.name))
-      .join(' ~ ')
+      .join(' ~ ');
 
     const Counter = () => {
       const handleIncrement = () => {
-        dispatch(addToCart({ ...data, quantity: 1 }))
-      }
+        dispatch(addToCart({ ...data, quantity: 1 }));
+      };
 
       const handleDecrement = () => {
-        dispatch(removeFromCart({ cartItemId: data.cartItemId, quantity: 1 }))
-      }
+        dispatch(removeFromCart({ cartItemId: data.cartItemId, quantity: 1 }));
+      };
 
       return (
         <View style={styles.counterContainer}>
           <TouchableOpacity onPress={handleDecrement} hitSlop={{ top: 25, bottom: 25, left: 15, right: 15 }}>
-            <Image source={require('images/minus.png')} style={styles.counterIcon} />
+            <Image source={require('assets/images/minus.png')} style={styles.counterIcon} />
           </TouchableOpacity>
           <Text style={styles.counterValue}>{count}</Text>
           <TouchableOpacity onPress={handleIncrement} hitSlop={{ top: 25, bottom: 25, left: 15, right: 15 }}>
-            <Image source={require('images/plus.png')} style={styles.counterIcon} />
+            <Image source={require('assets/images/plus.png')} style={styles.counterIcon} />
           </TouchableOpacity>
         </View>
-      )
-    }
+      );
+    };
 
     return (
       <View style={styles.lineItem}>
         <View style={styles.itemWrap}>
-          <Text style={styles.itemName}>{data.name}  <Text style={styles.price}>₹{data.price}</Text></Text>
-          {customisationNames &&<Text style={styles.customisationNames}>{customisationNames}</Text>}
+          <Text style={styles.itemName}>
+            {data.name} <Text style={styles.price}>₹{data.price}</Text>
+          </Text>
+          {customisationNames && <Text style={styles.customisationNames}>{customisationNames}</Text>}
         </View>
         <Counter />
       </View>
-    )
-  }
+    );
+  };
 
   const BillSummary = () => (
     <View style={styles.itemsContainer}>
@@ -196,15 +225,15 @@ const CartScreen = ({ navigation }) => {
         <Text style={[styles.amount]}>₹{cart.total}</Text>
       </View>
     </View>
-  )
+  );
 
   return (
     <Layout
       navigation={navigation}
-      backTitle='My Cart'
+      backTitle="My Cart"
       bottomBar
       rightButton
-      btnText='Choose Pickup Point'
+      btnText="Choose Pickup Point"
       next
       price={cart.total.toString()}
       onBtnPress={() => saveCartDetails()}
@@ -214,7 +243,9 @@ const CartScreen = ({ navigation }) => {
           <View>
             <Text style={styles.title}>Order Summary</Text>
             <View style={styles.itemsContainer}>
-              {cart.items.map(item => <LineItem key={item.cartItemId} data={item} />)}
+              {cart.items.map(item => (
+                <LineItem key={item.cartItemId} data={item} />
+              ))}
             </View>
           </View>
           <BillSummary />
@@ -237,14 +268,17 @@ const CartScreen = ({ navigation }) => {
               discountError && <Text style={styles.errorText}>{discountError}</Text>
             )}
             <InputWithButton
-              placeholder='Enter Code'
-              onChangeText={(text) => setDiscountCode(text)}
+              placeholder="Enter Code"
+              onChangeText={text => setDiscountCode(text)}
               value={discountCode}
-              buttonText='Apply'
+              buttonText="Apply"
               handleValidate={handleValidate}
               buttonDisabled={!discountCode}
             />
-            <TouchableOpacity onPress={() => setPopupVisible(true)} style={[styles.button, { marginTop: 10 }]}>
+            <TouchableOpacity
+              onPress={() => setPopupVisible(true)}
+              style={[styles.button, { marginTop: 10 }]}
+            >
               <Text style={styles.buttonText}>Browse Available Discounts</Text>
             </TouchableOpacity>
           </View>
@@ -253,13 +287,13 @@ const CartScreen = ({ navigation }) => {
           <Text style={styles.title}>Extra instructions</Text>
           <View>
             <TextInput
-              placeholder='Write your special instructions to the chef..'
-              placeholderTextColor={'rgba(0, 0, 0, 0.3)'}
+              placeholder="Write your special instructions to the chef.."
+              placeholderTextColor="rgba(0, 0, 0, 0.3)"
               style={styles.input}
               onSubmitEditing={() => Keyboard.dismiss()}
-              returnKeyType='done'
+              returnKeyType="done"
               multiline
-              onChangeText={(text) => setInstructions(text)}
+              onChangeText={text => setInstructions(text)}
               value={instructions}
             />
           </View>
@@ -275,10 +309,10 @@ const CartScreen = ({ navigation }) => {
         </View>
       )}
     </Layout>
-  )
-}
+  );
+};
 
-export default CartScreen
+export default CartScreen;
 
 const styles = StyleSheet.create({
   title: {
@@ -294,10 +328,10 @@ const styles = StyleSheet.create({
     marginVertical: 24,
     marginHorizontal: 20,
   },
-  priceContainer: {
-    flexDirection: 'row',
-    gap: 6,
-  },
+  // priceContainer: {
+  //   flexDirection: 'row',
+  //   gap: 6,
+  // },
   itemName: {
     fontSize: 16,
     color: 'black',
@@ -450,11 +484,11 @@ const styles = StyleSheet.create({
   },
   overlayStyle: {
     position: 'absolute',
-    backgroundColor: 'rgba(255,255,255,0.5)', 
+    backgroundColor: 'rgba(255,255,255,0.5)',
     width: '100%',
     height: '100%',
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 2,
   },
-})
+});

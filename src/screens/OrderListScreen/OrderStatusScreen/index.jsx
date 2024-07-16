@@ -1,70 +1,73 @@
-import { StyleSheet, Text, View, Image, Alert, ActivityIndicator } from 'react-native'
-import React, { useEffect, useState } from 'react'
-import Layout from 'common/Layout'
-import colors from 'constants/colors'
-import CustomButton from 'common/CustomButton'
-import { logout } from 'slices/authenticationSlice'
-import { useDispatch } from 'react-redux'
-import { logoutCustomer } from '../../../firebase/auth'
-import firestore from '@react-native-firebase/firestore'
-import { makeCall } from 'utils/makeCall'
+import { StyleSheet, Text, View, Image, Alert, ActivityIndicator } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import Layout from 'components/common/Layout';
+import colors from 'constants/colors';
+import CustomButton from 'components/common/CustomButton';
+import { logout } from 'redux/slices/authenticationSlice';
+import { useDispatch } from 'react-redux';
+import firestore from '@react-native-firebase/firestore';
+import { makeCall } from 'utils/makeCall';
+import { logoutCustomer } from '../../../firebase/auth';
 
 const OrderStatusScreen = ({ navigation, route }) => {
-  const dispatch = useDispatch()
-  const [currentStep, setCurrentStep] = useState(1)
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState('')
+  const dispatch = useDispatch();
+  const [currentStep, setCurrentStep] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handleLogout = () => {
-    logoutCustomer(navigation, dispatch)
-  }
+    logoutCustomer(navigation, dispatch);
+  };
 
   const callCustomerCare = () => {
     Alert.alert(
       'Do you want to call support?',
       'Please keep the Order number ready',
       [
-        { 
-          text: 'Call', 
-          onPress: () => makeCall('+919999978787')
+        {
+          text: 'Call',
+          onPress: () => makeCall('+919999978787'),
         },
-        { 
-          text: 'Cancel', 
-          style: 'cancel' 
-        }
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
       ],
-      { cancelable: true }
-    )
-  }
+      { cancelable: true },
+    );
+  };
 
   useEffect(() => {
-    if (!route.params.orderId) return
+    if (!route.params.orderId) return;
 
-    setIsLoading(true)
+    setIsLoading(true);
     const unsubscribe = firestore()
       .collection('orders')
       .doc(route.params.orderId)
-      .onSnapshot(documentSnapshot => {
-        setIsLoading(false)
-        if (documentSnapshot.exists) {
-          const orderStatus = documentSnapshot.get('orderStatus')
-          console.log('order-status is', orderStatus)
-          const statusToStep = {
-            received: 1,
-            picked: 2,
-            delivered: 3,
-            completed: 4
+      .onSnapshot(
+        documentSnapshot => {
+          setIsLoading(false);
+          if (documentSnapshot.exists) {
+            const orderStatus = documentSnapshot.get('orderStatus');
+            console.log('order-status is', orderStatus);
+            const statusToStep = {
+              received: 1,
+              picked: 2,
+              delivered: 3,
+              completed: 4,
+            };
+            setCurrentStep(statusToStep[orderStatus] || 1);
+          } else {
+            console.log('No such order!');
           }
-          setCurrentStep(statusToStep[orderStatus] || 1)
-        } else {
-          console.log("No such order!")
-        }
-      }, err => {
-        setIsLoading(false)
-      })
+        },
+        err => {
+          setIsLoading(false);
+        },
+      );
 
-    return () => unsubscribe()
-  }, [route.params.orderId])
+    return () => unsubscribe();
+  }, [route.params.orderId]);
 
   // Render each step
   const renderStep = (stepNumber, title, description, isLast) => (
@@ -77,19 +80,14 @@ const OrderStatusScreen = ({ navigation, route }) => {
           ]}
         >
           {currentStep >= stepNumber ? (
-            <Image style={{ height: 18, width: 18 }} source={require('images/tick.png')} />
+            <Image style={{ height: 18, width: 18 }} source={require('assets/images/tick.png')} />
           ) : (
             <Text style={styles.stepCheckMark}>{stepNumber}</Text>
           )}
         </View>
         {!isLast && (
           <View style={styles.dashLineContainer}>
-            <View
-              style={[
-                styles.dashLine,
-                currentStep > stepNumber ? styles.activeDashLine : {},
-              ]}
-            />
+            <View style={[styles.dashLine, currentStep > stepNumber ? styles.activeDashLine : {}]} />
           </View>
         )}
       </View>
@@ -98,25 +96,44 @@ const OrderStatusScreen = ({ navigation, route }) => {
         <Text style={styles.stepDescription}>{description}</Text>
       </View>
     </View>
-  )
+  );
 
   return (
     <Layout
       navigation={navigation}
-      title='Your Order is Confirmed'
-      title2={`Here's what happens next:`}
+      title="Your Order is Confirmed"
+      title2={"Here's what happens next:"}
       bottomBar
-      leftBtnText='Call Customer care'
-      iconLeft={require('images/phone.png')}
+      leftBtnText="Call Customer care"
+      iconLeft={require('assets/images/phone.png')}
       onLeftBtnPress={callCustomerCare}
     >
       <View style={styles.container}>
         {renderStep(1, 'Order Placed', 'Your order has been successfully placed.', false)}
-        {renderStep(2, 'Delivery to Locker', "Sit back and relax. We're getting your food delivered to the chosen Locker station.", false)}
-        {renderStep(3, 'Receive Your PIN by SMS', "You'll get a text message with a PIN once your order is safely in the locker.", false)}
-        {renderStep(4, 'Pick Up Your Order', 'Enter the PIN at the locker to retrieve your delicious meal. Enjoy it fresh and at the perfect temperature!', true)}
+        {renderStep(
+          2,
+          'Delivery to Locker',
+          "Sit back and relax. We're getting your food delivered to the chosen Locker station.",
+          false,
+        )}
+        {renderStep(
+          3,
+          'Receive Your PIN by SMS',
+          "You'll get a text message with a PIN once your order is safely in the locker.",
+          false,
+        )}
+        {renderStep(
+          4,
+          'Pick Up Your Order',
+          'Enter the PIN at the locker to retrieve your delicious meal. Enjoy it fresh and at the perfect temperature!',
+          true,
+        )}
       </View>
-      <CustomButton title='View all Orders' style={{ marginTop: 20 }} onPress={() => navigation.navigate('OrderListScreen')} />
+      <CustomButton
+        title="View all Orders"
+        style={{ marginTop: 20 }}
+        onPress={() => navigation.navigate('OrderListScreen')}
+      />
       {isLoading && (
         <View style={styles.overlayStyle}>
           <ActivityIndicator size="large" color={colors.theme} />
@@ -124,10 +141,10 @@ const OrderStatusScreen = ({ navigation, route }) => {
       )}
       {error && <Text style={styles.errorText}>{error}</Text>}
     </Layout>
-  )
-}
+  );
+};
 
-export default OrderStatusScreen
+export default OrderStatusScreen;
 
 const styles = StyleSheet.create({
   container: {
@@ -202,7 +219,7 @@ const styles = StyleSheet.create({
   },
   overlayStyle: {
     position: 'absolute',
-    backgroundColor: 'rgba(255,255,255,0.5)', 
+    backgroundColor: 'rgba(255,255,255,0.5)',
     width: '100%',
     height: '100%',
     justifyContent: 'center',
@@ -216,5 +233,4 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 10,
   },
-})
-
+});

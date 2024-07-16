@@ -1,31 +1,25 @@
-import React, { useRef } from 'react'
-import { View, TextInput, StyleSheet, TouchableOpacity, Image } from 'react-native'
-import colors from 'constants/colors'
+import React, { useRef } from 'react';
+import { View, TextInput, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import colors from 'constants/colors';
 
 const SearchBar = ({ placeholder, onSearch, style }) => {
-  const inputRef = useRef(null)
+  const inputRef = useRef(null);
 
   return (
     <View style={[styles.container, style]}>
-      <TouchableOpacity
-        onPress={() => inputRef.current.focus()}
-        style={styles.iconContainer}
-      >
-        <Image
-          source={require('images/search.png')}
-          style={styles.icon}
-        />
+      <TouchableOpacity onPress={() => inputRef.current.focus()} style={styles.iconContainer}>
+        <Image source={require('assets/images/search.png')} style={styles.icon} />
       </TouchableOpacity>
       <TextInput
         ref={inputRef}
-        placeholderTextColor='gray'
+        placeholderTextColor="gray"
         onChangeText={onSearch}
         placeholder={placeholder}
         style={styles.input}
       />
     </View>
-  )
-}
+  );
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -44,7 +38,7 @@ const styles = StyleSheet.create({
   icon: {
     width: 16,
     height: 16,
-    resizeMode: 'contain'
+    resizeMode: 'contain',
   },
   input: {
     flex: 1,
@@ -52,6 +46,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#333',
   },
-})
+});
 
-export default SearchBar
+export default SearchBar;

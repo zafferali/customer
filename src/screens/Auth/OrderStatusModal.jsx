@@ -1,12 +1,21 @@
 import React, { useState } from 'react';
-import { Modal, View, Text, TextInput, TouchableOpacity, StyleSheet, Image, ImageBackground } from 'react-native';
+import {
+  Modal,
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Image,
+  ImageBackground,
+} from 'react-native';
 import colors from 'constants/colors';
 import firestore from '@react-native-firebase/firestore';
 
 const OrderStatusModal = ({ isVisible, onClose }) => {
   const [showStatus, setShowStatus] = useState(false);
   const [orderNum, setOrderNum] = useState('');
-  const isCheckStatusDisabled = orderNum.length < 6
+  const isCheckStatusDisabled = orderNum.length < 6;
   const [orderStatus, setOrderStatus] = useState(null);
 
   const handleCheckStatus = async () => {
@@ -15,70 +24,71 @@ const OrderStatusModal = ({ isVisible, onClose }) => {
         .collection('orders')
         .where('orderNum', '==', orderNum)
         .get();
-      
+
       if (orderQuerySnapshot.empty) {
         console.log('No order found with this order number.');
         setOrderStatus({
           title: 'Order Not Found',
-          description: 'Please check the order number and try again.'
+          description: 'Please check the order number and try again.',
         });
         setShowStatus(true);
         return;
       }
-  
+
       orderQuerySnapshot.forEach(doc => {
         const { orderStatus } = doc.data();
         switch (orderStatus) {
           case 'received':
             setOrderStatus({
               title: 'Order Received',
-              description: 'Restaurant will start preparing your order soon.'
+              description: 'Restaurant will start preparing your order soon.',
             });
             break;
           case 'ready':
             setOrderStatus({
               title: 'Order Ready',
-              description: 'Your food is ready to be picked up.'
+              description: 'Your food is ready to be picked up.',
             });
             break;
           case 'picked':
             setOrderStatus({
               title: 'Order Picked up',
-              description: 'Our runner has picked up your order and is on the way to deliver the food to the locker.'
+              description:
+                'Our runner has picked up your order and is on the way to deliver the food to the locker.',
             });
             break;
           case 'delivered':
             setOrderStatus({
               title: 'Order Delivered',
-              description: 'Your order has been delivered to the locker. Please enter the pickup code received on your mobile and pickup your food.'
+              description:
+                'Your order has been delivered to the locker. Please enter the pickup code received on your mobile and pickup your food.',
             });
             break;
           case 'completed':
             setOrderStatus({
               title: 'Order Completed',
-              description: 'This is a completed order.'
+              description: 'This is a completed order.',
             });
             break;
           default:
             setOrderStatus({
               title: 'Unknown Status',
-              description: 'The status of your order is not recognized.'
+              description: 'The status of your order is not recognized.',
             });
         }
         setShowStatus(true);
       });
     } catch (error) {
-      console.error("Error fetching order status:", error);
+      console.error('Error fetching order status:', error);
       setOrderStatus({
         title: 'Error',
-        description: 'There was an error fetching the order status. Please try again.'
+        description: 'There was an error fetching the order status. Please try again.',
       });
       setShowStatus(true);
     }
   };
-  
 
-  const handleInputChange = (text) => {
+  const handleInputChange = text => {
     setOrderNum(text);
     if (showStatus) {
       setShowStatus(false); // Hide status and enable the button again
@@ -87,20 +97,15 @@ const OrderStatusModal = ({ isVisible, onClose }) => {
 
   const handleClose = () => {
     setShowStatus(false);
-    setOrderNum('')
+    setOrderNum('');
     onClose();
   };
 
   return (
-    <Modal
-      animationType="slide"
-      transparent={true}
-      visible={isVisible}
-      onRequestClose={onClose}
-    >
+    <Modal animationType="slide" transparent={true} visible={isVisible} onRequestClose={onClose}>
       <View style={styles.centeredView}>
         <ImageBackground
-          source={require('images/modal-bg.png')}
+          source={require('assets/images/modal-bg.png')}
           resizeMode="cover"
           style={styles.imageBackground}
         >
@@ -109,7 +114,7 @@ const OrderStatusModal = ({ isVisible, onClose }) => {
             <Text style={styles.modalText}>Check Order Status</Text>
             <TextInput
               style={styles.input}
-              placeholderTextColor={'rgba(1,1,1,0.25)'}
+              placeholderTextColor="rgba(1,1,1,0.25)"
               onChangeText={handleInputChange}
               value={orderNum}
               placeholder="Enter Order Number"
@@ -118,23 +123,20 @@ const OrderStatusModal = ({ isVisible, onClose }) => {
             {showStatus && (
               <View style={styles.statusContainer}>
                 <View style={styles.statusTitle}>
-                  <Image style={{ width: 16, height: 16 }} source={require('images/info.png')} />
+                  <Image style={{ width: 16, height: 16 }} source={require('assets/images/info.png')} />
                   <Text style={styles.statusMessage}>{orderStatus.title}</Text>
                 </View>
                 <Text style={styles.statusDescription}>{orderStatus.description}</Text>
               </View>
             )}
             <TouchableOpacity
-              style={[styles.button, showStatus? styles.buttonClose : styles.buttonOpen]}
+              style={[styles.button, showStatus ? styles.buttonClose : styles.buttonOpen]}
               onPress={handleCheckStatus}
               disabled={showStatus || isCheckStatusDisabled}
             >
               <Text style={styles.textStyle}>Check Status</Text>
             </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.button, styles.buttonClose]}
-              onPress={handleClose}
-            >
+            <TouchableOpacity style={[styles.button, styles.buttonClose]} onPress={handleClose}>
               <Text style={styles.textStyle}>Cancel</Text>
             </TouchableOpacity>
           </View>
@@ -146,19 +148,19 @@ const OrderStatusModal = ({ isVisible, onClose }) => {
 const styles = StyleSheet.create({
   centeredView: {
     flex: 1,
-    justifyContent: 'flex-end',  // Changed to position at the bottom
+    justifyContent: 'flex-end', // Changed to position at the bottom
   },
   imageBackground: {
-    width: '100%', 
+    width: '100%',
     height: '100%',
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   modalView: {
-    backgroundColor: "white",
+    backgroundColor: 'white',
     borderRadius: 20,
     padding: 20,
-    alignItems: "center",
+    alignItems: 'center',
     width: '100%',
   },
   button: {
@@ -171,7 +173,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'black',
   },
   buttonClose: {
-    backgroundColor: "#9A9A9A",
+    backgroundColor: '#9A9A9A',
   },
   textStyle: {
     color: 'white',
@@ -184,7 +186,7 @@ const styles = StyleSheet.create({
     color: 'black',
     fontWeight: 'bold',
     marginBottom: 15,
-    textAlign: "center"
+    textAlign: 'center',
   },
   input: {
     borderColor: 'black',

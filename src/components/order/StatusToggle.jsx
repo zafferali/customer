@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import colors from 'constants/colors';
 
-const StatusToggle = ({ option1, option2, option3}) => {
+const StatusToggle = ({ option1, option2, option3 }) => {
   const [activeStatus, setActiveStatus] = useState('Food Preparing');
 
   return (
@@ -11,21 +11,22 @@ const StatusToggle = ({ option1, option2, option3}) => {
         style={[styles.toggleButton, activeStatus === option1 ? styles.active : null]}
         onPress={() => setActiveStatus(option1)}
       >
-        <Text style={[styles.toggleText, activeStatus === option1 ? styles.active : null ]}>{option1}</Text>
+        <Text style={[styles.toggleText, activeStatus === option1 ? styles.active : null]}>{option1}</Text>
       </TouchableOpacity>
       <TouchableOpacity
         style={[styles.toggleButton, activeStatus === option2 ? styles.active : null]}
         onPress={() => setActiveStatus(option2)}
       >
-        <Text style={[styles.toggleText, activeStatus === option2 ? styles.active : null ]}>{option2}</Text>
+        <Text style={[styles.toggleText, activeStatus === option2 ? styles.active : null]}>{option2}</Text>
       </TouchableOpacity>
-      {option3 &&
-      <TouchableOpacity
-        style={[styles.toggleButton, activeStatus === option3 ? styles.active : null]}
-        onPress={() => setActiveStatus(option3)}
-      >
-        <Text style={[styles.toggleText, activeStatus === option3 ? styles.active : null ]}>{option3}</Text>
-      </TouchableOpacity>}
+      {option3 && (
+        <TouchableOpacity
+          style={[styles.toggleButton, activeStatus === option3 ? styles.active : null]}
+          onPress={() => setActiveStatus(option3)}
+        >
+          <Text style={[styles.toggleText, activeStatus === option3 ? styles.active : null]}>{option3}</Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 };
@@ -56,7 +57,7 @@ const styles = StyleSheet.create({
   toggleText: {
     color: colors.theme, // Text color
     fontSize: 12,
-    fontWeight: '600'
+    fontWeight: '600',
   },
 });
 

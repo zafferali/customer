@@ -1,107 +1,122 @@
 import {
-  StyleSheet, TouchableOpacity, View, Text, Image, SectionList, ActivityIndicator, Modal, ScrollView, Button
-} from 'react-native'
-import React, { useState, useEffect, useRef } from 'react'
-import { GlobalStyles } from 'constants/GlobalStyles'
-import Layout from 'common/Layout'
-import SearchBar from 'common/SearchBar'
-import Add from 'common/Add'
-import colors from 'constants/colors'
-import { useSelector, useDispatch } from 'react-redux'
-import firestore from '@react-native-firebase/firestore'
-import { addToCart, removeFromCart, setRestaurantId } from 'slices/cartSlice'
-import CustomButton from 'common/CustomButton'
-import { createSelector } from 'reselect'
+  StyleSheet,
+  TouchableOpacity,
+  View,
+  Text,
+  Image,
+  SectionList,
+  ActivityIndicator,
+  Modal,
+  ScrollView,
+  Button,
+} from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { GlobalStyles } from 'constants/GlobalStyles';
+import Layout from 'components/common/Layout';
+import SearchBar from 'components/common/SearchBar';
+import Add from 'components/common/Add';
+import colors from 'constants/colors';
+import { useSelector, useDispatch } from 'react-redux';
+import firestore from '@react-native-firebase/firestore';
+import { addToCart, removeFromCart, setRestaurantId } from 'redux/slices/cartSlice';
+import CustomButton from 'components/common/CustomButton';
+import { createSelector } from 'reselect';
 
 const checkAvailability = ({ from, until, isAvailable }, selectedTime) => {
-  if (!isAvailable) return false
-  const selectedTimeDate = parseTime(selectedTime)
-  const startTime = parseTime(from)
-  const endTime = parseTime(until)
-  return selectedTimeDate && startTime && endTime && (selectedTimeDate >= startTime && selectedTimeDate <= endTime)
-}
+  if (!isAvailable) return false;
+  const selectedTimeDate = parseTime(selectedTime);
+  const startTime = parseTime(from);
+  const endTime = parseTime(until);
+  return (
+    selectedTimeDate && startTime && endTime && selectedTimeDate >= startTime && selectedTimeDate <= endTime
+  );
+};
 
-const parseTime = (timeStr) => {
+const parseTime = timeStr => {
   if (!timeStr) {
-    console.log("parseTime called with undefined or null argument")
-    return null
+    console.log('parseTime called with undefined or null argument');
+    return null;
   }
-  const [hours, minutes] = timeStr.split(':').map(Number)
-  const time = new Date()
-  time.setHours(hours, minutes)
-  return time
-}
+  const [hours, minutes] = timeStr.split(':').map(Number);
+  const time = new Date();
+  time.setHours(hours, minutes);
+  return time;
+};
 
 const generateSubtitle = (required, multiOption, limit) => {
   if (required) {
     if (multiOption && limit > 1) {
-      return `Required *Select up to ${limit} options`
+      return `Required *Select up to ${limit} options`;
     } else {
-      return `Required *Select any 1 option`
+      return 'Required *Select any 1 option';
     }
   } else {
-    return `Select any ${limit} option`
+    return `Select any ${limit} option`;
   }
-}
+};
 
 const addItem = (item, customisations, dispatch, openModal) => {
   if (item.customisations && item.customisations.length > 0) {
-    openModal(item, customisations)
+    openModal(item, customisations);
   } else {
-    dispatch(addToCart({
-      name: item.name,
-      itemId: item.id,
-      quantity: 1,
-      price: item.price,
-      temperature: item.temperature,
-      thumbnailUrl: item.thumbnailUrl,
-      customisations: []
-    }))
+    dispatch(
+      addToCart({
+        name: item.name,
+        itemId: item.id,
+        quantity: 1,
+        price: item.price,
+        temperature: item.temperature,
+        thumbnailUrl: item.thumbnailUrl,
+        customisations: [],
+      }),
+    );
   }
-}
+};
 
 const removeItem = (cartItemId, dispatch) => {
-  dispatch(removeFromCart({ cartItemId }))
-}
+  dispatch(removeFromCart({ cartItemId }));
+};
 
 const selectItemQuantity = createSelector(
   state => state.cart.items,
   (state, data) => data.id,
   (items, itemId) => {
-    const filteredItems = items.filter(item => item.itemId === itemId)
-    return filteredItems.reduce((sum, item) => sum + item.quantity, 0)
-  }
-)
+    const filteredItems = items.filter(item => item.itemId === itemId);
+    return filteredItems.reduce((sum, item) => sum + item.quantity, 0);
+  },
+);
 
 const FoodItem = ({ data, dispatch, openModal }) => {
-  const count = useSelector(state => selectItemQuantity(state, data))
-  const cartItems = useSelector(state => state.cart.items.filter(item => item.itemId === data.id))
+  const count = useSelector(state => selectItemQuantity(state, data));
+  const cartItems = useSelector(state => state.cart.items.filter(item => item.itemId === data.id));
 
   const Counter = () => {
-    const customisations = useSelector(state => state.cart.items.find(item => item.itemId === data.id)?.customisations || [])
+    const customisations = useSelector(
+      state => state.cart.items.find(item => item.itemId === data.id)?.customisations || [],
+    );
 
     const handleIncrement = () => {
-      addItem(data, customisations, dispatch, openModal)
-    }
+      addItem(data, customisations, dispatch, openModal);
+    };
     const handleDecrement = () => {
       if (cartItems.length > 0) {
-        const lastAddedItem = cartItems[cartItems.length - 1]
-        removeItem(lastAddedItem.cartItemId, dispatch)
+        const lastAddedItem = cartItems[cartItems.length - 1];
+        removeItem(lastAddedItem.cartItemId, dispatch);
       }
-    }
+    };
 
     return (
       <View style={styles.counterContainer}>
         <TouchableOpacity onPress={handleDecrement} hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}>
-          <Image source={require('images/minus.png')} style={styles.icon} />
+          <Image source={require('assets/images/minus.png')} style={styles.icon} />
         </TouchableOpacity>
         <Text style={styles.value}>{count}</Text>
         <TouchableOpacity onPress={handleIncrement} hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}>
-          <Image source={require('images/plus.png')} style={styles.icon} />
+          <Image source={require('assets/images/plus.png')} style={styles.icon} />
         </TouchableOpacity>
       </View>
-    )
-  }
+    );
+  };
 
   return (
     <View style={[styles.foodItemContainer, GlobalStyles.lightBorder]}>
@@ -116,150 +131,167 @@ const FoodItem = ({ data, dispatch, openModal }) => {
         {count === 0 ? <Add onPress={() => addItem(data, [], dispatch, openModal)} /> : <Counter />}
       </View>
     </View>
-  )
-}
+  );
+};
 
 const createOrUpdateCart = async (cartState, customerId, restaurantId) => {
   try {
-    const cartRef = firestore().collection('carts').doc(customerId)
-    await cartRef.set({
-      ...cartState, 
-      customerId, 
-      restaurantId, 
-      orderComplete: false
-    }, { merge: true })
-    console.log('Cart successfully created or updated')
+    const cartRef = firestore().collection('carts').doc(customerId);
+    await cartRef.set(
+      {
+        ...cartState,
+        customerId,
+        restaurantId,
+        orderComplete: false,
+      },
+      { merge: true },
+    );
+    console.log('Cart successfully created or updated');
   } catch (error) {
-    console.log('Error creating or updating cart: ', error)
+    console.log('Error creating or updating cart: ', error);
   }
-}
+};
 
 const RestaurantHomeScreen = ({ navigation, route }) => {
-  const restaurant = useSelector(state => state.restaurants.currentRestaurant)
-  const customerId = useSelector(state => state.authentication.customer.id)
-  const restaurantId = route.params.restaurantId
-  const { selectedTimeSlot } = useSelector(state => state.restaurants)
-  const cart = useSelector(state => state.cart)
-  const dispatch = useDispatch()
-  const [availableItems, setAvailableItems] = useState([])
-  const [unavailableItems, setUnavailableItems] = useState([])
-  const [searchQuery, setSearchQuery] = useState('')
-  const [filteredAvailableItems, setFilteredAvailableItems] = useState([])
-  const [filteredUnavailableItems, setFilteredUnavailableItems] = useState([])
-  const [isLoading, setIsLoading] = useState(false)
-  const sectionListRef = useRef(null)
-  const [menuModalVisible, setMenuModalVisible] = useState(false)
-  const [addItemModalVisible, setAddItemModalVisible] = useState(false)
-  const [selectedFilters, setSelectedFilters] = useState([])
-  const [selectedItem, setSelectedItem] = useState(null)
-  const [selectedCustomisations, setSelectedCustomisations] = useState({})
-  const [lastUsedCustomisations, setLastUsedCustomisations] = useState({})
-  const [isUsingLastCustomizations, setIsUsingLastCustomizations] = useState(false)
+  const restaurant = useSelector(state => state.restaurants.currentRestaurant);
+  const customerId = useSelector(state => state.authentication.customer.id);
+  const { restaurantId } = route.params;
+  const { selectedTimeSlot } = useSelector(state => state.restaurants);
+  const cart = useSelector(state => state.cart);
+  const dispatch = useDispatch();
+  const [availableItems, setAvailableItems] = useState([]);
+  const [unavailableItems, setUnavailableItems] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filteredAvailableItems, setFilteredAvailableItems] = useState([]);
+  const [filteredUnavailableItems, setFilteredUnavailableItems] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const sectionListRef = useRef(null);
+  const [menuModalVisible, setMenuModalVisible] = useState(false);
+  const [addItemModalVisible, setAddItemModalVisible] = useState(false);
+  const [selectedFilters, setSelectedFilters] = useState([]);
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [selectedCustomisations, setSelectedCustomisations] = useState({});
+  const [lastUsedCustomisations, setLastUsedCustomisations] = useState({});
+  const [isUsingLastCustomizations, setIsUsingLastCustomizations] = useState(false);
 
   useEffect(() => {
-    dispatch(setRestaurantId(restaurantId))
-  }, [dispatch, restaurantId])
+    dispatch(setRestaurantId(restaurantId));
+  }, [dispatch, restaurantId]);
 
   useEffect(() => {
-    setIsLoading(true)
+    setIsLoading(true);
     const fetchMenu = async () => {
       try {
         const menuSnapshot = await firestore()
           .collection('restaurants')
           .doc(restaurantId)
           .collection('menu')
-          .get()
+          .get();
 
-        let categoriesMap = {}
-        let tempUnavailableItems = []
+        const categoriesMap = {};
+        const tempUnavailableItems = [];
 
-        const menuPromises = menuSnapshot.docs.map(async (doc) => {
-          const data = doc.data()
-          const availability = data.availability || {}
-          const isAvailable = checkAvailability(availability, selectedTimeSlot)
+        const menuPromises = menuSnapshot.docs.map(async doc => {
+          const data = doc.data();
+          const availability = data.availability || {};
+          const isAvailable = checkAvailability(availability, selectedTimeSlot);
 
           if (!isAvailable) {
-            tempUnavailableItems.push({ ...data, id: doc.id, availability })
+            tempUnavailableItems.push({ ...data, id: doc.id, availability });
           } else {
-            return Promise.all(data.categories.map(async (categoryRef) => {
-              const categoryDoc = await categoryRef.get()
-              if (categoryDoc.exists) {
-                const categoryName = categoryDoc.data().name
-                if (!categoriesMap[categoryName]) {
-                  categoriesMap[categoryName] = {
-                    title: categoryName,
-                    data: [],
-                    key: categoryName,
+            return Promise.all(
+              data.categories.map(async categoryRef => {
+                const categoryDoc = await categoryRef.get();
+                if (categoryDoc.exists) {
+                  const categoryName = categoryDoc.data().name;
+                  if (!categoriesMap[categoryName]) {
+                    categoriesMap[categoryName] = {
+                      title: categoryName,
+                      data: [],
+                      key: categoryName,
+                    };
                   }
+                  categoriesMap[categoryName].data.push({
+                    ...data,
+                    id: doc.id,
+                  });
+                  return categoryName;
                 }
-                categoriesMap[categoryName].data.push({
-                  ...data,
-                  id: doc.id,
-                })
-                return categoryName
-              }
-              return 'Unknown Category'
-            }))
+                return 'Unknown Category';
+              }),
+            );
           }
-        })
+        });
 
-        await Promise.all(menuPromises)
+        await Promise.all(menuPromises);
 
-        const sortedCategories = Object.values(categoriesMap)
-        if (sortedCategories.some(cat => cat.key === "Recommended")) {
-          const recommendedCategory = sortedCategories.find(cat => cat.key === "Recommended")
-          sortedCategories.splice(sortedCategories.indexOf(recommendedCategory), 1)
-          sortedCategories.unshift(recommendedCategory)
+        const sortedCategories = Object.values(categoriesMap);
+        if (sortedCategories.some(cat => cat.key === 'Recommended')) {
+          const recommendedCategory = sortedCategories.find(cat => cat.key === 'Recommended');
+          sortedCategories.splice(sortedCategories.indexOf(recommendedCategory), 1);
+          sortedCategories.unshift(recommendedCategory);
         }
 
-        setAvailableItems(sortedCategories)
-        setUnavailableItems(tempUnavailableItems.sort((a, b) => parseTime(a.availability.from) - parseTime(b.availability.from)))
+        setAvailableItems(sortedCategories);
+        setUnavailableItems(
+          tempUnavailableItems.sort(
+            (a, b) => parseTime(a.availability.from) - parseTime(b.availability.from),
+          ),
+        );
       } catch (e) {
-        console.log(e.message)
+        console.log(e.message);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
 
-    fetchMenu()
-  }, [restaurant, selectedTimeSlot])
+    fetchMenu();
+  }, [restaurant, selectedTimeSlot]);
 
   useEffect(() => {
     if (searchQuery) {
-      const filteredAvailable = availableItems.map(category => ({
-        ...category,
-        data: category.data.filter(item => item.name.toLowerCase().includes(searchQuery.toLowerCase())),
-      })).filter(category => category.data.length > 0)
+      const filteredAvailable = availableItems
+        .map(category => ({
+          ...category,
+          data: category.data.filter(item => item.name.toLowerCase().includes(searchQuery.toLowerCase())),
+        }))
+        .filter(category => category.data.length > 0);
 
-      const filteredUnavailable = unavailableItems.filter(item => item.name.toLowerCase().includes(searchQuery.toLowerCase()))
+      const filteredUnavailable = unavailableItems.filter(item =>
+        item.name.toLowerCase().includes(searchQuery.toLowerCase()),
+      );
 
-      setFilteredAvailableItems(filteredAvailable)
-      setFilteredUnavailableItems(filteredUnavailable)
+      setFilteredAvailableItems(filteredAvailable);
+      setFilteredUnavailableItems(filteredUnavailable);
     } else {
-      setFilteredAvailableItems(availableItems)
-      setFilteredUnavailableItems(unavailableItems)
+      setFilteredAvailableItems(availableItems);
+      setFilteredUnavailableItems(unavailableItems);
     }
-  }, [searchQuery, availableItems, unavailableItems])
+  }, [searchQuery, availableItems, unavailableItems]);
 
   useEffect(() => {
-    const filteredAvailable = availableItems.map(category => ({
-      ...category,
-      data: category.data.filter(item => selectedFilters.length === 0 || selectedFilters.some(filter => item.type.includes(filter))),
-    })).filter(category => category.data.length > 0)
+    const filteredAvailable = availableItems
+      .map(category => ({
+        ...category,
+        data: category.data.filter(
+          item => selectedFilters.length === 0 || selectedFilters.some(filter => item.type.includes(filter)),
+        ),
+      }))
+      .filter(category => category.data.length > 0);
 
-    setFilteredAvailableItems(filteredAvailable)
-  }, [selectedFilters, availableItems])
+    setFilteredAvailableItems(filteredAvailable);
+  }, [selectedFilters, availableItems]);
 
-  const scrollToCategory = (categoryKey) => {
-    const sectionIndex = filteredAvailableItems.findIndex(section => section.key === categoryKey)
+  const scrollToCategory = categoryKey => {
+    const sectionIndex = filteredAvailableItems.findIndex(section => section.key === categoryKey);
     if (sectionIndex !== -1) {
       sectionListRef.current.scrollToLocation({
         sectionIndex,
         itemIndex: 0,
         viewPosition: 0,
-      })
+      });
     }
-  }
+  };
 
   const UnavailableFoodItem = ({ data }) => (
     <View style={[styles.foodItemContainer, styles.unavailable, GlobalStyles.lightBorder]}>
@@ -272,152 +304,161 @@ const RestaurantHomeScreen = ({ navigation, route }) => {
         </View>
       </View>
     </View>
-  )
+  );
 
   const renderUnavailableItems = () => (
     <View style={styles.unavailableList}>
-      {filteredUnavailableItems.length > 0 && <Text style={styles.unavailableHeading}>ITEMS NOT AVAILABLE AT YOUR SELECTED TIMESLOT</Text>}
+      {filteredUnavailableItems.length > 0 && (
+        <Text style={styles.unavailableHeading}>ITEMS NOT AVAILABLE AT YOUR SELECTED TIMESLOT</Text>
+      )}
       {filteredUnavailableItems.map(item => (
         <UnavailableFoodItem key={item.id} data={item} />
       ))}
     </View>
-  )
+  );
 
   const MultiSelectButton = ({ label }) => {
-    const isSelected = selectedFilters.includes(label)
+    const isSelected = selectedFilters.includes(label);
     const handlePress = () => {
       if (isSelected) {
-        setSelectedFilters(selectedFilters.filter(filter => filter !== label))
+        setSelectedFilters(selectedFilters.filter(filter => filter !== label));
       } else {
-        setSelectedFilters([...selectedFilters, label])
+        setSelectedFilters([...selectedFilters, label]);
       }
-    }
+    };
 
     return (
       <View style={styles.multiSelectButtonContainer}>
-        <TouchableOpacity onPress={handlePress} style={[styles.multiSelectButton, isSelected && styles.selectedButton]}>
+        <TouchableOpacity
+          onPress={handlePress}
+          style={[styles.multiSelectButton, isSelected && styles.selectedButton]}
+        >
           <Text style={[styles.multiSelectButtonText, isSelected && styles.selectedButtonText]}>{label}</Text>
           {isSelected && (
             <TouchableOpacity onPress={handlePress}>
-              <Image style={styles.clearButtonImage} source={require('images/close.png')} />
+              <Image style={styles.clearButtonImage} source={require('assets/images/close.png')} />
             </TouchableOpacity>
           )}
         </TouchableOpacity>
       </View>
-    )
-  }
+    );
+  };
 
-  const openModal = (item) => {
-    setSelectedItem(item)
+  const openModal = item => {
+    setSelectedItem(item);
     if (lastUsedCustomisations[item.id]) {
-      setSelectedCustomisations(lastUsedCustomisations[item.id])
-      setIsUsingLastCustomizations(true)
+      setSelectedCustomisations(lastUsedCustomisations[item.id]);
+      setIsUsingLastCustomizations(true);
     } else {
-      initializeCustomisations(item.customisations)
-      setIsUsingLastCustomizations(false)
+      initializeCustomisations(item.customisations);
+      setIsUsingLastCustomizations(false);
     }
-    setAddItemModalVisible(true)
-  }
+    setAddItemModalVisible(true);
+  };
 
   const initializeCustomisations = (itemCustomisations, cartCustomisations) => {
-    const initialCustomisations = {}
+    const initialCustomisations = {};
 
     if (cartCustomisations && cartCustomisations.length > 0) {
-      setSelectedCustomisations(cartCustomisations)
+      setSelectedCustomisations(cartCustomisations);
     } else {
       itemCustomisations.forEach(customisation => {
-        initialCustomisations[customisation.title] = customisation.choices.filter(choice => choice.default).map(choice => ({ name: choice.name, price: choice.price }))
-      })
-      setSelectedCustomisations(initialCustomisations)
+        initialCustomisations[customisation.title] = customisation.choices
+          .filter(choice => choice.default)
+          .map(choice => ({ name: choice.name, price: choice.price }));
+      });
+      setSelectedCustomisations(initialCustomisations);
     }
-  }
+  };
 
   const closeModal = () => {
-    setAddItemModalVisible(false)
-    setSelectedItem(null)
-  }
+    setAddItemModalVisible(false);
+    setSelectedItem(null);
+  };
 
   const confirmAddItem = () => {
     const customisationsWithPrice = Object.entries(selectedCustomisations).map(([key, choices]) => {
-      const originalCustomisation = selectedItem.customisations.find(c => c.title === key)
+      const originalCustomisation = selectedItem.customisations.find(c => c.title === key);
       return {
         title: key,
         choices: Array.isArray(choices)
           ? choices.map(choice => ({
               name: choice.name,
-              price: Number(choice.price) || 0
+              price: Number(choice.price) || 0,
             }))
           : [],
-        multiOption: originalCustomisation ? originalCustomisation.multiOption : false
-      }
-    })
+        multiOption: originalCustomisation ? originalCustomisation.multiOption : false,
+      };
+    });
 
     setLastUsedCustomisations(prev => ({
       ...prev,
-      [selectedItem.id]: selectedCustomisations
-    }))
+      [selectedItem.id]: selectedCustomisations,
+    }));
 
-    dispatch(addToCart({
-      name: selectedItem.name,
-      itemId: selectedItem.id,
-      quantity: 1,
-      price: Number(selectedItem.price) || 0,
-      temperature: selectedItem.temperature,
-      thumbnailUrl: selectedItem.thumbnailUrl,
-      customisations: customisationsWithPrice,
-    }))
+    dispatch(
+      addToCart({
+        name: selectedItem.name,
+        itemId: selectedItem.id,
+        quantity: 1,
+        price: Number(selectedItem.price) || 0,
+        temperature: selectedItem.temperature,
+        thumbnailUrl: selectedItem.thumbnailUrl,
+        customisations: customisationsWithPrice,
+      }),
+    );
 
-    closeModal()
-  }
+    closeModal();
+  };
 
   const handleCustomisationSelect = (customisationTitle, choice, multiOption, limit) => {
     setSelectedCustomisations(prevSelections => {
-      const updatedSelections = { ...prevSelections }
+      const updatedSelections = { ...prevSelections };
       if (!updatedSelections[customisationTitle]) {
-        updatedSelections[customisationTitle] = []
+        updatedSelections[customisationTitle] = [];
       }
 
-      const choiceExists = updatedSelections[customisationTitle].some(selectedChoice => selectedChoice.name === choice.name)
+      const choiceExists = updatedSelections[customisationTitle].some(
+        selectedChoice => selectedChoice.name === choice.name,
+      );
 
       if (choiceExists) {
         updatedSelections[customisationTitle] = updatedSelections[customisationTitle].filter(
-          selectedChoice => selectedChoice.name !== choice.name
-        )
+          selectedChoice => selectedChoice.name !== choice.name,
+        );
       } else {
         if (multiOption) {
           if (updatedSelections[customisationTitle].length < limit) {
-            updatedSelections[customisationTitle].push({ name: choice.name, price: choice.price })
+            updatedSelections[customisationTitle].push({ name: choice.name, price: choice.price });
           }
         } else {
-          updatedSelections[customisationTitle] = [{ name: choice.name, price: choice.price }]
+          updatedSelections[customisationTitle] = [{ name: choice.name, price: choice.price }];
         }
       }
 
-      return updatedSelections
-    })
-  }
+      return updatedSelections;
+    });
+  };
 
   const CustomCheckbox = ({ isSelected, onPress }) => (
-    <TouchableOpacity onPress={onPress} style={[styles.checkboxContainer, isSelected && { backgroundColor: colors.theme }]}>
-      {isSelected && (
-        <Image
-          source={require('images/tick.png')}
-          style={styles.checkboxTick}
-        />
-      )}
+    <TouchableOpacity
+      onPress={onPress}
+      style={[styles.checkboxContainer, isSelected && { backgroundColor: colors.theme }]}
+    >
+      {isSelected && <Image source={require('assets/images/tick.png')} style={styles.checkboxTick} />}
     </TouchableOpacity>
-  )
+  );
 
   const CustomRadioButton = ({ isSelected, onPress }) => (
     <TouchableOpacity onPress={onPress} style={styles.radioButton}>
       {isSelected && <View style={styles.radioButtonSelected} />}
     </TouchableOpacity>
-  )
+  );
 
   const handleCartNavigation = async () => {
-    navigation.navigate('CartScreen')
-    await createOrUpdateCart(cart, customerId, restaurantId)
-  }
+    navigation.navigate('CartScreen');
+    await createOrUpdateCart(cart, customerId, restaurantId);
+  };
 
   return (
     <Layout
@@ -426,7 +467,7 @@ const RestaurantHomeScreen = ({ navigation, route }) => {
       bottomBar
       rightButton
       price={cart.subTotal.toString()}
-      icon={require('images/shopping-cart.png')}
+      icon={require('assets/images/shopping-cart.png')}
       next
       btnText="My Cart"
       showBtn={cart.subTotal.toString()}
@@ -448,7 +489,7 @@ const RestaurantHomeScreen = ({ navigation, route }) => {
               <MultiSelectButton label="Vegan" />
             </View>
             <TouchableOpacity style={styles.floatingButton} onPress={() => setMenuModalVisible(true)}>
-              <Image style={styles.menuIcon} source={require('images/menuIcon.png')} />
+              <Image style={styles.menuIcon} source={require('assets/images/menuIcon.png')} />
               <Text style={styles.floatingButtonText}>Menu</Text>
             </TouchableOpacity>
             <Modal
@@ -457,15 +498,21 @@ const RestaurantHomeScreen = ({ navigation, route }) => {
               visible={menuModalVisible}
               onRequestClose={() => setMenuModalVisible(false)}
             >
-              <TouchableOpacity style={[styles.modalOverlay, { justifyContent: 'center' }]} onPress={() => setMenuModalVisible(false)}>
+              <TouchableOpacity
+                style={[styles.modalOverlay, { justifyContent: 'center' }]}
+                onPress={() => setMenuModalVisible(false)}
+              >
                 <TouchableOpacity activeOpacity={1} style={styles.modalView}>
                   <Text style={styles.modalTitle}>Menu</Text>
                   <ScrollView style={styles.modalScrollView}>
-                    {filteredAvailableItems.map((section) => (
-                      <TouchableOpacity key={section.key} onPress={() => {
-                        scrollToCategory(section.key)
-                        setMenuModalVisible(false)
-                      }}>
+                    {filteredAvailableItems.map(section => (
+                      <TouchableOpacity
+                        key={section.key}
+                        onPress={() => {
+                          scrollToCategory(section.key);
+                          setMenuModalVisible(false);
+                        }}
+                      >
                         <Text style={styles.modalCategory}>{section.title}</Text>
                       </TouchableOpacity>
                     ))}
@@ -482,7 +529,10 @@ const RestaurantHomeScreen = ({ navigation, route }) => {
             >
               <TouchableOpacity style={styles.modalOverlay} onPress={closeModal}>
                 <TouchableOpacity onPress={closeModal}>
-                  <Image style={{ width: 30, height: 30, marginBottom: 6 }} source={require('images/close.png')} />
+                  <Image
+                    style={{ width: 30, height: 30, marginBottom: 6 }}
+                    source={require('assets/images/close.png')}
+                  />
                 </TouchableOpacity>
                 <TouchableOpacity activeOpacity={1} style={styles.bottomModalView}>
                   <View style={styles.bottomModalHeader}>
@@ -490,42 +540,70 @@ const RestaurantHomeScreen = ({ navigation, route }) => {
                   </View>
                   {selectedItem && (
                     <ScrollView style={styles.modalScrollView}>
-                      {selectedItem.customisations && selectedItem.customisations.length > 0 && selectedItem.customisations.map((customisation, index) => (
-                        <View key={index}>
-                          <Text style={styles.modalSectionTitle}>{customisation.title}</Text>
-                          <Text style={styles.modalSubtitle}>
-                            {generateSubtitle(customisation.required, customisation.multiOption, customisation.limit)}
-                          </Text>
-                          <View style={styles.sectionCard}>
-                            {customisation.choices.map((choice, idx) => (
-                              <View key={idx} style={styles.modalItem}>
-                                <View>
-                                  <Text style={styles.modalItemText}>{choice.name}</Text>
+                      {selectedItem.customisations &&
+                        selectedItem.customisations.length > 0 &&
+                        selectedItem.customisations.map((customisation, index) => (
+                          <View key={customisation}>
+                            <Text style={styles.modalSectionTitle}>{customisation.title}</Text>
+                            <Text style={styles.modalSubtitle}>
+                              {generateSubtitle(
+                                customisation.required,
+                                customisation.multiOption,
+                                customisation.limit,
+                              )}
+                            </Text>
+                            <View style={styles.sectionCard}>
+                              {customisation.choices.map(choice => (
+                                <View key={choice} style={styles.modalItem}>
+                                  <View>
+                                    <Text style={styles.modalItemText}>{choice.name}</Text>
+                                  </View>
+                                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                    {choice.price !== undefined && (
+                                      <Text style={styles.price}>+ ₹{choice.price}</Text>
+                                    )}
+                                    {customisation.multiOption ? (
+                                      <CustomCheckbox
+                                        isSelected={
+                                          selectedCustomisations[customisation.title]?.some(
+                                            selectedChoice => selectedChoice.name === choice.name,
+                                          ) || false
+                                        }
+                                        onPress={() =>
+                                          handleCustomisationSelect(
+                                            customisation.title,
+                                            choice,
+                                            customisation.multiOption,
+                                            customisation.limit,
+                                          )
+                                        }
+                                      />
+                                    ) : (
+                                      <CustomRadioButton
+                                        isSelected={
+                                          selectedCustomisations[customisation.title]?.some(
+                                            selectedChoice => selectedChoice.name === choice.name,
+                                          ) || false
+                                        }
+                                        onPress={() =>
+                                          handleCustomisationSelect(
+                                            customisation.title,
+                                            choice,
+                                            customisation.multiOption,
+                                            customisation.limit,
+                                          )
+                                        }
+                                      />
+                                    )}
+                                  </View>
                                 </View>
-                                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                  {choice.price !== undefined && (
-                                    <Text style={styles.price}>+ ₹{choice.price}</Text>
-                                  )}
-                                  {customisation.multiOption ? (
-                                    <CustomCheckbox
-                                      isSelected={selectedCustomisations[customisation.title]?.some(selectedChoice => selectedChoice.name === choice.name) || false}
-                                      onPress={() => handleCustomisationSelect(customisation.title, choice, customisation.multiOption, customisation.limit)}
-                                    />
-                                  ) : (
-                                    <CustomRadioButton
-                                      isSelected={selectedCustomisations[customisation.title]?.some(selectedChoice => selectedChoice.name === choice.name) || false}
-                                      onPress={() => handleCustomisationSelect(customisation.title, choice, customisation.multiOption, customisation.limit)}
-                                    />
-                                  )}
-                                </View>
-                              </View>
-                            ))}
+                              ))}
+                            </View>
                           </View>
-                        </View>
-                      ))}
+                        ))}
                     </ScrollView>
                   )}
-                  <CustomButton style={styles.button} title='Add to Cart' onPress={confirmAddItem} />
+                  <CustomButton style={styles.button} title="Add to Cart" onPress={confirmAddItem} />
                 </TouchableOpacity>
               </TouchableOpacity>
             </Modal>
@@ -544,16 +622,15 @@ const RestaurantHomeScreen = ({ navigation, route }) => {
         </>
       )}
     </Layout>
-  )
-}
+  );
+};
 
-export default RestaurantHomeScreen
-
+export default RestaurantHomeScreen;
 
 const styles = StyleSheet.create({
-  card: {
-    marginBottom: 10,
-  },
+  // card: {
+  //   marginBottom: 10,
+  // },
   categoryContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -587,32 +664,32 @@ const styles = StyleSheet.create({
   selectedButtonText: {
     color: 'white',
   },
-  clearButton: {
-    borderRadius: 50,
-    padding: 8,
-  },
+  // clearButton: {
+  //   borderRadius: 50,
+  //   padding: 8,
+  // },
   clearButtonImage: {
     width: 16,
     height: 16,
   },
-  tagContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginBottom: 10,
-  },
-  tag: {
-    backgroundColor: colors.themeLight,
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    alignSelf: 'flex-start',
-  },
-  tagText: {
-    color: colors.theme,
-    fontSize: 14,
-    fontWeight: '600',
-  },
+  // tagContainer: {
+  //   flexDirection: 'row',
+  //   flexWrap: 'wrap',
+  //   gap: 8,
+  //   marginBottom: 10,
+  // },
+  // tag: {
+  //   backgroundColor: colors.themeLight,
+  //   borderRadius: 8,
+  //   paddingHorizontal: 10,
+  //   paddingVertical: 8,
+  //   alignSelf: 'flex-start',
+  // },
+  // tagText: {
+  //   color: colors.theme,
+  //   fontSize: 14,
+  //   fontWeight: '600',
+  // },
   foodItemContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -623,7 +700,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    width: '50%'
+    width: '50%',
   },
   thumbnail: {
     width: 70,
@@ -708,7 +785,7 @@ const styles = StyleSheet.create({
   menuIcon: {
     width: 14,
     height: 14,
-    tintColor: 'white'
+    tintColor: 'white',
   },
   floatingButtonText: {
     color: 'white',
@@ -772,7 +849,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginTop: 10,
     marginBottom: 6,
-    textTransform: 'capitalize'
+    textTransform: 'capitalize',
   },
   modalItem: {
     paddingHorizontal: 10,
@@ -784,7 +861,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: 'black',
-    textTransform: 'capitalize'
+    textTransform: 'capitalize',
   },
   modalCategory: {
     fontSize: 16,
@@ -837,4 +914,4 @@ const styles = StyleSheet.create({
     marginTop: 6,
     marginBottom: 12,
   },
-})
+});

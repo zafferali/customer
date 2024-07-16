@@ -1,45 +1,45 @@
-import React, { useState, useCallback } from 'react'
-import { StyleSheet, Text, View, TouchableOpacity, Image, Modal, ScrollView } from 'react-native'
-import Layout from 'common/Layout'
-import CustomButton from 'common/CustomButton'
-import { GlobalStyles } from 'constants/GlobalStyles'
-import colors from 'constants/colors'
-import firestore from '@react-native-firebase/firestore'
-import { useSelector, useDispatch } from 'react-redux'
-import { setTimeSlot } from 'slices/restaurantsSlice'
-import { useFocusEffect } from '@react-navigation/native'
+import React, { useState, useCallback } from 'react';
+import { StyleSheet, Text, View, TouchableOpacity, Image, Modal, ScrollView } from 'react-native';
+import Layout from 'components/common/Layout';
+import CustomButton from 'components/common/CustomButton';
+import { GlobalStyles } from 'constants/GlobalStyles';
+import colors from 'constants/colors';
+import firestore from '@react-native-firebase/firestore';
+import { useSelector, useDispatch } from 'react-redux';
+import { setTimeSlot } from 'redux/slices/restaurantsSlice';
+import { useFocusEffect } from '@react-navigation/native';
 
 const TimeSlotScreen = ({ navigation }) => {
-  const [timeSlots, setTimeSlots] = useState([])
-  const [selectedTime, setSelectedTime] = useState('')
-  const [showModal, setShowModal] = useState(false)
-  const customer = useSelector(state => state.authentication.customer)
-  console.log('cus', customer?.id)
-  const dispatch = useDispatch()
+  const [timeSlots, setTimeSlots] = useState([]);
+  const [selectedTime, setSelectedTime] = useState('');
+  const [showModal, setShowModal] = useState(false);
+  const customer = useSelector(state => state.authentication.customer);
+  console.log('cus', customer?.id);
+  const dispatch = useDispatch();
 
-  const populateTimeSlots = (startFromTime) => {
-    const slots = []
-    const endOfDay = new Date()
-    endOfDay.setHours(23, 45, 0, 0) // Set the cutoff time to 23:45
+  const populateTimeSlots = startFromTime => {
+    const slots = [];
+    const endOfDay = new Date();
+    endOfDay.setHours(23, 45, 0, 0); // Set the cutoff time to 23:45
 
     for (let time = new Date(startFromTime); time <= endOfDay; time.setMinutes(time.getMinutes() + 15)) {
-      slots.push(formatTime(time))
+      slots.push(formatTime(time));
     }
-    setTimeSlots(slots)
-  }
+    setTimeSlots(slots);
+  };
 
-  const formatTime = (date) => {
-    return date.toTimeString().substring(0, 5)
-  }
+  const formatTime = date => {
+    return date.toTimeString().substring(0, 5);
+  };
 
-  const handleSelectTime = (time) => {
-    setSelectedTime(time)
-    setShowModal(false)
-  }
+  const handleSelectTime = time => {
+    setSelectedTime(time);
+    setShowModal(false);
+  };
 
   const onGetStarted = () => {
-    dispatch(setTimeSlot(selectedTime))
-    navigation.navigate('HomeScreen')
+    dispatch(setTimeSlot(selectedTime));
+    navigation.navigate('HomeScreen');
     firestore()
       .collection('customers')
       .doc(customer.id)
@@ -47,38 +47,43 @@ const TimeSlotScreen = ({ navigation }) => {
         prevTimeSlot: selectedTime,
       })
       .catch(error => {
-        console.log('Error updating Firestore: ', error.message)
-      })
-  }
+        console.log('Error updating Firestore: ', error.message);
+      });
+  };
 
   useFocusEffect(
     useCallback(() => {
-      const currentTime = new Date()
-      const minutesToNextQuarter = 15 - (currentTime.getMinutes() % 15)
-      const nextQuarter = new Date(currentTime.getTime() + minutesToNextQuarter * 60000)
+      const currentTime = new Date();
+      const minutesToNextQuarter = 15 - (currentTime.getMinutes() % 15);
+      const nextQuarter = new Date(currentTime.getTime() + minutesToNextQuarter * 60000);
 
       // Calculate the start time which is 90 minutes from the next quarter
-      const startFromTime = new Date(nextQuarter.getTime() + 15 * 60000)
-      
-      populateTimeSlots(startFromTime)
-      setSelectedTime(formatTime(startFromTime)) // Set the initial selected time
-    }, [])
-  )
+      const startFromTime = new Date(nextQuarter.getTime() + 15 * 60000);
+
+      populateTimeSlots(startFromTime);
+      setSelectedTime(formatTime(startFromTime)); // Set the initial selected time
+    }, []),
+  );
 
   return (
-    <Layout
-      title='Choose a Time slot'
-      navigation={navigation}
-    >
-      <View style={[GlobalStyles.lightBorder, { padding: 20, marginTop: 10}]}>
+    <Layout title="Choose a Time slot" navigation={navigation}>
+      <View style={[GlobalStyles.lightBorder, { padding: 20, marginTop: 10 }]}>
         <Text style={styles.title}>Set your Pickup time</Text>
-        <Text style={styles.text}>Let us know when would like to pick up your food from this station and we’ll curate the listing of available restaurants at your selected time accordingly.</Text>
+        <Text style={styles.text}>
+          Let us know when would like to pick up your food from this station and we’ll curate the listing of
+          available restaurants at your selected time accordingly.
+        </Text>
 
         {/* Time slot input */}
         <Text style={styles.label}>Pickup Time</Text>
-        <TouchableOpacity style={styles.dropdown} onPress={() => { setShowModal(true) }}>
+        <TouchableOpacity
+          style={styles.dropdown}
+          onPress={() => {
+            setShowModal(true);
+          }}
+        >
           <Text style={styles.time}>{selectedTime}</Text>
-          <Image style={styles.icon} source={require('images/dropdown.png')} />
+          <Image style={styles.icon} source={require('assets/images/dropdown.png')} />
         </TouchableOpacity>
 
         <Modal
@@ -94,9 +99,9 @@ const TimeSlotScreen = ({ navigation }) => {
                 {timeSlots.length === 0 ? (
                   <Text style={styles.noSlotsText}>No slots available at this time</Text>
                 ) : (
-                  timeSlots.map((time, index) => (
+                  timeSlots.map(time => (
                     <TouchableOpacity
-                      key={index}
+                      key={time}
                       style={styles.timeSlot}
                       onPress={() => handleSelectTime(time)}
                     >
@@ -114,13 +119,13 @@ const TimeSlotScreen = ({ navigation }) => {
       </View>
 
       <View style={styles.btnContainer}>
-        <CustomButton title='Browse Restaurants' onPress={onGetStarted} />
+        <CustomButton title="Browse Restaurants" onPress={onGetStarted} />
       </View>
     </Layout>
-  )
-}
+  );
+};
 
-export default TimeSlotScreen
+export default TimeSlotScreen;
 
 const styles = StyleSheet.create({
   title: {
@@ -207,4 +212,4 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: colors.theme,
   },
-})
+});

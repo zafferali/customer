@@ -1,13 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image, Modal, ActivityIndicator, Alert, FlatList } from 'react-native';
-import Layout from 'common/Layout';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Image,
+  Modal,
+  ActivityIndicator,
+  Alert,
+  FlatList,
+} from 'react-native';
+import Layout from 'components/common/Layout';
 import colors from 'constants/colors';
-import { GlobalStyles } from '../../constants/GlobalStyles';
 import { useDispatch, useSelector } from 'react-redux';
 import axios from 'axios';
 import RazorpayCheckout from 'react-native-razorpay';
 import KEYS from 'constants/KEYS';
 import firestore from '@react-native-firebase/firestore';
+import { GlobalStyles } from 'constants/GlobalStyles';
 import { generateOrderID } from './generateOrderID';
 import { generatePickupCode } from './generatePickupCode';
 
@@ -27,7 +37,8 @@ const LockerScreen = ({ navigation }) => {
   const customerRef = firestore().collection('customers').doc(customer.id);
   const restaurantRef = firestore().collection('restaurants').doc(currentRestaurant.id);
 
-  const briskit_logo = 'https://firebasestorage.googleapis.com/v0/b/briskit-52b77.appspot.com/o/logo-black.png?alt=media&token=4bf8ca06-8031-41d4-9b54-5f9102a9b0ac';
+  const briskit_logo =
+    'https://firebasestorage.googleapis.com/v0/b/briskit-52b77.appspot.com/o/logo-black.png?alt=media&token=4bf8ca06-8031-41d4-9b54-5f9102a9b0ac';
   const RAZORPAY_CREATE_ORDER = 'https://us-central1-briskit-52b77.cloudfunctions.net/createOrder';
   const RAZORPAY_VERIFY_PAYMENT = 'https://us-central1-briskit-52b77.cloudfunctions.net/verifyPayment';
 
@@ -58,35 +69,38 @@ const LockerScreen = ({ navigation }) => {
       image: briskit_logo,
       currency: 'INR',
       key: KEYS.razorpay_api,
-      amount: amount,
+      amount,
       name: 'Briskit Technology Pvt Ltd',
-      order_id: order_id,
+      order_id,
       prefill: {
         email: customer.email || '',
         contact: customer.mobile,
         name: customer.name || '',
       },
-      theme: { color: colors.theme }
+      theme: { color: colors.theme },
     };
     setIsLoading(true);
-    RazorpayCheckout.open(options).then((data) => {
-      const paymentData = {
-        razorpay_payment_id: data.razorpay_payment_id,
-        razorpay_order_id: data.razorpay_order_id,
-        razorpay_signature: data.razorpay_signature,
-      };
-      verifyPayment(paymentData);
-      console.log(`Success: ${data.razorpay_payment_id}`);
-    }).catch((error) => {
-      setIsLoading(false);
-      setError(`Payment error: ${error.description}`);
-      console.log(`Error: ${error.code} | ${error.description}`);
-    }).finally(() => {
-      setIsLoading(false);
-    });
+    RazorpayCheckout.open(options)
+      .then(data => {
+        const paymentData = {
+          razorpay_payment_id: data.razorpay_payment_id,
+          razorpay_order_id: data.razorpay_order_id,
+          razorpay_signature: data.razorpay_signature,
+        };
+        verifyPayment(paymentData);
+        console.log(`Success: ${data.razorpay_payment_id}`);
+      })
+      .catch(error => {
+        setIsLoading(false);
+        setError(`Payment error: ${error.description}`);
+        console.log(`Error: ${error.code} | ${error.description}`);
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
   };
 
-  const verifyPayment = async (paymentData) => {
+  const verifyPayment = async paymentData => {
     try {
       const verificationResponse = await axios.post(RAZORPAY_VERIFY_PAYMENT, paymentData);
       if (verificationResponse.data.success) {
@@ -109,16 +123,19 @@ const LockerScreen = ({ navigation }) => {
       const newOrderCount = (customerData.orderCount || 0) + 1;
 
       await customerRef.update({
-        orderCount: newOrderCount
+        orderCount: newOrderCount,
       });
     } else {
-      await customerRef.set({
-        orderCount: 1
-      }, { merge: true });
+      await customerRef.set(
+        {
+          orderCount: 1,
+        },
+        { merge: true },
+      );
     }
   };
 
-  const createBriskitOrder = async (paymentData) => {
+  const createBriskitOrder = async paymentData => {
     const orderId = await generateOrderID();
     const pickupCode = await generatePickupCode(currentRestaurant.id, orderId);
 
@@ -133,19 +150,19 @@ const LockerScreen = ({ navigation }) => {
       restaurantImage: currentRestaurant.thumbnailUrl || '',
       deliveryTime: selectedTimeSlot,
       orderNum: orderId,
-      pickupCode: pickupCode,
-      items: items,
+      pickupCode,
+      items,
       subTotal: cart.subTotal,
       taxes: {
-        gst: cart.tax
+        gst: cart.tax,
       },
       totalPrice: cart.total,
       orderStatus: 'received',
       paymentInfo: {
         razorpayOrderId: paymentData.razorpay_order_id,
-        razorpayPaymentId: paymentData.razorpay_payment_id
+        razorpayPaymentId: paymentData.razorpay_payment_id,
       },
-      timeStamps: { orderPlaced: firestore.Timestamp.now() }
+      timeStamps: { orderPlaced: firestore.Timestamp.now() },
     };
 
     try {
@@ -157,7 +174,7 @@ const LockerScreen = ({ navigation }) => {
 
       return docRef.id; // Optionally return it if needed elsewhere
     } catch (error) {
-      console.error("Error adding document: ", error);
+      console.error('Error adding document: ', error);
     }
   };
 
@@ -166,13 +183,13 @@ const LockerScreen = ({ navigation }) => {
       navigation.navigate('OrderListStackScreen', {
         screen: 'OrderStatusScreen',
         params: {
-          orderId: orderId
-        }
+          orderId,
+        },
       });
       // Reset the paymentSuccess state after navigation
       setPaymentSuccess(false);
     }
-  
+
     // Cleanup function to set isComponentMounted to false when the component is unmounted
     return () => {
       setIsComponentMounted(false);
@@ -191,12 +208,8 @@ const LockerScreen = ({ navigation }) => {
         onPress={() => setSelectedId(item.id)}
         style={[styles.item, isSelected && styles.itemSelected]}
       >
-        <View style={styles.radioCircle}>
-          {isSelected && <View style={styles.innerCircle} />}
-        </View>
-        <Text style={styles.title}>
-          {item.title}
-        </Text>
+        <View style={styles.radioCircle}>{isSelected && <View style={styles.innerCircle} />}</View>
+        <Text style={styles.title}>{item.title}</Text>
       </TouchableOpacity>
     );
   };
@@ -205,12 +218,12 @@ const LockerScreen = ({ navigation }) => {
     <>
       <Layout
         navigation={navigation}
-        backTitle='Choose Locker'
+        backTitle="Choose Locker"
         bottomBar
         rightButton
         price={cart.total.toString()}
-        icon={require('images/shopping-bag.png')}
-        btnText='Checkout'
+        icon={require('assets/images/shopping-bag.png')}
+        btnText="Checkout"
         onBtnPress={handlePayment}
         isPaymentScreen
         timeDuration={300}
@@ -229,12 +242,12 @@ const LockerScreen = ({ navigation }) => {
           transparent={true}
           visible={paymentSuccess}
           onRequestClose={() => {
-            setPaymentSuccess(false); 
+            setPaymentSuccess(false);
           }}
         >
           <View style={styles.centeredView}>
             <View style={styles.modalView}>
-              <Image style={styles.successImage} source={require('images/success.png')} />
+              <Image style={styles.successImage} source={require('assets/images/success.png')} />
               <Text style={styles.successText}>Success!</Text>
               <Text style={styles.successSubText}>Your order has been received.</Text>
             </View>
@@ -243,9 +256,9 @@ const LockerScreen = ({ navigation }) => {
       </Layout>
       {isLoading && (
         <View style={styles.overlayStyle}>
-          <ActivityIndicator size='large' color={colors.theme} />
+          <ActivityIndicator size="large" color={colors.theme} />
         </View>
-      ) }
+      )}
     </>
   );
 };
@@ -319,7 +332,7 @@ const styles = StyleSheet.create({
   },
   overlayStyle: {
     position: 'absolute',
-    backgroundColor: 'rgba(255,255,255,0.5)', 
+    backgroundColor: 'rgba(255,255,255,0.5)',
     width: '100%',
     height: '100%',
     justifyContent: 'center',

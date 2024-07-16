@@ -4,7 +4,6 @@
 // import { logout } from 'slices/authenticationSlice';
 // import { resetCart } from '../redux/slices/cartSlice';
 
-
 // const db = firestore();
 
 // // check if customer exists in Firestore
@@ -50,7 +49,7 @@
 //         }
 //       ]
 //     })
-//   ); 
+//   );
 //   // Delay the sign out by 3 seconds
 //   setTimeout(async () => {
 //     try {
@@ -70,15 +69,15 @@ import { View, ActivityIndicator } from 'react-native';
 import firestore from '@react-native-firebase/firestore';
 import auth from '@react-native-firebase/auth';
 import { CommonActions } from '@react-navigation/native';
-import { logout, login } from 'slices/authenticationSlice';
-import { resetCart } from '../redux/slices/cartSlice';
+import { logout, login } from 'redux/slices/authenticationSlice';
 import { useDispatch } from 'react-redux';
-import colors from '../constants/colors';
+import { resetCart } from 'redux/slices/cartSlice';
+import colors from 'constants/colors';
 
 const db = firestore();
 
 // check if customer exists in Firestore
-export const checkCustomerExists = async (mobile) => {
+export const checkCustomerExists = async mobile => {
   try {
     const querySnapshot = await db.collection('customers').where('mobile', '==', mobile).get();
     return querySnapshot;
@@ -89,19 +88,19 @@ export const checkCustomerExists = async (mobile) => {
 };
 
 // Store customer details in Firestore
-export const storeCustomerDetails = async (customerDetails) => {
+export const storeCustomerDetails = async customerDetails => {
   try {
-    const docRef = await db.collection('customers').add(customerDetails)
-    const customerId = docRef.id
-    console.log('Customer details stored successfully')
-    return customerId
+    const docRef = await db.collection('customers').add(customerDetails);
+    const customerId = docRef.id;
+    console.log('Customer details stored successfully');
+    return customerId;
   } catch (error) {
-    console.error('Error storing customer details:', error)
-    throw error // Rethrow the error to handle it in the calling function
+    console.error('Error storing customer details:', error);
+    throw error; // Rethrow the error to handle it in the calling function
   }
-}
+};
 
-//logout
+// logout
 export const logoutCustomer = (navigation, dispatch) => {
   // First reset navigation
   navigation.dispatch(
@@ -111,41 +110,40 @@ export const logoutCustomer = (navigation, dispatch) => {
         {
           name: 'HomeStackScreen',
           state: {
-            routes: [
-              { name: 'TimeSlotScreen' }
-            ],
-            index: 0
-          }
-        }
-      ]
-    })
-  ); 
+            routes: [{ name: 'TimeSlotScreen' }],
+            index: 0,
+          },
+        },
+      ],
+    }),
+  );
   // Delay the sign out by 3 seconds
   setTimeout(async () => {
     try {
-      await auth().signOut()
-      dispatch(logout())
-      dispatch(resetCart())
+      await auth().signOut();
+      dispatch(logout());
+      dispatch(resetCart());
     } catch (error) {
-      console.error('Failed to sign out:', error)
+      console.error('Failed to sign out:', error);
     }
   });
-}
+};
 
 export const AuthenticationWrapper = ({ children }) => {
   const dispatch = useDispatch();
   const [initializing, setInitializing] = useState(true);
 
   useEffect(() => {
-    const subscriber = auth().onAuthStateChanged(async (user) => {
+    const subscriber = auth().onAuthStateChanged(async user => {
       if (user) {
         try {
           // Remove '+91' prefix from the phone number
           const phoneNumberWithoutPrefix = user.phoneNumber.replace('+91', '');
-          
+
           console.log('Querying Firestore for phone number:', phoneNumberWithoutPrefix);
-          
-          const querySnapshot = await db.collection('customers')
+
+          const querySnapshot = await db
+            .collection('customers')
             .where('mobile', '==', phoneNumberWithoutPrefix)
             .limit(1)
             .get();
