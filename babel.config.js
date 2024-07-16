@@ -6,11 +6,12 @@ module.exports = {
       {
         root: ['./src'], // source folder
         alias: {
+          '@': './src',
           common: './src/components/common',
           components: './src/components',
           screens: './src/screens',
           assets: './src/assets',
-          images:'./src/assets/images',
+          images: './src/assets/images',
           constants: './src/constants',
           globals: './src/globals',
           utils: './src/utils',
