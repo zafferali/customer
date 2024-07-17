@@ -14,7 +14,7 @@ const FoodItem = ({ data, style }) => {
   return (
     <View style={[styles.container, GlobalStyles.lightBorder, style]}>
       <View style={styles.itemWrap}>
-        <Image style={{ width: 200, height: 200 }} source={{ uri: data.food_thumbnail }} />
+        <Image style={styles.thumbnail} source={{ uri: data.food_thumbnail }} />
         <View>
           <Text style={styles.title}>{data.name}</Text>
           <Text style={styles.price}>{data.price}</Text>
@@ -40,10 +40,8 @@ const styles = StyleSheet.create({
     gap: 20,
   },
   thumbnail: {
-    width: 125,
-    height: 125,
-    resizeMode: 'cover',
-    borderRadius: 8,
+    width: 200,
+    height: 200,
   },
   title: {
     fontSize: 32,

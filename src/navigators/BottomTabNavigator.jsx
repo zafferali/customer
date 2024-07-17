@@ -1,9 +1,7 @@
-import * as React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
-import { View, StyleSheet, Image, Text } from 'react-native';
+import TabItem from 'components/common/TabItem';
 import { HomeStackScreen, OrderListStackScreen, ProfileStackScreen } from './StackNavigator';
-import colors from '../constants/colors';
 
 const Tab = createBottomTabNavigator();
 
@@ -13,7 +11,6 @@ const BottomTabNavigator = () => {
       initialRouteName="TimeSlotScreen"
       screenOptions={{
         tabBarShowLabel: false,
-        tabBarStyle: styles.menuContainer,
         headerShown: false,
       }}
     >
@@ -47,16 +44,7 @@ const BottomTabNavigator = () => {
               paddingTop: 10,
             },
             tabBarIcon: ({ focused }) => (
-              <View style={styles.menuItem}>
-                <Image
-                  source={require('assets/images/home-icon.png')}
-                  resizeMode="contain"
-                  style={[styles.menuIcon, { tintColor: focused ? colors.theme : colors.textLight }]}
-                />
-                <Text style={[styles.menuText, { color: focused ? colors.theme : colors.textLight }]}>
-                  Home
-                </Text>
-              </View>
+              <TabItem focused={focused} iconSrc={require('assets/images/home-icon.png')} tabName="Home" />
             ),
           };
         }}
@@ -73,16 +61,7 @@ const BottomTabNavigator = () => {
             paddingTop: 10,
           },
           tabBarIcon: ({ focused }) => (
-            <View style={styles.menuItem}>
-              <Image
-                source={require('assets/images/orders-icon.png')}
-                resizeMode="contain"
-                style={[styles.menuIcon, { tintColor: focused ? colors.theme : colors.textLight }]}
-              />
-              <Text style={[styles.menuText, { color: focused ? colors.theme : colors.textLight }]}>
-                Orders
-              </Text>
-            </View>
+            <TabItem focused={focused} iconSrc={require('assets/images/orders-icon.png')} tabName="Orders" />
           ),
         })}
       />
@@ -99,44 +78,12 @@ const BottomTabNavigator = () => {
             paddingTop: 10,
           },
           tabBarIcon: ({ focused }) => (
-            <View style={styles.menuItem}>
-              <Image
-                source={require('assets/images/user-icon.png')}
-                resizeMode="contain"
-                style={[styles.menuIcon, { tintColor: focused ? colors.theme : colors.textLight }]}
-              />
-              <Text style={[styles.menuText, { color: focused ? colors.theme : colors.textLight }]}>
-                Profile
-              </Text>
-            </View>
+            <TabItem focused={focused} iconSrc={require('assets/images/user-icon.png')} tabName="Profile" />
           ),
         })}
       />
     </Tab.Navigator>
   );
 };
-
-const styles = StyleSheet.create({
-  //   menuContainer: {
-  //     height: 100,
-  //     paddingVertical: 40,
-  //     backgroundColor: '#FAFAFA',
-  //     borderTopWidth: 1,
-  //     borderTopColor: '#E0E0E0',
-  //   },
-  menuItem: {
-    alignItems: 'center',
-    // marginVertical: 20,
-  },
-  menuIcon: {
-    width: 18,
-    height: 20,
-  },
-  menuText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.textLight,
-  },
-});
 
 export default BottomTabNavigator;

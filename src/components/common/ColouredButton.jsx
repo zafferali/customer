@@ -1,6 +1,5 @@
 import React from 'react';
 import { TouchableOpacity, Text, StyleSheet, Image } from 'react-native';
-import colors from 'constants/colors';
 
 const ColouredButton = ({ onPress, title, style, textStyle, icon, textColor, bgColor }) => (
   <TouchableOpacity onPress={onPress} style={[styles.button, style, { backgroundColor: bgColor }]}>

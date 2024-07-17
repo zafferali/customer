@@ -1,13 +1,12 @@
-import React, { useState } from 'react';
-import { StyleSheet, StatusBar } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator, TransitionPresets } from '@react-navigation/stack';
 import { setCustomText } from 'react-native-global-props';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
 import IntroScreen from 'screens/IntroScreen';
-import BottomTabNavigator from './navigation/BottomTabNavigator';
-import { AuthStackNavigator } from './navigation/AuthStackNavigator';
+import BottomTabNavigator from './navigators/BottomTabNavigator';
+import { AuthStackNavigator } from './navigators/AuthStackNavigator';
 
 const customTextProps = {
   style: {
@@ -25,15 +24,14 @@ const App = () => {
   const isFirstTime = useSelector(state => state.authentication.isFirstTime);
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
-      {/* <StatusBar backgroundColor="transparent" translucent={true} /> */}
+    <SafeAreaView style={styles.fullWidth}>
       <NavigationContainer>
         {!isAuthenticated ? (
           <AuthStackNavigator />
         ) : isFirstTime ? (
           <Stack.Navigator
             screenOptions={{
-              gestureEnabled: true, // Enable gesture navigation
+              gestureEnabled: true,
               ...TransitionPresets.SlideFromRightIOS,
               headerShown: false,
             }}
@@ -48,6 +46,10 @@ const App = () => {
   );
 };
 
-const styles = StyleSheet.create({});
+const styles = StyleSheet.create({
+  fullWidth: {
+    flex: 1,
+  },
+});
 
 export default App;

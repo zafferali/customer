@@ -1,4 +1,3 @@
-import React from 'react';
 import { TextInput, StyleSheet, View, Text } from 'react-native';
 
 const CustomInput = ({ placeholder, value, onChangeText, style, label, notEditable }) => (
@@ -14,7 +13,7 @@ const CustomInput = ({ placeholder, value, onChangeText, style, label, notEditab
       placeholderTextColor="rgba(151, 151, 151, 0.49)"
       value={value}
       onChangeText={onChangeText}
-      style={[styles.input, notEditable && { backgroundColor: 'rgba(171, 171, 171, 0.29)' }]}
+      style={[styles.input, notEditable && styles.disabledColor]}
       readOnly={notEditable}
     />
   </View>
@@ -35,6 +34,9 @@ const styles = StyleSheet.create({
     color: 'black',
     fontWeight: '600',
     marginBottom: 4,
+  },
+  disabledColor: {
+    backgroundColor: 'rgba(171, 171, 171, 0.29)',
   },
 });
 

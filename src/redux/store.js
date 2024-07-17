@@ -1,4 +1,4 @@
-import { configureStore, getDefaultMiddleware } from '@reduxjs/toolkit';
+import { configureStore } from '@reduxjs/toolkit';
 import cartReducer from 'redux/slices/cartSlice';
 import ordersReducer from 'redux/slices/ordersSlice';
 import uiReducer from 'redux/slices/uiSlice';
@@ -14,10 +14,6 @@ const store = configureStore({
     ui: uiReducer,
     restaurants: restaurantsReducer,
     menu: menuReducer,
-    // middleware: getDefaultMiddleware({
-    //   immutableCheck: false,
-    //   serializableCheck: false,
-    // }),
   },
 });
 

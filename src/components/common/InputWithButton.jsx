@@ -1,5 +1,4 @@
-import React from 'react';
-import { View, TextInput, TouchableOpacity, Text, StyleSheet, Image } from 'react-native';
+import { View, TextInput, TouchableOpacity, Text, StyleSheet } from 'react-native';
 import colors from 'constants/colors';
 
 const InputWithButton = ({
@@ -20,9 +19,9 @@ const InputWithButton = ({
         placeholder={placeholder}
       />
       <TouchableOpacity
-        style={[styles.button, value.length == 0 && { opacity: 0.6 }]}
+        style={[styles.button, value.length === 0 && styles.halfOpacity]}
         onPress={handleValidate}
-        disabled={value.length == 0}
+        disabled={value.length === 0}
       >
         <Text style={styles.buttonText}>{buttonText}</Text>
       </TouchableOpacity>
@@ -68,6 +67,9 @@ const styles = StyleSheet.create({
   buttonText: {
     color: 'white',
     fontSize: 14,
+  },
+  halfOpacity: {
+    opacity: 0.6,
   },
 });
 
