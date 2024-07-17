@@ -31,6 +31,7 @@ const restaurantsSlice = createSlice({
   },
 });
 
-export const { setRestaurants, clearRestaurants, setTimeSlot, setCurrentRestaurant, clearCurrentRestaurant } = restaurantsSlice.actions;
+export const { setRestaurants, clearRestaurants, setTimeSlot, setCurrentRestaurant, clearCurrentRestaurant } =
+  restaurantsSlice.actions;
 
 export default restaurantsSlice.reducer;

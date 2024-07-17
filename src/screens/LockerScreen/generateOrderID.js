@@ -4,7 +4,7 @@ import moment from 'moment'; // Ensure you have 'moment' installed
 /**
  * Generates a unique order ID based on the current date and the sequence number of the day.
  * Format: YYMMDDNNN where NNN is a sequence number, extending beyond 999 if necessary.
- * 
+ *
  * @returns {Promise<string>} A promise that resolves to the order ID.
  */
 async function generateOrderID() {

@@ -4,7 +4,7 @@ import colors from 'constants/colors';
 
 const CustomButton = ({ onPress, title, style, textStyle, icon }) => (
   <TouchableOpacity onPress={onPress} style={[styles.button, style]}>
-    {icon && <Image source={require('images/edit.png')} style={styles.icon} />}
+    {icon && <Image source={require('assets/images/edit.png')} style={styles.icon} />}
     <Text style={[styles.text, textStyle]}>{title}</Text>
   </TouchableOpacity>
 );
@@ -29,7 +29,7 @@ const styles = StyleSheet.create({
   icon: {
     width: 16,
     height: 16,
-  }
+  },
 });
 
 export default CustomButton;

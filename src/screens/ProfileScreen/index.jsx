@@ -1,19 +1,18 @@
-import { StyleSheet, Text, View, Alert, Image, TouchableOpacity } from 'react-native'
-import React from 'react'
-import Layout from 'common/Layout'
-import colors from 'constants/colors'
-import { GlobalStyles } from 'constants/GlobalStyles'
-import { logoutCustomer } from '../../firebase/auth'
-import { useDispatch, useSelector } from 'react-redux'
-import { makeCall } from 'utils/makeCall'
+import { StyleSheet, Text, View, Alert, Image, TouchableOpacity } from 'react-native';
+import React from 'react';
+import Layout from 'components/common/Layout';
+import colors from 'constants/colors';
+import { GlobalStyles } from 'constants/GlobalStyles';
+import { useDispatch, useSelector } from 'react-redux';
+import { makeCall } from 'utils/makeCall';
+import { logoutCustomer } from '../../firebase/auth';
 
-
-const ProfileScreen = ({navigation}) => {
-  const dispatch = useDispatch()
-  const customer = useSelector(state => state.authentication.customer)
-  console.log('cus', customer)
+const ProfileScreen = ({ navigation }) => {
+  const dispatch = useDispatch();
+  const customer = useSelector(state => state.authentication.customer);
+  console.log('cus', customer);
   const handleSettingsPress = () => {
-    navigation.navigate('SettingsScreen')
+    navigation.navigate('SettingsScreen');
   };
 
   const handleCallCustomerCarePress = () => {
@@ -21,32 +20,33 @@ const ProfileScreen = ({navigation}) => {
       'Do you want to call support?',
       'Please keep the Order number ready',
       [
-        { 
-          text: 'Call', 
-          onPress: () => makeCall('+919999978787')
+        {
+          text: 'Call',
+          onPress: () => makeCall('+919999978787'),
         },
-        { 
-          text: 'Cancel', 
-          style: 'cancel' 
-        }
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
       ],
-      { cancelable: true }
-    )
+      { cancelable: true },
+    );
   };
 
   const handleLogoutPress = () => {
-    logoutCustomer(navigation, dispatch)
+    logoutCustomer(navigation, dispatch);
   };
 
   return (
-    <Layout
-      showMenu
-      navigation={navigation}
-      title='Profile'
-    >
+    <Layout showMenu navigation={navigation} title="Profile">
       <View style={styles.container}>
         {/* <Image source={require('images/profile-placeholder.png')} style={styles.userImage} /> */}
-        <Image source={customer.photoUrl? { uri: customer.photoUrl }: require('images/profile-placeholder.png')} style={styles.userImage} />
+        <Image
+          source={
+            customer.photoUrl ? { uri: customer.photoUrl } : require('assets/images/profile-placeholder.png')
+          }
+          style={styles.userImage}
+        />
         <Text style={styles.userName}>{customer.name}</Text>
         <View style={styles.buttonGroup}>
           <TouchableOpacity style={[styles.button, styles.topButton]} onPress={handleSettingsPress}>
@@ -56,22 +56,25 @@ const ProfileScreen = ({navigation}) => {
             <Text style={styles.buttonText}>Call customer care</Text>
           </TouchableOpacity>
         </View>
-        <TouchableOpacity style={[GlobalStyles.lightBorder, {width: '100%', marginTop: 15, paddingVertical: 12 }]} onPress={() => handleLogoutPress()}>
+        <TouchableOpacity
+          style={[GlobalStyles.lightBorder, { width: '100%', marginTop: 15, paddingVertical: 12 }]}
+          onPress={() => handleLogoutPress()}
+        >
           <Text style={styles.buttonText}>Logout</Text>
         </TouchableOpacity>
       </View>
     </Layout>
-  )
-}
+  );
+};
 
-export default ProfileScreen
+export default ProfileScreen;
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 20
+    paddingHorizontal: 20,
   },
   userImage: {
     width: 120,
@@ -84,7 +87,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: 'black',
     marginBottom: 20,
-    textTransform: 'capitalize'
+    textTransform: 'capitalize',
   },
   buttonGroup: {
     borderRadius: 10,
@@ -106,4 +109,4 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: colors.theme,
   },
-})
+});

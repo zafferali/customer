@@ -1,10 +1,10 @@
-import { configureStore , getDefaultMiddleware} from '@reduxjs/toolkit';
-import authenticationReducer from '../redux/slices/authenticationSlice';
-import cartReducer from 'slices/cartSlice';
-import ordersReducer from 'slices/ordersSlice';
-import uiReducer from 'slices/uiSlice';
-import restaurantsReducer from 'slices/restaurantsSlice';
-import menuReducer from 'slices/menuSlice';
+import { configureStore, getDefaultMiddleware } from '@reduxjs/toolkit';
+import cartReducer from 'redux/slices/cartSlice';
+import ordersReducer from 'redux/slices/ordersSlice';
+import uiReducer from 'redux/slices/uiSlice';
+import restaurantsReducer from 'redux/slices/restaurantsSlice';
+import menuReducer from 'redux/slices/menuSlice';
+import authenticationReducer from 'redux/slices/authenticationSlice';
 
 const store = configureStore({
   reducer: {

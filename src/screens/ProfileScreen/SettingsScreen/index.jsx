@@ -1,100 +1,106 @@
-import React, { useState } from 'react'
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, Alert, ActivityIndicator } from 'react-native'
-import colors from '../../../constants/colors'
-import Layout from 'common/Layout'
-import { useDispatch, useSelector } from 'react-redux'
-import { updateCustomer } from 'slices/authenticationSlice'
-import firestore from '@react-native-firebase/firestore'
-import uploadImageToFirebase from 'utils/uploadImage'
-import UploadImageModal from 'utils/UploadImageModal'
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  Image,
+  Alert,
+  ActivityIndicator,
+} from 'react-native';
+import Layout from 'components/common/Layout';
+import { useDispatch, useSelector } from 'react-redux';
+import { updateCustomer } from 'redux/slices/authenticationSlice';
+import firestore from '@react-native-firebase/firestore';
+import uploadImageToFirebase from 'utils/uploadImage';
+import UploadImageModal from 'utils/UploadImageModal';
+import colors from 'constants/colors';
 
 const SettingsScreen = ({ navigation }) => {
-  const customer = useSelector(state => state.authentication.customer)
-  const dispatch = useDispatch()
-  const [name, setName] = useState(customer.name)
-  const [imageUrl, setImageUrl] = useState(customer.photoUrl || null)
-  const [modalVisible, setModalVisible] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
+  const customer = useSelector(state => state.authentication.customer);
+  const dispatch = useDispatch();
+  const [name, setName] = useState(customer.name);
+  const [imageUrl, setImageUrl] = useState(customer.photoUrl || null);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleNameChange = (text) => {
-    setName(text)
-  }
+  const handleNameChange = text => {
+    setName(text);
+  };
 
   const handleSave = async () => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      await firestore()
-        .collection('customers')
-        .doc(customer.id)
-        .update({
-          name: name,
-          photoUrl: imageUrl,
-        })
-      dispatch(updateCustomer({ name, photoUrl: imageUrl }))
-      navigation.navigate('ProfileScreen')
+      await firestore().collection('customers').doc(customer.id).update({
+        name,
+        photoUrl: imageUrl,
+      });
+      dispatch(updateCustomer({ name, photoUrl: imageUrl }));
+      navigation.navigate('ProfileScreen');
     } catch (error) {
-      Alert.alert('Error', 'Failed to update profile. Please try again.')
-      console.error(error)
+      Alert.alert('Error', 'Failed to update profile. Please try again.');
+      console.error(error);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
-  
+  };
 
-  const handleUploadImage = async (fromCamera) => {
-    setIsLoading(true)
+  const handleUploadImage = async fromCamera => {
+    setIsLoading(true);
     try {
-      const url = await uploadImageToFirebase(fromCamera)
-      console.log('url is', url)
-      setImageUrl(url)
-      setModalVisible(false)
+      const url = await uploadImageToFirebase(fromCamera);
+      console.log('url is', url);
+      setImageUrl(url);
+      setModalVisible(false);
     } catch (error) {
-      console.log(error)
+      console.log(error);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <>
-    <Layout backTitle='Settings' navigation={navigation}>
-      <View style={styles.container}>
-        <TouchableOpacity style={[styles.imageUploadContainer, imageUrl && { borderWidth: 0 }]} onPress={() => setModalVisible(true)}>
-          {imageUrl ? (
-            <Image source={{ uri: imageUrl }} style={styles.profileImage} />
-          ) : (
-            <Image style={styles.uploadIcon} source={require('images/upload.png')} />
-          )}
-        </TouchableOpacity>
-        <Text style={styles.label}>Name</Text>
-        <TextInput
-          style={styles.input}
-          value={name}
-          onChangeText={handleNameChange}
-        />
-        <Text style={styles.label}>Phone Number</Text>
-        <View style={styles.phoneNum}>
-          <Text style={styles.phoneNumText}>{customer.mobile}</Text>
+      <Layout backTitle="Settings" navigation={navigation}>
+        <View style={styles.container}>
+          <TouchableOpacity
+            style={[styles.imageUploadContainer, imageUrl && { borderWidth: 0 }]}
+            onPress={() => setModalVisible(true)}
+          >
+            {imageUrl ? (
+              <Image source={{ uri: imageUrl }} style={styles.profileImage} />
+            ) : (
+              <Image style={styles.uploadIcon} source={require('assets/images/upload.png')} />
+            )}
+          </TouchableOpacity>
+          <Text style={styles.label}>Name</Text>
+          <TextInput style={styles.input} value={name} onChangeText={handleNameChange} />
+          <Text style={styles.label}>Phone Number</Text>
+          <View style={styles.phoneNum}>
+            <Text style={styles.phoneNumText}>{customer.mobile}</Text>
+          </View>
+          <TouchableOpacity style={styles.button} onPress={handleSave}>
+            <Text style={styles.buttonText}>Save Change</Text>
+          </TouchableOpacity>
         </View>
-        <TouchableOpacity style={styles.button} onPress={handleSave}>
-          <Text style={styles.buttonText}>Save Change</Text>
-        </TouchableOpacity>
-      </View>
-      {!isLoading &&
-      <UploadImageModal
-        visible={modalVisible}
-        onClose={() => setModalVisible(false)}
-        onTakePicture={() => handleUploadImage(true)}
-        onUploadFromGallery={() => handleUploadImage(false)}
-      />}
-    </Layout>
-     {isLoading ? (
-      <View style={styles.overlayStyle}>
-        <ActivityIndicator size='large' color={colors.theme} />
-      </View>) : null}
-      </>
-  )
-}
+        {!isLoading && (
+          <UploadImageModal
+            visible={modalVisible}
+            onClose={() => setModalVisible(false)}
+            onTakePicture={() => handleUploadImage(true)}
+            onUploadFromGallery={() => handleUploadImage(false)}
+          />
+        )}
+      </Layout>
+      {isLoading ? (
+        <View style={styles.overlayStyle}>
+          <ActivityIndicator size="large" color={colors.theme} />
+        </View>
+      ) : null}
+    </>
+  );
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -122,7 +128,7 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: 60,
-    resizeMode: 'cover'
+    resizeMode: 'cover',
   },
   label: {
     alignSelf: 'flex-start',
@@ -176,6 +182,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     zIndex: 2,
   },
-})
+});
 
-export default SettingsScreen
+export default SettingsScreen;

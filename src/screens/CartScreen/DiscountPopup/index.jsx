@@ -1,22 +1,20 @@
-import React, { useState, useEffect } from 'react'
-import { Modal, Text, View, StyleSheet, TouchableOpacity, Image, SafeAreaView } from 'react-native'
-import firestore from '@react-native-firebase/firestore'
-import { useSelector, useDispatch } from 'react-redux'
-import colors from 'constants/colors'
-import { applyDiscount, removeDiscount } from 'slices/cartSlice'
+import React, { useState, useEffect } from 'react';
+import { Modal, Text, View, StyleSheet, TouchableOpacity, Image, SafeAreaView } from 'react-native';
+import firestore from '@react-native-firebase/firestore';
+import { useSelector, useDispatch } from 'react-redux';
+import colors from 'constants/colors';
+import { applyDiscount, removeDiscount } from 'redux/slices/cartSlice';
 
 const DiscountItem = ({ code, description, isApplied, onApply, onRemove, minimumBillAmount, subTotal }) => {
-  const isDisabled = minimumBillAmount && subTotal < minimumBillAmount
-  const amountNeeded = minimumBillAmount - subTotal
+  const isDisabled = minimumBillAmount && subTotal < minimumBillAmount;
+  const amountNeeded = minimumBillAmount - subTotal;
 
   return (
     <View style={[styles.itemContainer, isApplied && { backgroundColor: colors.lightGray }]}>
       <View style={styles.leftSection}>
         <Text style={styles.description}>{description}</Text>
         {isDisabled && (
-          <Text style={styles.minBillText}>
-            Add ₹{amountNeeded.toFixed(2)} more to apply this code.
-          </Text>
+          <Text style={styles.minBillText}>Add ₹{amountNeeded.toFixed(2)} more to apply this code.</Text>
         )}
         <View style={{ flexDirection: 'row', gap: 20 }}>
           <TouchableOpacity style={styles.code}>
@@ -25,7 +23,7 @@ const DiscountItem = ({ code, description, isApplied, onApply, onRemove, minimum
 
           {isApplied && (
             <View style={styles.tickIconWrapper}>
-              <Image style={styles.tickIcon} source={require('images/tick.png')} />
+              <Image style={styles.tickIcon} source={require('assets/images/tick.png')} />
             </View>
           )}
         </View>
@@ -35,104 +33,106 @@ const DiscountItem = ({ code, description, isApplied, onApply, onRemove, minimum
           <Text style={styles.remove}>Remove</Text>
         </TouchableOpacity>
       ) : (
-        <TouchableOpacity onPress={() => onApply(code)} style={[styles.applyButton, isDisabled && { opacity: 0.5 }]} disabled={isDisabled}>
+        <TouchableOpacity
+          onPress={() => onApply(code)}
+          style={[styles.applyButton, isDisabled && { opacity: 0.5 }]}
+          disabled={isDisabled}
+        >
           <Text style={styles.applyButtonText}>Apply</Text>
         </TouchableOpacity>
       )}
     </View>
-  )
-}
+  );
+};
 
 const DiscountPopup = ({ isVisible, onClose }) => {
-  const [discountCodes, setDiscountCodes] = useState([])
-  const restaurantId = useSelector(state => state.restaurants.currentRestaurant.id)
-  const userOrderCount = useSelector(state => state.authentication.customer.orderCount)
-  const subTotal = useSelector(state => state.cart.subTotal)
-  const appliedDiscountCode = useSelector(state => state.cart.discountCode)
-  const dispatch = useDispatch()
+  const [discountCodes, setDiscountCodes] = useState([]);
+  const restaurantId = useSelector(state => state.restaurants.currentRestaurant.id);
+  const userOrderCount = useSelector(state => state.authentication.customer.orderCount);
+  const subTotal = useSelector(state => state.cart.subTotal);
+  const appliedDiscountCode = useSelector(state => state.cart.discountCode);
+  const dispatch = useDispatch();
 
   useEffect(() => {
     const fetchDiscountCodes = async () => {
       try {
-        const discountCodesSnapshot = await firestore().collection('discountCodes').get()
+        const discountCodesSnapshot = await firestore().collection('discountCodes').get();
 
-        const fetchRestaurantRefs = async (restaurants) => {
-          if (!restaurants || restaurants.length === 0) return true
+        const fetchRestaurantRefs = async restaurants => {
+          if (!restaurants || restaurants.length === 0) return true;
           const restaurantIds = await Promise.all(
-            restaurants.map(async (ref) => {
-              const restaurantDoc = await ref.get()
-              return restaurantDoc.id
-            })
-          )
-          return restaurantIds.includes(restaurantId)
-        }
+            restaurants.map(async ref => {
+              const restaurantDoc = await ref.get();
+              return restaurantDoc.id;
+            }),
+          );
+          return restaurantIds.includes(restaurantId);
+        };
 
         const codes = await Promise.all(
-          discountCodesSnapshot.docs.map(async (doc) => {
-            const discount = doc.data()
-            const { restaurants, userRestrictions, expiryDate } = discount
+          discountCodesSnapshot.docs.map(async doc => {
+            const discount = doc.data();
+            const { restaurants, userRestrictions, expiryDate } = discount;
 
             // Check if the discount code is expired
-            const now = new Date()
-            const isExpired = expiryDate && expiryDate.toDate().setHours(23, 59, 59, 999) < now
+            const now = new Date();
+            const isExpired = expiryDate && expiryDate.toDate().setHours(23, 59, 59, 999) < now;
 
-            if (isExpired) return null
+            if (isExpired) return null;
 
-            const applicableForRestaurant = await fetchRestaurantRefs(restaurants)
-            const applicableForUser = !userRestrictions || (
+            const applicableForRestaurant = await fetchRestaurantRefs(restaurants);
+            const applicableForUser =
+              !userRestrictions ||
               !userRestrictions.firstTimeOnly ||
-              (userRestrictions.maxUsagePerUser === 0 || userRestrictions.maxUsagePerUser == null) ||
-              (userOrderCount < userRestrictions.maxUsagePerUser)
-            )
-            return applicableForRestaurant && applicableForUser ? discount : null
-          })
-        ).then(results => results.filter(discount => discount !== null))
+              userRestrictions.maxUsagePerUser === 0 ||
+              userRestrictions.maxUsagePerUser == null ||
+              userOrderCount < userRestrictions.maxUsagePerUser;
+            return applicableForRestaurant && applicableForUser ? discount : null;
+          }),
+        ).then(results => results.filter(discount => discount !== null));
 
-        setDiscountCodes(codes)
+        setDiscountCodes(codes);
       } catch (error) {
-        console.error('Error fetching discount codes: ', error)
+        console.error('Error fetching discount codes: ', error);
       }
-    }
+    };
 
     if (isVisible) {
-      fetchDiscountCodes()
+      fetchDiscountCodes();
     }
-  }, [isVisible, restaurantId, userOrderCount, subTotal])
+  }, [isVisible, restaurantId, userOrderCount, subTotal]);
 
-  const handleApply = (code) => {
-    const discount = discountCodes.find(d => d.code === code)
-    let discountAmount = 0
+  const handleApply = code => {
+    const discount = discountCodes.find(d => d.code === code);
+    let discountAmount = 0;
 
     if (discount.amount) {
-      discountAmount = discount.amount
+      discountAmount = discount.amount;
     } else if (discount.percentage) {
-      discountAmount = (subTotal * discount.percentage) / 100
+      discountAmount = (subTotal * discount.percentage) / 100;
     }
 
-    dispatch(applyDiscount({
-      discountAmount,
-      discountCode: code,
-      discountDescription: discount.description
-    }))
-  }
+    dispatch(
+      applyDiscount({
+        discountAmount,
+        discountCode: code,
+        discountDescription: discount.description,
+      }),
+    );
+  };
 
   const handleRemove = () => {
-    dispatch(removeDiscount())
-  }
+    dispatch(removeDiscount());
+  };
 
   return (
-    <Modal
-      animationType="slide"
-      transparent={false}
-      visible={isVisible}
-      onRequestClose={onClose}
-    >
+    <Modal animationType="slide" transparent={false} visible={isVisible} onRequestClose={onClose}>
       {/* <SafeAreaView></SafeAreaView> */}
       <View style={styles.fullScreenContainer}>
         <View style={styles.header}>
           <Text style={styles.heading}>Discounts</Text>
           <TouchableOpacity onPress={onClose}>
-            <Image source={require('images/close.png')} style={styles.closeButton} />
+            <Image source={require('assets/images/close.png')} style={styles.closeButton} />
           </TouchableOpacity>
         </View>
         {discountCodes.length === 0 ? (
@@ -155,10 +155,10 @@ const DiscountPopup = ({ isVisible, onClose }) => {
         )}
       </View>
     </Modal>
-  )
-}
+  );
+};
 
-export default DiscountPopup
+export default DiscountPopup;
 
 const styles = StyleSheet.create({
   fullScreenContainer: {
@@ -197,7 +197,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: 'black',
     marginBottom: 8,
-    textTransform: 'uppercase'
+    textTransform: 'uppercase',
   },
   code: {
     borderWidth: 1,
@@ -256,12 +256,12 @@ const styles = StyleSheet.create({
   },
   noDiscounts: {
     flex: 1,
-    justifyContent: 'center'
+    justifyContent: 'center',
   },
   noDiscountsText: {
     fontSize: 16,
     color: 'gray',
     textAlign: 'center',
-    textTransform: 'uppercase'
+    textTransform: 'uppercase',
   },
-})
+});
