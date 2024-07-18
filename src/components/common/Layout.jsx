@@ -35,57 +35,57 @@ const Layout = ({
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1 }}
+      style={styles.fullWidth}
       // eslint-disable-next-line no-undef
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       // keyboardVerticalOffset={Platform.OS === "ios" ? 24 : 0}
     >
       <StatusBar barStyle="dark-content" backgroundColor="white" />
-      {/* <SafeAreaView style={{flex: 1}}> */}
-      <View style={styles.container}>
-        <View style={styles.headerContainer}>
-          {backTitle ? (
-            <View style={styles.headerLeft}>
-              <TouchableOpacity onPress={() => navigation.goBack()}>
-                <Image style={styles.backBtn} source={require('assets/images/back.png')} />
-              </TouchableOpacity>
-              <Text style={styles.backTitle}>{backTitle}</Text>
-            </View>
-          ) : (
-            <View style={styles.titleContainer}>
-              <Text style={styles.title}>{title}</Text>
-              {title2 && <Text style={styles.title2}>{title2}</Text>}
-            </View>
-          )}
+      <SafeAreaView style={styles.fullWidth}>
+        <View style={styles.container}>
+          <View style={styles.headerContainer}>
+            {backTitle ? (
+              <View style={styles.headerLeft}>
+                <TouchableOpacity onPress={() => navigation.goBack()}>
+                  <Image style={styles.backBtn} source={require('assets/images/back.png')} />
+                </TouchableOpacity>
+                <Text style={styles.backTitle}>{backTitle}</Text>
+              </View>
+            ) : (
+              <View style={styles.titleContainer}>
+                <Text style={styles.title}>{title}</Text>
+                {title2 && <Text style={styles.title2}>{title2}</Text>}
+              </View>
+            )}
+          </View>
+          {children}
         </View>
-        {children}
-      </View>
-      {bottomBar && items.length != 0 && (
-        <View style={styles.bottomBarContainer}>
-          {price && (
-            <View style={styles.leftSection}>
-              <Text style={styles.total}>Total</Text>
-              <Text style={styles.price}>₹{price}</Text>
-            </View>
-          )}
-          {leftBtnText && (
-            <TouchableOpacity style={styles.btnContainer} onPress={onLeftBtnPress}>
-              <Image source={iconLeft} style={styles.iconLeft} />
-              <Text style={styles.btnText}>{leftBtnText}</Text>
-            </TouchableOpacity>
-          )}
-          {rightButton && (
-            <View style={styles.rightSection}>
-              <TouchableOpacity style={styles.btnContainer} onPress={onBtnPress}>
-                {icon && <Image source={icon} style={styles.icon} />}
-                <Text style={styles.btnText}>{btnText}</Text>
-                {next && <Image style={styles.next} source={require('assets/images/next.png')} />}
+        {bottomBar && items.length !== 0 && (
+          <View style={styles.bottomBarContainer}>
+            {price && (
+              <View style={styles.leftSection}>
+                <Text style={styles.total}>Total</Text>
+                <Text style={styles.price}>₹{price}</Text>
+              </View>
+            )}
+            {leftBtnText && (
+              <TouchableOpacity style={styles.btnContainer} onPress={onLeftBtnPress}>
+                <Image source={iconLeft} style={styles.iconLeft} />
+                <Text style={styles.btnText}>{leftBtnText}</Text>
               </TouchableOpacity>
-            </View>
-          )}
-        </View>
-      )}
-      {/* </SafeAreaView> */}
+            )}
+            {rightButton && (
+              <View style={styles.rightSection}>
+                <TouchableOpacity style={styles.btnContainer} onPress={onBtnPress}>
+                  {icon && <Image source={icon} style={styles.icon} />}
+                  <Text style={styles.btnText}>{btnText}</Text>
+                  {next && <Image style={styles.next} source={require('assets/images/next.png')} />}
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
+        )}
+      </SafeAreaView>
     </KeyboardAvoidingView>
   );
 };
@@ -93,6 +93,9 @@ const Layout = ({
 export default Layout;
 
 const styles = StyleSheet.create({
+  fullWidth: {
+    flex: 1,
+  },
   container: {
     flex: 1,
     paddingHorizontal: 20,

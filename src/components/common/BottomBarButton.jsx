@@ -1,5 +1,4 @@
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import React from 'react';
+import { Image, StyleSheet, Text, TouchableOpacity } from 'react-native';
 
 const BottomBarButton = ({ onPress, btnText, icon, next }) => {
   return (

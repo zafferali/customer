@@ -23,9 +23,6 @@ module.exports = {
     'react/react-in-jsx-scope': 'off', // React 17+ with new JSX transform
     'react-native/no-unused-styles': 'warn',
     'react-native/split-platform-components': 'warn',
-    'react-native/no-inline-styles': 'off',
-    'react-native/no-color-literals': 'off',
-    'react-native/no-raw-text': 'off',
     'global-require': 'off',
     'import/prefer-default-export': 'off',
     'no-use-before-define': 'off',

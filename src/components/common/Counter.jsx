@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import { View, TouchableOpacity, Image, Text, StyleSheet } from 'react-native';
 import colors from 'constants/colors';
-import { useSelector, useDispatch } from 'react-redux';
-import { increment, decrement } from 'redux/slices/menuSlice';
 
 const Counter = ({ onIncrement, onDecrement }) => {
   const [count, setCount] = useState(0);
@@ -63,7 +61,6 @@ const styles = StyleSheet.create({
     marginHorizontal: 10,
     borderRadius: 4,
   },
-  // ... add other styles if needed
 });
 
 export default Counter;
