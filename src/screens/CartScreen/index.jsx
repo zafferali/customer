@@ -5,23 +5,18 @@ import {
   TextInput,
   ScrollView,
   TouchableOpacity,
-  Image,
   Keyboard,
   ActivityIndicator,
 } from 'react-native';
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Layout from 'components/common/Layout';
 import InputWithButton from 'components/common/InputWithButton';
 import colors from 'constants/colors';
 import { useDispatch, useSelector } from 'react-redux';
-import {
-  addToCart,
-  removeFromCart,
-  specialInstructions,
-  applyDiscount,
-  removeDiscount,
-} from 'redux/slices/cartSlice';
+import { specialInstructions, applyDiscount, removeDiscount } from 'redux/slices/cartSlice';
 import firestore from '@react-native-firebase/firestore';
+import LineItem from './components/LineItem';
+import BillSummary from './components/BillSummary';
 import DiscountPopup from './DiscountPopup';
 
 const CartScreen = ({ navigation }) => {
@@ -53,10 +48,10 @@ const CartScreen = ({ navigation }) => {
       const discount = discountCodesSnapshot.docs[0].data();
       const { restaurants, userRestrictions, minimumBillAmount, amount, percentage, expiryDate } = discount;
 
-      const fetchRestaurantRefs = async restaurants => {
-        if (!restaurants || restaurants.length === 0) return true;
+      const fetchRestaurantRefs = async restaurantRefs => {
+        if (!restaurantRefs || restaurantRefs.length === 0) return true;
         const restaurantIds = await Promise.all(
-          restaurants.map(async ref => {
+          restaurantRefs.map(async ref => {
             const restaurantDoc = await ref.get();
             return restaurantDoc.id;
           }),
@@ -157,75 +152,8 @@ const CartScreen = ({ navigation }) => {
     };
 
     checkMinimumBillAmount();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cart.subTotal, appliedDiscount, dispatch]);
-
-  const LineItem = ({ data }) => {
-    const count = useSelector(
-      state => state.cart.items.find(item => item.cartItemId === data.cartItemId)?.quantity || 0,
-    );
-
-    const customisationNames = data.customisations
-      .filter(cust => !cust.multiOption)
-      .flatMap(cust => cust.choices.map(choice => choice.name))
-      .join(' ~ ');
-
-    const Counter = () => {
-      const handleIncrement = () => {
-        dispatch(addToCart({ ...data, quantity: 1 }));
-      };
-
-      const handleDecrement = () => {
-        dispatch(removeFromCart({ cartItemId: data.cartItemId, quantity: 1 }));
-      };
-
-      return (
-        <View style={styles.counterContainer}>
-          <TouchableOpacity onPress={handleDecrement} hitSlop={{ top: 25, bottom: 25, left: 15, right: 15 }}>
-            <Image source={require('assets/images/minus.png')} style={styles.counterIcon} />
-          </TouchableOpacity>
-          <Text style={styles.counterValue}>{count}</Text>
-          <TouchableOpacity onPress={handleIncrement} hitSlop={{ top: 25, bottom: 25, left: 15, right: 15 }}>
-            <Image source={require('assets/images/plus.png')} style={styles.counterIcon} />
-          </TouchableOpacity>
-        </View>
-      );
-    };
-
-    return (
-      <View style={styles.lineItem}>
-        <View style={styles.itemWrap}>
-          <Text style={styles.itemName}>
-            {data.name} <Text style={styles.price}>₹{data.price}</Text>
-          </Text>
-          {customisationNames && <Text style={styles.customisationNames}>{customisationNames}</Text>}
-        </View>
-        <Counter />
-      </View>
-    );
-  };
-
-  const BillSummary = () => (
-    <View style={styles.itemsContainer}>
-      <View style={styles.row}>
-        <Text style={styles.description}>Item(s) total</Text>
-        <Text style={styles.amount}>₹{cart.subTotal}</Text>
-      </View>
-      <View style={styles.row}>
-        <Text style={styles.description}>GST</Text>
-        <Text style={styles.amount}>₹{cart.tax}</Text>
-      </View>
-      {cart.discount > 0 && (
-        <View style={styles.row}>
-          <Text style={styles.description}>Discount</Text>
-          <Text style={styles.amount}>-₹{cart.discount}</Text>
-        </View>
-      )}
-      <View style={styles.totalRow}>
-        <Text style={styles.description}>Total</Text>
-        <Text style={[styles.amount]}>₹{cart.total}</Text>
-      </View>
-    </View>
-  );
 
   return (
     <Layout
@@ -248,7 +176,7 @@ const CartScreen = ({ navigation }) => {
               ))}
             </View>
           </View>
-          <BillSummary />
+          <BillSummary cart={cart} />
 
           <Text style={styles.title}>Discount code</Text>
           <View style={styles.discountContainer}>
@@ -275,10 +203,7 @@ const CartScreen = ({ navigation }) => {
               handleValidate={handleValidate}
               buttonDisabled={!discountCode}
             />
-            <TouchableOpacity
-              onPress={() => setPopupVisible(true)}
-              style={[styles.button, { marginTop: 10 }]}
-            >
+            <TouchableOpacity onPress={() => setPopupVisible(true)} style={styles.button}>
               <Text style={styles.buttonText}>Browse Available Discounts</Text>
             </TouchableOpacity>
           </View>
@@ -321,66 +246,11 @@ const styles = StyleSheet.create({
     color: 'black',
     marginVertical: 12,
   },
-  lineItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginVertical: 24,
-    marginHorizontal: 20,
-  },
-  // priceContainer: {
-  //   flexDirection: 'row',
-  //   gap: 6,
-  // },
-  itemName: {
-    fontSize: 16,
-    color: 'black',
-    fontWeight: '600',
-  },
-  customisationNames: {
-    fontSize: 14,
-    color: 'gray',
-    fontWeight: '600',
-  },
-  price: {
-    color: colors.theme,
-    fontSize: 14,
-    fontWeight: '500',
-  },
   itemsContainer: {
     borderRadius: 8,
     borderColor: colors.border,
     borderWidth: 1,
     marginBottom: 20,
-  },
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    gap: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-    paddingVertical: 8,
-  },
-  totalRow: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    gap: 15,
-    paddingVertical: 8,
-    borderTopColor: colors.border,
-  },
-  description: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#737373',
-    width: '90%',
-    textAlign: 'right',
-  },
-  amount: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: colors.theme,
-    width: '12%',
-    textAlign: 'left',
   },
   discountContainer: {
     borderRadius: 10,
@@ -396,6 +266,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     paddingVertical: 10,
     alignItems: 'center',
+    marginTop: 10,
   },
   buttonText: {
     color: colors.theme,
@@ -446,30 +317,6 @@ const styles = StyleSheet.create({
     color: 'red',
     fontSize: 16,
     fontWeight: 'bold',
-  },
-  counterContainer: {
-    backgroundColor: colors.themeLight,
-    paddingHorizontal: 6,
-    paddingVertical: 6,
-    borderRadius: 6,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    alignSelf: 'center',
-    gap: 4,
-  },
-  counterIcon: {
-    width: 14,
-    height: 14,
-  },
-  counterValue: {
-    fontSize: 12,
-    backgroundColor: 'white',
-    color: 'black',
-    paddingVertical: 2,
-    paddingHorizontal: 4,
-    marginHorizontal: 6,
-    borderRadius: 4,
   },
   emptyCart: {
     flex: 1,

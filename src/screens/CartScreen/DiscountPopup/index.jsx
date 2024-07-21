@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Modal, Text, View, StyleSheet, TouchableOpacity, Image, SafeAreaView } from 'react-native';
+import { useState, useEffect } from 'react';
+import { Modal, Text, View, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import firestore from '@react-native-firebase/firestore';
 import { useSelector, useDispatch } from 'react-redux';
 import colors from 'constants/colors';
@@ -16,7 +16,7 @@ const DiscountItem = ({ code, description, isApplied, onApply, onRemove, minimum
         {isDisabled && (
           <Text style={styles.minBillText}>Add ₹{amountNeeded.toFixed(2)} more to apply this code.</Text>
         )}
-        <View style={{ flexDirection: 'row', gap: 20 }}>
+        <View style={styles.codeTextContainer}>
           <TouchableOpacity style={styles.code}>
             <Text style={styles.codeText}>{code}</Text>
           </TouchableOpacity>
@@ -35,7 +35,7 @@ const DiscountItem = ({ code, description, isApplied, onApply, onRemove, minimum
       ) : (
         <TouchableOpacity
           onPress={() => onApply(code)}
-          style={[styles.applyButton, isDisabled && { opacity: 0.5 }]}
+          style={[styles.applyButton, isDisabled && styles.halfOpacity]}
           disabled={isDisabled}
         >
           <Text style={styles.applyButtonText}>Apply</Text>
@@ -127,7 +127,6 @@ const DiscountPopup = ({ isVisible, onClose }) => {
 
   return (
     <Modal animationType="slide" transparent={false} visible={isVisible} onRequestClose={onClose}>
-      {/* <SafeAreaView></SafeAreaView> */}
       <View style={styles.fullScreenContainer}>
         <View style={styles.header}>
           <Text style={styles.heading}>Discounts</Text>
@@ -140,9 +139,9 @@ const DiscountPopup = ({ isVisible, onClose }) => {
             <Text style={styles.noDiscountsText}>No discount codes available</Text>
           </View>
         ) : (
-          discountCodes.map((discount, index) => (
+          discountCodes.map(discount => (
             <DiscountItem
-              key={index}
+              key={discount}
               code={discount.code}
               description={discount.description}
               isApplied={appliedDiscountCode === discount.code}
@@ -212,6 +211,13 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     color: colors.theme,
+  },
+  codeTextContainer: {
+    flexDirection: 'row',
+    gap: 20,
+  },
+  halfOpacity: {
+    opacity: 0.5,
   },
   applyButton: {
     borderWidth: 2,

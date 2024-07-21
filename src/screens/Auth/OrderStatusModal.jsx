@@ -36,8 +36,8 @@ const OrderStatusModal = ({ isVisible, onClose }) => {
       }
 
       orderQuerySnapshot.forEach(doc => {
-        const { orderStatus } = doc.data();
-        switch (orderStatus) {
+        const { orderStats } = doc.data();
+        switch (orderStats) {
           case 'received':
             setOrderStatus({
               title: 'Order Received',
@@ -110,7 +110,7 @@ const OrderStatusModal = ({ isVisible, onClose }) => {
           style={styles.imageBackground}
         >
           <View style={styles.modalView}>
-            <Text style={{ fontSize: 18, fontWeight: 'bold' }}>Hello!</Text>
+            <Text style={styles.helloText}>Hello!</Text>
             <Text style={styles.modalText}>Check Order Status</Text>
             <TextInput
               style={styles.input}
@@ -123,7 +123,7 @@ const OrderStatusModal = ({ isVisible, onClose }) => {
             {showStatus && (
               <View style={styles.statusContainer}>
                 <View style={styles.statusTitle}>
-                  <Image style={{ width: 16, height: 16 }} source={require('assets/images/info.png')} />
+                  <Image style={styles.infoIcon} source={require('assets/images/info.png')} />
                   <Text style={styles.statusMessage}>{orderStatus.title}</Text>
                 </View>
                 <Text style={styles.statusDescription}>{orderStatus.description}</Text>
@@ -145,6 +145,7 @@ const OrderStatusModal = ({ isVisible, onClose }) => {
     </Modal>
   );
 };
+
 const styles = StyleSheet.create({
   centeredView: {
     flex: 1,
@@ -174,6 +175,14 @@ const styles = StyleSheet.create({
   },
   buttonClose: {
     backgroundColor: '#9A9A9A',
+  },
+  helloText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  infoIcon: {
+    width: 16,
+    height: 16,
   },
   textStyle: {
     color: 'white',
