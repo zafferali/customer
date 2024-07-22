@@ -16,7 +16,7 @@ import auth from '@react-native-firebase/auth';
 import { useDispatch } from 'react-redux';
 import { login, register } from 'redux/slices/authenticationSlice';
 import { checkCustomerExists } from '../../firebase/auth';
-import OrderStatusModal from './OrderStatusModal';
+import OrderStatusModal from './components/OrderStatusModal';
 
 const LoginScreen = () => {
   const dispatch = useDispatch();
