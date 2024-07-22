@@ -63,6 +63,7 @@ const RestaurantScreen = ({ navigation, route }) => {
 
         const menuPromises = menuSnapshot.docs.map(async doc => {
           const data = doc.data();
+          console.log('test', data)
           const availability = data.availability || {};
           const isAvailable = checkAvailability(availability, selectedTimeSlot);
 
