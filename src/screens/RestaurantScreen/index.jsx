@@ -364,8 +364,8 @@ const RestaurantScreen = ({ navigation, route }) => {
                     <ScrollView style={styles.modalScrollView}>
                       {selectedItem.customisations &&
                         selectedItem.customisations.length > 0 &&
-                        selectedItem.customisations.map((customisation, index) => (
-                          <View key={index}>
+                        selectedItem.customisations.map(customisation => (
+                          <View key={customisation.title}>
                             <Text style={styles.modalSectionTitle}>{customisation.title}</Text>
                             <Text style={styles.modalSubtitle}>
                               {generateSubtitle(
@@ -375,8 +375,8 @@ const RestaurantScreen = ({ navigation, route }) => {
                               )}
                             </Text>
                             <View style={styles.sectionCard}>
-                              {customisation.choices.map((choice, idx) => (
-                                <View key={idx} style={styles.modalItem}>
+                              {customisation.choices.map(choice => (
+                                <View key={choice.name} style={styles.modalItem}>
                                   <View>
                                     <Text style={styles.modalItemText}>{choice.name}</Text>
                                   </View>
