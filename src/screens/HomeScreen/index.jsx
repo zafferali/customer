@@ -229,8 +229,7 @@ const HomeScreen = ({ navigation }) => {
 
   const handleRestaurantPress = item => {
     dispatch(setCurrentRestaurant(item));
-    // dispatch(resetCart())
-    navigation.navigate('RestaurantHomeScreen', { restaurantId: item.id });
+    navigation.navigate('RestaurantScreen', { restaurantId: item.id });
   };
 
   const renderRestaurantItem = ({ item }) => (

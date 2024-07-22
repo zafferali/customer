@@ -3,7 +3,7 @@ import { StyleSheet } from 'react-native';
 import { createStackNavigator, TransitionPresets } from '@react-navigation/stack';
 import HomeScreen from 'screens/HomeScreen';
 import TimeSlotScreen from 'screens/TimeSlotScreen';
-import RestaurantHomeScreen from 'screens/HomeScreen/RestaurantHomeScreen';
+import RestaurantScreen from 'screens/RestaurantScreen';
 import CartScreen from 'screens/CartScreen';
 import LockerScreen from 'screens/LockerScreen';
 import OrderListScreen from 'screens/OrderListScreen';
@@ -28,7 +28,7 @@ export const HomeStackScreen = () => (
   >
     <HomeStack.Screen name="TimeSlotScreen" component={TimeSlotScreen} />
     <HomeStack.Screen name="HomeScreen" component={HomeScreen} />
-    <HomeStack.Screen name="RestaurantHomeScreen" component={RestaurantHomeScreen} />
+    <HomeStack.Screen name="RestaurantScreen" component={RestaurantScreen} />
     <HomeStack.Screen name="CartScreen" component={CartScreen} />
     <HomeStack.Screen name="LockerScreen" component={LockerScreen} />
   </HomeStack.Navigator>
