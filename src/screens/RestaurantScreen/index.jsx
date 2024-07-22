@@ -11,148 +11,19 @@ import {
   Button,
 } from 'react-native';
 import React, { useState, useEffect, useRef } from 'react';
-import { GlobalStyles } from 'constants/GlobalStyles';
 import Layout from 'components/common/Layout';
 import SearchBar from 'components/common/SearchBar';
-import Add from 'components/common/Add';
 import colors from 'constants/colors';
 import { useSelector, useDispatch } from 'react-redux';
 import firestore from '@react-native-firebase/firestore';
-import { addToCart, removeFromCart, setRestaurantId } from 'redux/slices/cartSlice';
+import { addToCart, setRestaurantId } from 'redux/slices/cartSlice';
 import CustomButton from 'components/common/CustomButton';
-import { createSelector } from 'reselect';
+import FoodItem from './components/FoodItem';
+import UnavailableFoodItem from './components/UnavailableFoodItem';
+import { CustomCheckbox, CustomRadioButton, MultiSelectButton } from './components/CustomFormEl';
+import { createOrUpdateCart, checkAvailability, parseTime, generateSubtitle } from './utils/helpers';
 
-const checkAvailability = ({ from, until, isAvailable }, selectedTime) => {
-  if (!isAvailable) return false;
-  const selectedTimeDate = parseTime(selectedTime);
-  const startTime = parseTime(from);
-  const endTime = parseTime(until);
-  return (
-    selectedTimeDate && startTime && endTime && selectedTimeDate >= startTime && selectedTimeDate <= endTime
-  );
-};
-
-const parseTime = timeStr => {
-  if (!timeStr) {
-    console.log('parseTime called with undefined or null argument');
-    return null;
-  }
-  const [hours, minutes] = timeStr.split(':').map(Number);
-  const time = new Date();
-  time.setHours(hours, minutes);
-  return time;
-};
-
-const generateSubtitle = (required, multiOption, limit) => {
-  if (required) {
-    if (multiOption && limit > 1) {
-      return `Required *Select up to ${limit} options`;
-    } else {
-      return 'Required *Select any 1 option';
-    }
-  } else {
-    return `Select any ${limit} option`;
-  }
-};
-
-const addItem = (item, customisations, dispatch, openModal) => {
-  if (item.customisations && item.customisations.length > 0) {
-    openModal(item, customisations);
-  } else {
-    dispatch(
-      addToCart({
-        name: item.name,
-        itemId: item.id,
-        quantity: 1,
-        price: item.price,
-        temperature: item.temperature,
-        thumbnailUrl: item.thumbnailUrl,
-        customisations: [],
-      }),
-    );
-  }
-};
-
-const removeItem = (cartItemId, dispatch) => {
-  dispatch(removeFromCart({ cartItemId }));
-};
-
-const selectItemQuantity = createSelector(
-  state => state.cart.items,
-  (state, data) => data.id,
-  (items, itemId) => {
-    const filteredItems = items.filter(item => item.itemId === itemId);
-    return filteredItems.reduce((sum, item) => sum + item.quantity, 0);
-  },
-);
-
-const FoodItem = ({ data, dispatch, openModal }) => {
-  const count = useSelector(state => selectItemQuantity(state, data));
-  const cartItems = useSelector(state => state.cart.items.filter(item => item.itemId === data.id));
-
-  const Counter = () => {
-    const customisations = useSelector(
-      state => state.cart.items.find(item => item.itemId === data.id)?.customisations || [],
-    );
-
-    const handleIncrement = () => {
-      addItem(data, customisations, dispatch, openModal);
-    };
-    const handleDecrement = () => {
-      if (cartItems.length > 0) {
-        const lastAddedItem = cartItems[cartItems.length - 1];
-        removeItem(lastAddedItem.cartItemId, dispatch);
-      }
-    };
-
-    return (
-      <View style={styles.counterContainer}>
-        <TouchableOpacity onPress={handleDecrement} hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}>
-          <Image source={require('assets/images/minus.png')} style={styles.icon} />
-        </TouchableOpacity>
-        <Text style={styles.value}>{count}</Text>
-        <TouchableOpacity onPress={handleIncrement} hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}>
-          <Image source={require('assets/images/plus.png')} style={styles.icon} />
-        </TouchableOpacity>
-      </View>
-    );
-  };
-
-  return (
-    <View style={[styles.foodItemContainer, GlobalStyles.lightBorder]}>
-      <View style={styles.itemWrap}>
-        {data.thumbnailUrl && <Image style={styles.thumbnail} source={{ uri: data.thumbnailUrl }} />}
-        <View style={styles.itemInfo}>
-          <Text style={styles.title}>{data.name}</Text>
-          <Text style={styles.price}>₹{data.price}</Text>
-        </View>
-      </View>
-      <View>
-        {count === 0 ? <Add onPress={() => addItem(data, [], dispatch, openModal)} /> : <Counter />}
-      </View>
-    </View>
-  );
-};
-
-const createOrUpdateCart = async (cartState, customerId, restaurantId) => {
-  try {
-    const cartRef = firestore().collection('carts').doc(customerId);
-    await cartRef.set(
-      {
-        ...cartState,
-        customerId,
-        restaurantId,
-        orderComplete: false,
-      },
-      { merge: true },
-    );
-    console.log('Cart successfully created or updated');
-  } catch (error) {
-    console.log('Error creating or updating cart: ', error);
-  }
-};
-
-const RestaurantHomeScreen = ({ navigation, route }) => {
+const RestaurantScreen = ({ navigation, route }) => {
   const restaurant = useSelector(state => state.restaurants.currentRestaurant);
   const customerId = useSelector(state => state.authentication.customer.id);
   const { restaurantId } = route.params;
@@ -172,7 +43,6 @@ const RestaurantHomeScreen = ({ navigation, route }) => {
   const [selectedItem, setSelectedItem] = useState(null);
   const [selectedCustomisations, setSelectedCustomisations] = useState({});
   const [lastUsedCustomisations, setLastUsedCustomisations] = useState({});
-  const [isUsingLastCustomizations, setIsUsingLastCustomizations] = useState(false);
 
   useEffect(() => {
     dispatch(setRestaurantId(restaurantId));
@@ -293,19 +163,6 @@ const RestaurantHomeScreen = ({ navigation, route }) => {
     }
   };
 
-  const UnavailableFoodItem = ({ data }) => (
-    <View style={[styles.foodItemContainer, styles.unavailable, GlobalStyles.lightBorder]}>
-      <View style={styles.itemWrap}>
-        {data.thumbnailUrl && <Image style={styles.thumbnail} source={{ uri: data.thumbnailUrl }} />}
-        <View style={styles.itemInfo}>
-          <Text style={styles.title}>{data.name}</Text>
-          <Text style={styles.price}>₹{data.price}</Text>
-          <Text style={styles.availabilityText}>Available from {data.availability.from}</Text>
-        </View>
-      </View>
-    </View>
-  );
-
   const renderUnavailableItems = () => (
     <View style={styles.unavailableList}>
       {filteredUnavailableItems.length > 0 && (
@@ -316,45 +173,6 @@ const RestaurantHomeScreen = ({ navigation, route }) => {
       ))}
     </View>
   );
-
-  const MultiSelectButton = ({ label }) => {
-    const isSelected = selectedFilters.includes(label);
-    const handlePress = () => {
-      if (isSelected) {
-        setSelectedFilters(selectedFilters.filter(filter => filter !== label));
-      } else {
-        setSelectedFilters([...selectedFilters, label]);
-      }
-    };
-
-    return (
-      <View style={styles.multiSelectButtonContainer}>
-        <TouchableOpacity
-          onPress={handlePress}
-          style={[styles.multiSelectButton, isSelected && styles.selectedButton]}
-        >
-          <Text style={[styles.multiSelectButtonText, isSelected && styles.selectedButtonText]}>{label}</Text>
-          {isSelected && (
-            <TouchableOpacity onPress={handlePress}>
-              <Image style={styles.clearButtonImage} source={require('assets/images/close.png')} />
-            </TouchableOpacity>
-          )}
-        </TouchableOpacity>
-      </View>
-    );
-  };
-
-  const openModal = item => {
-    setSelectedItem(item);
-    if (lastUsedCustomisations[item.id]) {
-      setSelectedCustomisations(lastUsedCustomisations[item.id]);
-      setIsUsingLastCustomizations(true);
-    } else {
-      initializeCustomisations(item.customisations);
-      setIsUsingLastCustomizations(false);
-    }
-    setAddItemModalVisible(true);
-  };
 
   const initializeCustomisations = (itemCustomisations, cartCustomisations) => {
     const initialCustomisations = {};
@@ -369,6 +187,16 @@ const RestaurantHomeScreen = ({ navigation, route }) => {
       });
       setSelectedCustomisations(initialCustomisations);
     }
+  };
+
+  const openModal = item => {
+    setSelectedItem(item);
+    if (lastUsedCustomisations[item.id]) {
+      setSelectedCustomisations(lastUsedCustomisations[item.id]);
+    } else {
+      initializeCustomisations(item.customisations);
+    }
+    setAddItemModalVisible(true);
   };
 
   const closeModal = () => {
@@ -440,21 +268,6 @@ const RestaurantHomeScreen = ({ navigation, route }) => {
     });
   };
 
-  const CustomCheckbox = ({ isSelected, onPress }) => (
-    <TouchableOpacity
-      onPress={onPress}
-      style={[styles.checkboxContainer, isSelected && { backgroundColor: colors.theme }]}
-    >
-      {isSelected && <Image source={require('assets/images/tick.png')} style={styles.checkboxTick} />}
-    </TouchableOpacity>
-  );
-
-  const CustomRadioButton = ({ isSelected, onPress }) => (
-    <TouchableOpacity onPress={onPress} style={styles.radioButton}>
-      {isSelected && <View style={styles.radioButtonSelected} />}
-    </TouchableOpacity>
-  );
-
   const handleCartNavigation = async () => {
     navigation.navigate('CartScreen');
     await createOrUpdateCart(cart, customerId, restaurantId);
@@ -474,7 +287,7 @@ const RestaurantHomeScreen = ({ navigation, route }) => {
       onBtnPress={handleCartNavigation}
     >
       <SearchBar
-        style={{ marginBottom: 10 }}
+        style={styles.mb10}
         placeholder="Search Food.."
         value={searchQuery}
         onSearch={setSearchQuery}
@@ -484,9 +297,21 @@ const RestaurantHomeScreen = ({ navigation, route }) => {
         <>
           <View style={styles.categoryContainer}>
             <View style={styles.filterContainer}>
-              <MultiSelectButton label="Veg" />
-              <MultiSelectButton label="Non-Veg" />
-              <MultiSelectButton label="Vegan" />
+              <MultiSelectButton
+                selectedFilters={selectedFilters}
+                setSelectedFilters={setSelectedFilters}
+                label="Veg"
+              />
+              <MultiSelectButton
+                selectedFilters={selectedFilters}
+                setSelectedFilters={setSelectedFilters}
+                label="Non-Veg"
+              />
+              <MultiSelectButton
+                selectedFilters={selectedFilters}
+                setSelectedFilters={setSelectedFilters}
+                label="Vegan"
+              />
             </View>
             <TouchableOpacity style={styles.floatingButton} onPress={() => setMenuModalVisible(true)}>
               <Image style={styles.menuIcon} source={require('assets/images/menuIcon.png')} />
@@ -499,7 +324,7 @@ const RestaurantHomeScreen = ({ navigation, route }) => {
               onRequestClose={() => setMenuModalVisible(false)}
             >
               <TouchableOpacity
-                style={[styles.modalOverlay, { justifyContent: 'center' }]}
+                style={[styles.modalOverlay, styles.justCenter]}
                 onPress={() => setMenuModalVisible(false)}
               >
                 <TouchableOpacity activeOpacity={1} style={styles.modalView}>
@@ -529,10 +354,7 @@ const RestaurantHomeScreen = ({ navigation, route }) => {
             >
               <TouchableOpacity style={styles.modalOverlay} onPress={closeModal}>
                 <TouchableOpacity onPress={closeModal}>
-                  <Image
-                    style={{ width: 30, height: 30, marginBottom: 6 }}
-                    source={require('assets/images/close.png')}
-                  />
+                  <Image style={styles.closeModalBtn} source={require('assets/images/close.png')} />
                 </TouchableOpacity>
                 <TouchableOpacity activeOpacity={1} style={styles.bottomModalView}>
                   <View style={styles.bottomModalHeader}>
@@ -542,8 +364,8 @@ const RestaurantHomeScreen = ({ navigation, route }) => {
                     <ScrollView style={styles.modalScrollView}>
                       {selectedItem.customisations &&
                         selectedItem.customisations.length > 0 &&
-                        selectedItem.customisations.map((customisation, index) => (
-                          <View key={customisation}>
+                        selectedItem.customisations.map(customisation => (
+                          <View key={customisation.title}>
                             <Text style={styles.modalSectionTitle}>{customisation.title}</Text>
                             <Text style={styles.modalSubtitle}>
                               {generateSubtitle(
@@ -554,11 +376,11 @@ const RestaurantHomeScreen = ({ navigation, route }) => {
                             </Text>
                             <View style={styles.sectionCard}>
                               {customisation.choices.map(choice => (
-                                <View key={choice} style={styles.modalItem}>
+                                <View key={choice.name} style={styles.modalItem}>
                                   <View>
                                     <Text style={styles.modalItemText}>{choice.name}</Text>
                                   </View>
-                                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                  <View style={styles.modalPrice}>
                                     {choice.price !== undefined && (
                                       <Text style={styles.price}>+ ₹{choice.price}</Text>
                                     )}
@@ -625,12 +447,7 @@ const RestaurantHomeScreen = ({ navigation, route }) => {
   );
 };
 
-export default RestaurantHomeScreen;
-
 const styles = StyleSheet.create({
-  // card: {
-  //   marginBottom: 10,
-  // },
   categoryContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -641,78 +458,20 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     marginBottom: 10,
   },
-  multiSelectButtonContainer: {
-    marginRight: 10,
-  },
-  multiSelectButton: {
-    flexDirection: 'row',
-    backgroundColor: colors.themeLight,
-    borderRadius: 6,
-    paddingHorizontal: 8,
-    paddingVertical: 6,
-    alignItems: 'center',
-  },
-  multiSelectButtonText: {
-    color: colors.theme,
-    fontSize: 14,
-    fontWeight: '600',
-    marginRight: 4,
-  },
-  selectedButton: {
-    backgroundColor: colors.theme,
-  },
-  selectedButtonText: {
-    color: 'white',
-  },
-  // clearButton: {
-  //   borderRadius: 50,
-  //   padding: 8,
-  // },
-  clearButtonImage: {
-    width: 16,
-    height: 16,
-  },
-  // tagContainer: {
-  //   flexDirection: 'row',
-  //   flexWrap: 'wrap',
-  //   gap: 8,
-  //   marginBottom: 10,
-  // },
-  // tag: {
-  //   backgroundColor: colors.themeLight,
-  //   borderRadius: 8,
-  //   paddingHorizontal: 10,
-  //   paddingVertical: 8,
-  //   alignSelf: 'flex-start',
-  // },
-  // tagText: {
-  //   color: colors.theme,
-  //   fontSize: 14,
-  //   fontWeight: '600',
-  // },
-  foodItemContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+  mb10: {
     marginBottom: 10,
   },
-  itemWrap: {
+  justCenter: {
+    justifyContent: 'center',
+  },
+  closeModalBtn: {
+    width: 30,
+    height: 30,
+    marginBottom: 6,
+  },
+  modalPrice: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
-    width: '50%',
-  },
-  thumbnail: {
-    width: 70,
-    height: 70,
-    resizeMode: 'cover',
-    borderRadius: 8,
-  },
-  itemInfo: {},
-  title: {
-    fontSize: 14,
-    color: 'black',
-    fontWeight: '600',
   },
   price: {
     color: colors.theme,
@@ -729,39 +488,6 @@ const styles = StyleSheet.create({
   },
   unavailableList: {
     marginBottom: 10,
-  },
-  unavailable: {
-    backgroundColor: 'rgba(1,1,1, 0.1)',
-    opacity: 0.5,
-  },
-  availabilityText: {
-    fontSize: 12,
-    color: 'gray',
-    fontStyle: 'italic',
-  },
-  counterContainer: {
-    backgroundColor: colors.themeLight,
-    paddingHorizontal: 6,
-    paddingVertical: 6,
-    borderRadius: 6,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    alignSelf: 'center',
-    gap: 4,
-  },
-  icon: {
-    width: 14,
-    height: 14,
-  },
-  value: {
-    fontSize: 12,
-    backgroundColor: 'white',
-    color: 'black',
-    paddingVertical: 2,
-    paddingHorizontal: 4,
-    marginHorizontal: 6,
-    borderRadius: 4,
   },
   sectionHeader: {
     position: 'relative',
@@ -874,36 +600,6 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     paddingBottom: 6,
   },
-  radioButton: {
-    height: 16,
-    width: 16,
-    borderRadius: 10,
-    borderWidth: 2,
-    borderColor: colors.theme,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginLeft: 10,
-  },
-  radioButtonSelected: {
-    height: 10,
-    width: 10,
-    borderRadius: 5,
-    backgroundColor: colors.theme,
-  },
-  checkboxContainer: {
-    height: 16,
-    width: 16,
-    borderWidth: 1,
-    borderColor: colors.theme,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginLeft: 10,
-  },
-  checkboxTick: {
-    height: 12,
-    width: 12,
-    tintColor: 'white',
-  },
   modalSubtitle: {
     color: 'gray',
     fontWeight: '600',
@@ -915,3 +611,5 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
 });
+
+export default RestaurantScreen;

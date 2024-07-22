@@ -29,7 +29,7 @@ const BottomTabNavigator = () => {
         options={({ route }) => {
           const hideOnScreens = [
             'TimeSlotScreen',
-            'RestaurantHomeScreen',
+            'RestaurantScreen',
             'CartScreen',
             'LockerScreen',
             'PaymentScreen',
