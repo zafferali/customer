@@ -68,8 +68,21 @@
 	<string>We need access to your location to provide a better experience</string>
 	<key>NSCellularUsageDescription</key>
 	<string>We need access to your cellular data to provide a better experience</string>
-	<key>NSNotificationsUsageDescription</key>
-	<string>We need access to notifications to provide you with timely updates and alerts</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+<string>We need your location to show your position on the map.</string>
+<key>NSLocationAlwaysUsageDescription</key>
+<string>We need your location to show your position on the map, even when the app is in the background.</string>
+<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+<string>We need your location to show your position on the map, both when the app is in use and in the background.</string>
+<key>UIBackgroundModes</key>
+<array>
+    <string>location</string>
+</array>
+<key>NSLocationTemporaryUsageDescriptionDictionary</key>
+<dict>
+  <key>YourPurposeKey</key>
+  <string>The example description.</string>
+</dict>
 </dict>
 </plist>
 

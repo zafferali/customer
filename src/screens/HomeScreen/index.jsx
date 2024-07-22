@@ -339,8 +339,8 @@ const HomeScreen = ({ navigation }) => {
           <TouchableOpacity
             onPress={() => {
               setModalVisible(false);
-              setCategorySearchQuery(''); // reset the search query
-              setFilteredCategories(categories); // reset the filtered categories
+              setCategorySearchQuery('');
+              setFilteredCategories(categories);
             }}
           >
             <Text style={styles.closeButton}>Close</Text>

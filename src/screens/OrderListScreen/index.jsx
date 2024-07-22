@@ -16,13 +16,20 @@ import { GlobalStyles } from 'constants/GlobalStyles';
 import colors from 'constants/colors';
 import { useSelector } from 'react-redux';
 import firestore from '@react-native-firebase/firestore';
+import TrackOrderModal from './TrackOrderModal';
 
 const OrderListScreen = ({ navigation }) => {
   const [orders, setOrders] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [selectedTab, setSelectedTab] = useState('ongoing');
-  const customerId = useSelector(state => state.authentication.customer.id);
+  const [isModalVisible, setModalVisible] = useState(false);
+  const [selectedOrderId, setSelectedOrderId] = useState(null);
+  const customerId = useSelector((state) => state.authentication.customer.id);
+
+  const userLocation = { latitude: 19.07023, longitude: 72.86456 }; // Replace with actual user's location
+  const runnerLocation = { latitude: 19.06523, longitude: 72.86556 }; // Replace with actual runner's location from Firebase
+  const lockerLocation = { latitude: 19.06823, longitude: 72.86356 }; // Replace with actual locker's location from Firebase
 
   const fetchOrders = useCallback(async () => {
     setIsLoading(true);
@@ -34,20 +41,27 @@ const OrderListScreen = ({ navigation }) => {
         .get();
 
       const loadedOrders = ordersQuerySnapshot.docs
-        .map(orderDoc => {
+        .map((orderDoc) => {
           const data = orderDoc.data();
           if (!data) return null;
 
           const status = data.orderStatus;
-          const statusText = status === 'completed' || status === 'cancelled' ? 'Past' : 'Ongoing';
+          const statusText =
+            status === 'completed' || status === 'cancelled'
+              ? 'Past'
+              : 'Ongoing';
           const displayDate = data.timeStamps.orderPlaced
-            ? new Date(data.timeStamps.orderPlaced.toDate()).toLocaleDateString('en-GB', {
-                day: 'numeric',
-                month: 'long',
-                year: 'numeric',
-              })
+            ? new Date(data.timeStamps.orderPlaced.toDate()).toLocaleDateString(
+                'en-GB',
+                {
+                  day: 'numeric',
+                  month: 'long',
+                  year: 'numeric',
+                }
+              )
             : '';
-          const deliveryTime = status !== 'completed' && data.deliveryTime ? data.deliveryTime : '';
+          const deliveryTime =
+            status !== 'completed' && data.deliveryTime ? data.deliveryTime : '';
 
           return {
             id: orderDoc.id,
@@ -60,7 +74,7 @@ const OrderListScreen = ({ navigation }) => {
             deliveryTime,
           };
         })
-        .filter(order => order !== null);
+        .filter((order) => order !== null);
 
       const sortedOrders = loadedOrders.sort((a, b) => {
         if (a.status === 'Ongoing' && b.status === 'Past') return -1;
@@ -79,38 +93,64 @@ const OrderListScreen = ({ navigation }) => {
   useFocusEffect(
     useCallback(() => {
       fetchOrders();
-    }, [fetchOrders]),
+    }, [fetchOrders])
   );
 
   const filteredOrders = orders.filter(
-    order =>
+    (order) =>
       order.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
-      (selectedTab === 'ongoing' ? order.status === 'Ongoing' : order.status === 'Past'),
+      (selectedTab === 'ongoing'
+        ? order.status === 'Ongoing'
+        : order.status === 'Past')
   );
 
   const RenderItem = useCallback(
     ({ item }) => (
-      <TouchableOpacity
-        style={[GlobalStyles.lightBorder, styles.orderItem]}
-        onPress={() => navigation.navigate('OrderStatusScreen', { orderId: item.id })}
-      >
-        <Image source={{ uri: item.image }} style={styles.thumbnail} />
-        <View style={styles.infoContainer}>
-          <>
-            <Text style={styles.title}>
-              {item.name}
-              {item.branch && `, ${item.branch}`}
-            </Text>
-            {item.status === 'Past' && <Text style={styles.date}>{item.date}</Text>}
-            <Text style={styles.orderNum}>Order# {item.orderNum}</Text>
-            {item.status === 'Ongoing' && item.deliveryTime && (
-              <Text style={styles.date}>Pickup Time: {item.deliveryTime}</Text>
-            )}
-          </>
-        </View>
-      </TouchableOpacity>
+      <View style={[GlobalStyles.lightBorder, styles.orderItem]}>
+        {/* <TouchableOpacity
+          style={[GlobalStyles.lightBorder, styles.orderItem]}
+          onPress={() =>
+            navigation.navigate('OrderStatusScreen', { orderId: item.id })
+          }
+        > */}
+          <View style={styles.orderDetails}>
+            <Image source={{ uri: item.image }} style={styles.thumbnail} />
+            <View style={styles.infoContainer}>
+              <Text style={styles.title}>
+                {item.name}
+                {item.branch && `, ${item.branch}`}
+              </Text>
+              {item.status == 'Past' && <Text style={styles.date}>{item.date}</Text>}
+              <Text style={styles.orderNum}>Order# {item.orderNum}</Text>
+              {item.status === 'Ongoing' && item.deliveryTime && (
+                <Text style={styles.date}>Pickup Time: {item.deliveryTime}</Text>
+              )}
+            </View>
+          </View>
+          <View style={styles.dualBtnContainer}>
+          <TouchableOpacity
+            style={styles.trackButton}
+            onPress={() => {
+             
+            }}
+          >
+            <Text style={styles.trackButtonText}>Order Details</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.trackButton}
+            onPress={() => {
+              setSelectedOrderId(item.id);
+              setModalVisible(true);
+            }}
+          >
+            <Image style={styles.navigateIcon} source={require('images/navigate.png')}/>
+            <Text style={styles.trackButtonText}>Track Order</Text>
+          </TouchableOpacity>
+          </View>
+        {/* </TouchableOpacity> */}
+      </View>
     ),
-    [navigation],
+    [navigation]
   );
 
   return (
@@ -140,9 +180,17 @@ const OrderListScreen = ({ navigation }) => {
         <FlatList
           data={filteredOrders}
           renderItem={({ item }) => <RenderItem item={item} />}
-          keyExtractor={item => item.id}
+          keyExtractor={(item) => item.id}
         />
       )}
+      <TrackOrderModal
+        isVisible={isModalVisible}
+        onClose={() => setModalVisible(false)}
+        userLocation={userLocation}
+        runnerLocation={runnerLocation}
+        lockerLocation={lockerLocation}
+        orderId={selectedOrderId}
+      />
     </Layout>
   );
 };
@@ -151,6 +199,10 @@ export default OrderListScreen;
 
 const styles = StyleSheet.create({
   orderItem: {
+    // flexDirection: 'row',
+    marginBottom: 10,
+  },
+  orderDetails: {
     flexDirection: 'row',
     marginBottom: 10,
   },
@@ -213,4 +265,29 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: 'black',
   },
+  dualBtnContainer: {
+    flexDirection: 'row',
+    gap: 4,
+  },
+  trackButton: {
+    backgroundColor: colors.theme,
+    flexDirection: 'row',
+    width: '50%',
+    justifyContent: 'center',
+    gap: 4,
+    padding: 8,
+    borderRadius: 6,
+    alignItems: 'center',
+    marginTop: 5,
+  },
+  trackButtonText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  navigateIcon: {
+    width: 16,
+    height: 16,
+    tintColor: 'white',
+  }
 });
