@@ -9,7 +9,6 @@ import {
   Image,
   TouchableOpacity,
   Modal,
-  TextInput,
   SafeAreaView,
 } from 'react-native';
 import firestore from '@react-native-firebase/firestore';
@@ -19,16 +18,13 @@ import Layout from 'components/common/Layout';
 import SearchBar from 'components/common/SearchBar';
 import Restaurant from 'components/restaurant/Restaurant';
 import colors from 'constants/colors';
-import { resetCart } from 'redux/slices/cartSlice';
 import moment from 'moment-timezone';
 
 const HomeScreen = ({ navigation }) => {
   const dispatch = useDispatch();
   const { available, unavailable, selectedTimeSlot } = useSelector(state => state.restaurants);
   const [searchQuery, setSearchQuery] = useState('');
-  const [allRestaurants, setAllRestaurants] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
   const [filteredAvailable, setFilteredAvailable] = useState([]);
   const [filteredUnavailable, setFilteredUnavailable] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -36,6 +32,18 @@ const HomeScreen = ({ navigation }) => {
   const [categorySearchQuery, setCategorySearchQuery] = useState('');
   const [filteredCategories, setFilteredCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);
+
+  function isTimeSlotWithin(selected, from, until) {
+    const [selectedHour, selectedMinute] = selected.split(':').map(Number);
+    const [fromHour, fromMinute] = from.split(':').map(Number);
+    const [untilHour, untilMinute] = until.split(':').map(Number);
+
+    const selectedMinutes = selectedHour * 60 + selectedMinute;
+    const fromMinutes = fromHour * 60 + fromMinute;
+    const untilMinutes = untilHour * 60 + untilMinute;
+
+    return selectedMinutes >= fromMinutes && selectedMinutes <= untilMinutes;
+  }
 
   useEffect(() => {
     setIsLoading(true);
@@ -62,10 +70,11 @@ const HomeScreen = ({ navigation }) => {
             }
             if (data.availability.occasional) {
               data.availability.occasional = data.availability.occasional.map(occasion => {
-                if (occasion.date) {
-                  occasion.date = occasion.date.toDate().toISOString();
+                const newOcc = occasion;
+                if (newOcc.date) {
+                  newOcc.date = newOcc.date.toDate().toISOString();
                 }
-                return occasion;
+                return newOcc;
               });
             }
             if (data.orders) {
@@ -123,18 +132,16 @@ const HomeScreen = ({ navigation }) => {
           }
         });
 
-        setAllRestaurants(fetchedRestaurants);
         dispatch(setRestaurants({ available: availableRestaurants, unavailable: unavailableRestaurants }));
       } catch (err) {
         console.log(err.message);
-        setError(err.message);
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchRestaurants();
-  }, [selectedTimeSlot]);
+  }, [selectedTimeSlot, dispatch]);
 
   useEffect(() => {
     const filterRestaurants = (restaurants, query) => {
@@ -172,10 +179,10 @@ const HomeScreen = ({ navigation }) => {
   }, []);
 
   useEffect(() => {
-    const filteredCategories = categories.filter(category =>
+    const filteredCategoryList = categories.filter(category =>
       category.name.toLowerCase().includes(categorySearchQuery.toLowerCase()),
     );
-    setFilteredCategories(filteredCategories);
+    setFilteredCategories(filteredCategoryList);
   }, [categorySearchQuery, categories]);
 
   useEffect(() => {
@@ -197,9 +204,6 @@ const HomeScreen = ({ navigation }) => {
       const filteredAvailableRestaurants = filterByCategory(available);
       const filteredUnavailableRestaurants = filterByCategory(unavailable);
 
-      console.log('Filtered Available Restaurants: ', filteredAvailableRestaurants);
-      console.log('Filtered Unavailable Restaurants: ', filteredUnavailableRestaurants);
-
       setFilteredAvailable(filteredAvailableRestaurants);
       setFilteredUnavailable(filteredUnavailableRestaurants);
     } else {
@@ -207,18 +211,6 @@ const HomeScreen = ({ navigation }) => {
       setFilteredUnavailable(unavailable);
     }
   }, [selectedCategory, available, unavailable]);
-
-  function isTimeSlotWithin(selected, from, until) {
-    const [selectedHour, selectedMinute] = selected.split(':').map(Number);
-    const [fromHour, fromMinute] = from.split(':').map(Number);
-    const [untilHour, untilMinute] = until.split(':').map(Number);
-
-    const selectedMinutes = selectedHour * 60 + selectedMinute;
-    const fromMinutes = fromHour * 60 + fromMinute;
-    const untilMinutes = untilHour * 60 + untilMinute;
-
-    return selectedMinutes >= fromMinutes && selectedMinutes <= untilMinutes;
-  }
 
   const handleCategoryPress = category => {
     setSelectedCategory(category);
@@ -271,7 +263,7 @@ const HomeScreen = ({ navigation }) => {
         <Image style={styles.chevron} source={require('assets/images/right.png')} />
       </TouchableOpacity>
       <SearchBar
-        style={{ marginBottom: 20 }}
+        style={styles.mb20}
         placeholder="Search Restaurants.."
         value={searchQuery}
         onSearch={setSearchQuery}
@@ -380,9 +372,9 @@ const styles = StyleSheet.create({
     marginTop: 20,
     textAlign: 'center',
   },
-  // restaurantListContainer: {
-  //   flex: 1,
-  // },
+  mb20: {
+    marginBottom: 20,
+  },
   flatListContent: {
     paddingBottom: 20,
   },
@@ -471,14 +463,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: colors.theme,
   },
-  // modalSearchBar: {
-  //   flex: 1,
-  //   marginLeft: 10,
-  //   padding: 10,
-  //   borderWidth: 1,
-  //   borderColor: colors.lightGray,
-  //   borderRadius: 8,
-  // },
   modalCategoryText: {
     fontSize: 16,
     fontWeight: '500',

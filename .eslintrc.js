@@ -14,14 +14,17 @@ module.exports = {
     project: ['./tsconfig.json'],
   },
   rules: {
+    eqeqeq: ['error', 'smart'],
     'array-bracket-spacing': ['error', 'never'],
     'react/prop-types': 'off',
     'no-console': 'warn',
+    'no-empty': 'error',
     'react/jsx-filename-extension': [1, { extensions: ['.jsx', '.js'] }],
     'import/no-extraneous-dependencies': ['error', { packageDir: './' }],
     'react/jsx-uses-react': 'off', // React 17+ with new JSX transform
     'react/react-in-jsx-scope': 'off', // React 17+ with new JSX transform
-    'react-native/no-unused-styles': 'warn',
+    'react-native/no-unused-styles': 'error',
+    'react/no-array-index-key': 'error',
     'react-native/split-platform-components': 'warn',
     'global-require': 'off',
     'import/prefer-default-export': 'off',

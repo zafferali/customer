@@ -6,7 +6,6 @@ import {
   ImageBackground,
   TouchableOpacity,
   StyleSheet,
-  StatusBar,
   Image,
   KeyboardAvoidingView,
   ActivityIndicator,
@@ -14,11 +13,10 @@ import {
 } from 'react-native';
 import colors from 'constants/colors';
 import auth from '@react-native-firebase/auth';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { login, register } from 'redux/slices/authenticationSlice';
-import { setOtpError, clearOtpError } from 'redux/slices/uiSlice';
 import { checkCustomerExists } from '../../firebase/auth';
-import OrderStatusModal from './OrderStatusModal';
+import OrderStatusModal from './components/OrderStatusModal';
 
 const LoginScreen = () => {
   const dispatch = useDispatch();
@@ -35,13 +33,11 @@ const LoginScreen = () => {
   const isOtpButtonDisabled = otp.length < 6;
   const phoneNumberInputRef = useRef(null);
   const otpInputRef = useRef(null);
-  const otpError = useSelector(state => state.ui.otpError);
 
-  async function sendOtp(phoneNumber) {
+  async function sendOtp(phoneNum) {
     setIsLoading(true);
     try {
-      const confirmation = await auth().signInWithPhoneNumber(phoneNumber, true); // `true` for invisible reCAPTCHA
-      console.log('OTP sent');
+      const confirmation = await auth().signInWithPhoneNumber(phoneNum, true); // `true` for invisible reCAPTCHA
       setConfirmationObject(confirmation);
       setLoginScreen(false);
     } catch (error) {
@@ -54,9 +50,7 @@ const LoginScreen = () => {
   async function verifyOtp(confirmation, code) {
     setIsLoading(true);
     try {
-      const result = await confirmation.confirm(code);
-      dispatch(clearOtpError());
-
+      await confirmation.confirm(code);
       checkCustomerExists(phoneNumber)
         .then(querySnapshot => {
           if (!querySnapshot.empty) {
@@ -76,7 +70,6 @@ const LoginScreen = () => {
         });
     } catch (error) {
       Alert.alert('Failed to verify OTP:', error.message);
-      dispatch(setOtpError('Incorrect OTP, please try again.'));
       throw error;
     } finally {
       setIsLoading(false);
@@ -107,7 +100,6 @@ const LoginScreen = () => {
 
   return (
     <KeyboardAvoidingView behavior="height" style={styles.container}>
-      {/* <StatusBar translucent backgroundColor="transparent" /> */}
       <ImageBackground source={require('assets/images/home.png')} style={styles.backgroundImage}>
         <View style={styles.container}>
           <View style={styles.logoContainer}>
@@ -119,7 +111,7 @@ const LoginScreen = () => {
             {loginScreen ? (
               <>
                 <View style={styles.inputContainer}>
-                  <View style={[styles.phoneNumberInput, { flex: 1 }]}>
+                  <View style={[styles.phoneNumberInput, styles.flexOne]}>
                     <Text style={styles.code}>+91</Text>
                   </View>
                   <TextInput
@@ -134,7 +126,7 @@ const LoginScreen = () => {
                       sendOtp(`+91${phoneNumber}`);
                       phoneNumberInputRef.current?.blur();
                     }}
-                    style={[styles.phoneNumberInput, { paddingLeft: 24 }]}
+                    style={[styles.phoneNumberInput, styles.paddingLeft24]}
                     onChangeText={text => {
                       const filteredText = text.replace(/[^0-9]/g, '');
                       setPhoneNumber(filteredText);
@@ -142,7 +134,7 @@ const LoginScreen = () => {
                     value={phoneNumber}
                   />
                 </View>
-                <View style={{ width: '100%', alignItems: 'center' }}>
+                <View style={styles.fullWidth}>
                   <TouchableOpacity
                     style={[styles.button, isButtonDisabled && styles.buttonDisabled]}
                     onPress={() => {
@@ -151,18 +143,7 @@ const LoginScreen = () => {
                     }}
                     disabled={isButtonDisabled}
                   >
-                    <Text
-                      style={[
-                        styles.code,
-                        isButtonDisabled && {
-                          color: 'rgba(255,255,255,0.15)',
-                          fontSize: 16,
-                          fontWeight: '600',
-                        },
-                      ]}
-                    >
-                      Continue
-                    </Text>
+                    <Text style={[styles.code, isButtonDisabled && styles.textDisabled]}>Continue</Text>
                   </TouchableOpacity>
                 </View>
 
@@ -170,7 +151,7 @@ const LoginScreen = () => {
                   <Image style={styles.or} source={require('assets/images/or.png')} />
                 </View>
 
-                <View style={{ width: '100%', alignItems: 'center' }}>
+                <View style={styles.fullWidth}>
                   <TouchableOpacity style={styles.orderStatusButton} onPress={toggleModal}>
                     <Text style={styles.code}>Check Order Status</Text>
                   </TouchableOpacity>
@@ -196,7 +177,7 @@ const LoginScreen = () => {
                       otpInputRef.current?.blur();
                       setOtp('');
                     }}
-                    style={[styles.phoneNumberInput, { paddingLeft: 24 }]}
+                    style={[styles.phoneNumberInput, styles.paddingLeft24]}
                     onChangeText={text => {
                       const filteredText = text.replace(/[^0-9]/g, '');
                       setOtp(filteredText);
@@ -218,17 +199,7 @@ const LoginScreen = () => {
                       }}
                       disabled={!enableResend}
                     >
-                      <Text
-                        style={[
-                          styles.code,
-                          { fontSize: 16 },
-                          !enableResend && {
-                            color: 'rgba(255,255,255,0.15)',
-                            fontSize: 16,
-                            fontWeight: '600',
-                          },
-                        ]}
-                      >
+                      <Text style={[styles.code, styles.fontNormal, !enableResend && styles.noResend]}>
                         Resend OTP
                       </Text>
                     </TouchableOpacity>
@@ -244,13 +215,7 @@ const LoginScreen = () => {
                       }}
                       disabled={isOtpButtonDisabled}
                     >
-                      <Text
-                        style={[
-                          styles.code,
-                          { fontSize: 16 },
-                          isOtpButtonDisabled && { color: 'rgba(255,255,255,0.5)' },
-                        ]}
-                      >
+                      <Text style={[styles.code, styles.fontNormal, isOtpButtonDisabled && styles.halfWhite]}>
                         Get Started
                       </Text>
                     </TouchableOpacity>
@@ -258,7 +223,7 @@ const LoginScreen = () => {
                 </View>
 
                 {/* Change Phone Number */}
-                <View style={{ width: '100%', marginTop: 12, alignItems: 'center' }}>
+                <View style={[styles.fullWidth, styles.mt12]}>
                   <TouchableOpacity
                     style={[styles.button, { backgroundColor: colors.bgLight }]}
                     onPress={() => {
@@ -267,7 +232,7 @@ const LoginScreen = () => {
                       setLoginScreen(true);
                     }}
                   >
-                    <Text style={[styles.code, { fontSize: 16 }]}>Change Phone Number</Text>
+                    <Text style={[styles.code, styles.fontNormal]}>Change Phone Number</Text>
                   </TouchableOpacity>
                 </View>
               </>
@@ -316,13 +281,17 @@ const styles = StyleSheet.create({
     flex: 1,
     resizeMode: 'cover',
   },
+  flexOne: { flex: 1 },
+  fullWidth: {
+    width: '100%',
+    alignItems: 'center',
+  },
   logoContainer: {
     alignItems: 'center',
     justifyContent: 'flex-end',
     height: '30%',
   },
   content: {
-    // flex: 1,
     paddingTop: '15%',
     alignItems: 'center',
     justifyContent: 'center',
@@ -350,6 +319,11 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontWeight: '600',
   },
+  noResend: {
+    color: 'rgba(255,255,255,0.15)',
+    fontSize: 16,
+    fontWeight: '600',
+  },
   phoneNumberInput: {
     backgroundColor: colors.bgLight,
     flex: 4,
@@ -371,6 +345,14 @@ const styles = StyleSheet.create({
   buttonDisabled: {
     backgroundColor: 'rgba(0,0,0,0.25)',
   },
+  textDisabled: {
+    color: 'rgba(255,255,255,0.15)',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  paddingLeft24: {
+    paddingLeft: 24,
+  },
   or: {
     marginVertical: 14,
     maxWidth: '100%',
@@ -389,16 +371,13 @@ const styles = StyleSheet.create({
     marginTop: 40,
     marginBottom: -20,
   },
-  otpError: {
-    color: '#D2474F',
-    fontSize: 16,
-    fontWeight: '600',
-  },
   dualButtonsContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
     gap: 20,
-    // paddingHorizontal: 40,
+  },
+  fontNormal: {
+    fontSize: 16,
   },
   dualButton: {
     flex: 1,
@@ -433,14 +412,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
   },
+  mt12: {
+    marginTop: 12,
+  },
   overlayStyle: {
     position: 'absolute',
     backgroundColor: 'rgba(0,0,0,0.6)',
     width: '100%',
     height: '100%',
-    justifyContent: 'center', // Ensure this is centered
+    justifyContent: 'center',
     alignItems: 'center',
     zIndex: 2,
+  },
+  halfWhite: {
+    color: 'rgba(255,255,255,0.5)',
   },
 });
 
