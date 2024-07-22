@@ -17,7 +17,7 @@ import { specialInstructions, applyDiscount, removeDiscount } from 'redux/slices
 import firestore from '@react-native-firebase/firestore';
 import LineItem from './components/LineItem';
 import BillSummary from './components/BillSummary';
-import DiscountPopup from './DiscountPopup';
+import DiscountPopup from './components/DiscountPopup';
 
 const CartScreen = ({ navigation }) => {
   const dispatch = useDispatch();
