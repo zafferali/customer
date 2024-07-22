@@ -43,7 +43,7 @@ const LoginScreen = () => {
     } catch (error) {
       Alert.alert('Failed to send OTP', error.message);
     } finally {
-      setIsLoading(false); // Stop loading regardless of outcome
+      setIsLoading(false);
     }
   }
 

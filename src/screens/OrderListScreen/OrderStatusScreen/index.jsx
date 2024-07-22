@@ -5,6 +5,8 @@ import colors from 'constants/colors';
 import CustomButton from 'components/common/CustomButton';
 import firestore from '@react-native-firebase/firestore';
 import { makeCall } from 'utils/makeCall';
+import MapView, { Marker } from 'react-native-maps';
+import { logoutCustomer } from '../../../firebase/auth';
 
 const OrderStatusScreen = ({ navigation, route }) => {
   const [currentStep, setCurrentStep] = useState(1);
