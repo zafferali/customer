@@ -63,7 +63,7 @@ const RestaurantScreen = ({ navigation, route }) => {
 
         const menuPromises = menuSnapshot.docs.map(async doc => {
           const data = doc.data();
-          console.log('test', data)
+          console.log('test', data);
           const availability = data.availability || {};
           const isAvailable = checkAvailability(availability, selectedTimeSlot);
 
@@ -117,7 +117,7 @@ const RestaurantScreen = ({ navigation, route }) => {
     };
 
     fetchMenu();
-  }, [restaurant, selectedTimeSlot]);
+  }, [restaurantId, selectedTimeSlot]);
 
   useEffect(() => {
     if (searchQuery) {
