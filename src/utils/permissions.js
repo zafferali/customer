@@ -1,7 +1,6 @@
 import { PermissionsAndroid, Alert, Linking, Platform } from 'react-native';
 import messaging from '@react-native-firebase/messaging';
 import { request, PERMISSIONS, RESULTS } from 'react-native-permissions';
-import Geolocation from '@react-native-community/geolocation';
 
 export const requestCallPermission = async () => {
   if (Platform.OS === 'android') {
@@ -77,20 +76,20 @@ export const promptForSettings = () => {
 export const requestLocationPermission = async () => {
   if (Platform.OS === 'android') {
     try {
-      const granted = await PermissionsAndroid.request(
-        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-        {
-          title: "Location Permission",
-          message: "This app needs access to your location to show your position on the map.",
-          buttonNeutral: "Ask Me Later",
-          buttonNegative: "Cancel",
-          buttonPositive: "OK"
-        }
-      );
+      const granted = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION, {
+        title: 'Location Permission',
+        message: 'This app needs access to your location to show your position on the map.',
+        buttonNeutral: 'Ask Me Later',
+        buttonNegative: 'Cancel',
+        buttonPositive: 'OK',
+      });
       if (granted === PermissionsAndroid.RESULTS.GRANTED) {
         return true;
       } else {
-        Alert.alert('Permission Required', 'Location permission is required to show your position on the map');
+        Alert.alert(
+          'Permission Required',
+          'Location permission is required to show your position on the map',
+        );
         return false;
       }
     } catch (err) {
@@ -126,18 +125,4 @@ export const checkLocationPermission = async () => {
       return false;
     }
   }
-};
-
-export const getCurrentLocation = (onSuccess, onError) => {
-  Geolocation.getCurrentPosition(
-    position => {
-      const { latitude, longitude } = position.coords;
-      onSuccess({ latitude, longitude });
-    },
-    error => {
-      console.log('Error getting location', error);
-      onError(error);
-    },
-    { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
-  );
 };
