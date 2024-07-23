@@ -111,7 +111,7 @@ const OrderListScreen = ({ navigation }) => {
               {item.name}
               {item.branch && `, ${item.branch}`}
             </Text>
-            {item.status == 'Past' && <Text style={styles.date}>{item.date}</Text>}
+            {item.status === 'Past' && <Text style={styles.date}>{item.date}</Text>}
             <Text style={styles.orderNum}>Order# {item.orderNum}</Text>
             {item.status === 'Ongoing' && item.deliveryTime && (
               <Text style={styles.date}>Pickup Time: {item.deliveryTime}</Text>
