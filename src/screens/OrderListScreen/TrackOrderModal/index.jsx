@@ -1,4 +1,3 @@
-/* eslint-disable no-var */
 // import React, { useState, useEffect, useRef } from 'react';
 // import {
 //   View,
@@ -14,12 +13,14 @@
 // import MapView, { PROVIDER_GOOGLE, Marker, Polyline } from 'react-native-maps';
 // import colors from 'constants/colors';
 // import Geolocation from 'react-native-geolocation-service';
+// import axios from 'axios';
 // import OrderStatus from '../components/OrderStatus';
 
 // const { width, height } = Dimensions.get('window');
 
 // const TrackOrderModal = ({ orderId, isVisible, onClose, runnerLocation, lockerLocation }) => {
 //   const [userLocation, setUserLocation] = useState(null);
+//   const [route, setRoute] = useState([]);
 //   const mapRef = useRef(null);
 
 //   const getCurrentLocation = () => {
@@ -49,8 +50,40 @@
 //     }
 //   };
 
+//   const fetchRoute = async () => {
+//     if (runnerLocation && lockerLocation) {
+//       const apiKey = 'AIzaSyDDjWIA0w2194r9vmlPyKZ9M8j64BHU7Ss';
+//       const url = `https://maps.googleapis.com/maps/api/directions/json?origin=${runnerLocation.latitude},${runnerLocation.longitude}&destination=${lockerLocation.latitude},${lockerLocation.longitude}&key=${apiKey}`;
+
+//       try {
+//         const response = await axios.get(url);
+//         // Fixme
+//         // eslint-disable-next-line no-unsafe-optional-chaining
+//         const { points } = response.data.routes[0]?.overview_polyline();
+//         const decodedPoints = decodePolyline(points);
+//         setRoute(decodedPoints);
+//       } catch (error) {
+//         console.log('Error fetching route', error);
+//       }
+//     }
+//   };
+
+//   const decodePolyline = (t, e) => {
+//     for (var n, o, u = 0, l = 0, r = 0, d = [], h = 0, i = 0, a = null, c = 10 ** (e || 5); u < t.length; ) {
+//       (a = null), (h = 0), (i = 0);
+//       do (a = t.charCodeAt(u++) - 63), (i |= (31 & a) << h), (h += 5);
+//       while (a >= 32);
+//       (n = 1 & i ? ~(i >> 1) : i >> 1), (h = i = 0);
+//       do (a = t.charCodeAt(u++) - 63), (i |= (31 & a) << h), (h += 5);
+//       while (a >= 32);
+//       (o = 1 & i ? ~(i >> 1) : i >> 1), (l += n), (r += o), d.push({ latitude: l / c, longitude: r / c });
+//     }
+//     return d;
+//   };
+
 //   useEffect(() => {
 //     getCurrentLocation();
+//     fetchRoute();
 //   }, [isVisible]);
 
 //   return (
@@ -93,16 +126,9 @@
 //                     <Text style={styles.lockerText}>Locker</Text>
 //                   </View>
 //                 </Marker>
-//                 <Polyline
-//                   coordinates={[
-//                     runnerLocation,
-//                     { latitude: runnerLocation.latitude, longitude: lockerLocation.longitude },
-//                     lockerLocation,
-//                   ]}
-//                   strokeColor={colors.theme}
-//                   strokeWidth={2}
-//                   lineDashPattern={[3, 2]}
-//                 />
+//                 {route.length > 0 && (
+//                   <Polyline coordinates={route} strokeColor={colors.theme} strokeWidth={2} />
+//                 )}
 //               </MapView>
 //             )}
 //             <TouchableOpacity style={styles.mapCenter} onPress={getCurrentLocation}>
@@ -237,6 +263,7 @@
 //     marginTop: 60,
 //   },
 // });
+
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
@@ -253,12 +280,15 @@ import MapView, { PROVIDER_GOOGLE, Marker, Polyline } from 'react-native-maps';
 import colors from 'constants/colors';
 import Geolocation from 'react-native-geolocation-service';
 import axios from 'axios';
+import firestore from '@react-native-firebase/firestore';
 import OrderStatus from '../components/OrderStatus';
 
 const { width, height } = Dimensions.get('window');
 
-const TrackOrderModal = ({ orderId, isVisible, onClose, runnerLocation, lockerLocation }) => {
+const TrackOrderModal = ({ orderId, isVisible, onClose }) => {
   const [userLocation, setUserLocation] = useState(null);
+  const [runnerLocation, setRunnerLocation] = useState(null);
+  const [lockerLocation, setLockerLocation] = useState(null);
   const [route, setRoute] = useState([]);
   const mapRef = useRef(null);
 
@@ -289,6 +319,29 @@ const TrackOrderModal = ({ orderId, isVisible, onClose, runnerLocation, lockerLo
     }
   };
 
+  const fetchLockerLocation = async () => {
+    try {
+      const orderDoc = await firestore().collection('orders').doc(orderId).get();
+      const lockerRef = orderDoc.data().locker;
+      const lockerDoc = await lockerRef.get();
+      const lockerGeo = lockerDoc.data().location.geo;
+      setLockerLocation({ latitude: lockerGeo.latitude, longitude: lockerGeo.longitude });
+    } catch (error) {
+      console.log('Error fetching locker location', error);
+    }
+  };
+
+  const fetchRunnerLocation = () => {
+    const orderRef = firestore().collection('orders').doc(orderId);
+    orderRef.onSnapshot(async orderDoc => {
+      const runnerRef = orderDoc.data().runner;
+      runnerRef.onSnapshot(runnerDoc => {
+        const runnerGeo = runnerDoc.data().geo;
+        setRunnerLocation({ latitude: runnerGeo.latitude, longitude: runnerGeo.longitude });
+      });
+    });
+  };
+
   const fetchRoute = async () => {
     if (runnerLocation && lockerLocation) {
       const apiKey = 'AIzaSyDDjWIA0w2194r9vmlPyKZ9M8j64BHU7Ss';
@@ -296,9 +349,7 @@ const TrackOrderModal = ({ orderId, isVisible, onClose, runnerLocation, lockerLo
 
       try {
         const response = await axios.get(url);
-        // Fixme
-        // eslint-disable-next-line no-unsafe-optional-chaining
-        const { points } = response.data.routes[0]?.overview_polyline();
+        const points = response.data.routes[0]?.overview_polyline.points;
         const decodedPoints = decodePolyline(points);
         setRoute(decodedPoints);
       } catch (error) {
@@ -321,9 +372,16 @@ const TrackOrderModal = ({ orderId, isVisible, onClose, runnerLocation, lockerLo
   };
 
   useEffect(() => {
-    getCurrentLocation();
-    fetchRoute();
+    if (isVisible) {
+      getCurrentLocation();
+      fetchLockerLocation();
+      fetchRunnerLocation();
+    }
   }, [isVisible]);
+
+  useEffect(() => {
+    fetchRoute();
+  }, [runnerLocation, lockerLocation]);
 
   return (
     <SafeAreaView>
@@ -353,18 +411,22 @@ const TrackOrderModal = ({ orderId, isVisible, onClose, runnerLocation, lockerLo
                     <Text style={styles.userText}>You</Text>
                   </View>
                 </Marker>
-                <Marker style={styles.center} coordinate={runnerLocation} tracksViewChanges={false}>
-                  <Image source={require('assets/images/runner.png')} />
-                  <View style={[styles.markerContainer, styles.runnerBg]}>
-                    <Text style={styles.runnerText}>Runner</Text>
-                  </View>
-                </Marker>
-                <Marker style={styles.center} coordinate={lockerLocation} tracksViewChanges={false}>
-                  <Image source={require('assets/images/locker.png')} />
-                  <View style={[styles.markerContainer, styles.lockerBg]}>
-                    <Text style={styles.lockerText}>Locker</Text>
-                  </View>
-                </Marker>
+                {runnerLocation && (
+                  <Marker style={styles.center} coordinate={runnerLocation} tracksViewChanges={false}>
+                    <Image source={require('assets/images/runner.png')} />
+                    <View style={[styles.markerContainer, styles.runnerBg]}>
+                      <Text style={styles.runnerText}>Runner</Text>
+                    </View>
+                  </Marker>
+                )}
+                {lockerLocation && (
+                  <Marker style={styles.center} coordinate={lockerLocation} tracksViewChanges={false}>
+                    <Image source={require('assets/images/locker.png')} />
+                    <View style={[styles.markerContainer, styles.lockerBg]}>
+                      <Text style={styles.lockerText}>Locker</Text>
+                    </View>
+                  </Marker>
+                )}
                 {route.length > 0 && (
                   <Polyline coordinates={route} strokeColor={colors.theme} strokeWidth={2} />
                 )}
@@ -453,50 +515,43 @@ const styles = StyleSheet.create({
     marginTop: -10,
   },
   lockerBg: {
-    backgroundColor: 'rgb(228, 255, 211)',
-    marginTop: -22,
+    backgroundColor: 'rgb(228, 255, 194)',
+    marginTop: -10,
   },
   userText: {
-    textAlign: 'center',
-    color: colors.theme,
+    color: 'rgb(0, 122, 255)',
+    fontWeight: 'bold',
   },
   runnerText: {
-    textAlign: 'center',
-    color: 'rgb(107, 21, 147)',
+    color: 'rgb(102, 76, 255)',
+    fontWeight: 'bold',
   },
   lockerText: {
-    textAlign: 'center',
-    color: 'rgb(46, 130, 75)',
+    color: 'rgb(0, 200, 83)',
+    fontWeight: 'bold',
   },
   buttonsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     padding: 16,
-    backgroundColor: colors.theme,
-    position: 'absolute',
-    bottom: 0,
-    width: '100%',
+    backgroundColor: 'white',
   },
   button: {
-    backgroundColor: 'rgb(63, 128, 176)',
-    padding: 10,
-    borderRadius: 10,
-    width: '48%',
-    alignItems: 'center',
-    borderColor: 'rgb(156, 220, 255)',
-    borderWidth: 2,
     flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 4,
-  },
-  buttonText: {
-    color: 'rgb(156, 220, 255)',
-    fontWeight: 'bold',
+    alignItems: 'center',
+    backgroundColor: colors.theme,
+    padding: 10,
+    borderRadius: 6,
+    width: (width - 48) / 2,
   },
   phone: {
-    width: 18,
-    height: 18,
-    tintColor: 'rgb(156, 220, 255)',
+    width: 20,
+    height: 20,
+    marginRight: 10,
+  },
+  buttonText: {
+    color: 'white',
+    fontWeight: 'bold',
   },
   mt60: {
     marginTop: 60,
