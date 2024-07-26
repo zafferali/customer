@@ -27,9 +27,8 @@ const OrderListScreen = ({ navigation }) => {
   const [selectedOrderId, setSelectedOrderId] = useState(null);
   const customerId = useSelector(state => state.authentication.customer.id);
 
-  const userLocation = { latitude: 19.07023, longitude: 72.86456 }; // Replace with actual user's location
-  const runnerLocation = { latitude: 19.06523, longitude: 72.86556 }; // Replace with actual runner's location from Firebase
-  const lockerLocation = { latitude: 19.06823, longitude: 72.86356 }; // Replace with actual locker's location from Firebase
+  const runnerLocation = { latitude: 19.06523, longitude: 72.86556 };
+  const lockerLocation = { latitude: 19.06823, longitude: 72.86356 };
 
   const fetchOrders = useCallback(async () => {
     setIsLoading(true);
@@ -172,7 +171,6 @@ const OrderListScreen = ({ navigation }) => {
       <TrackOrderModal
         isVisible={isModalVisible}
         onClose={() => setModalVisible(false)}
-        userLocation={userLocation}
         runnerLocation={runnerLocation}
         lockerLocation={lockerLocation}
         orderId={selectedOrderId}
