@@ -1,56 +1,68 @@
-import React, { useEffect, useState, useCallback } from 'react'
-import { View, Text, StyleSheet, TouchableOpacity, Image, ActivityIndicator } from 'react-native'
-import firestore from '@react-native-firebase/firestore'
-import colors from 'constants/colors'
+import React, { useEffect, useState, useCallback } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Image, ActivityIndicator } from 'react-native';
+import firestore from '@react-native-firebase/firestore';
+import colors from 'constants/colors';
 
 const OrderStatus = ({ orderId }) => {
-  const [orderDetails, setOrderDetails] = useState(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const [orderDetails, setOrderDetails] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   const fetchOrderDetails = useCallback(async () => {
     try {
-      const orderDoc = await firestore().collection('orders').doc(orderId).get()
+      const orderDoc = await firestore().collection('orders').doc(orderId).get();
       if (orderDoc.exists) {
-        setOrderDetails(orderDoc.data())
+        setOrderDetails(orderDoc.data());
       }
     } catch (error) {
-      console.error("Error fetching order details: ", error)
+      console.error('Error fetching order details: ', error);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }, [orderId])
+  }, [orderId]);
 
   useEffect(() => {
     if (orderId) {
-      fetchOrderDetails()
+      fetchOrderDetails();
     }
-  }, [orderId, fetchOrderDetails])
+  }, [orderId, fetchOrderDetails]);
 
-  const getOrderStatusInfo = (status) => {
+  const getOrderStatusInfo = status => {
     switch (status) {
       case 'received':
-        return { updateText: 'Your order has been received', eta: 'Restaurant will start preparing your order soon', dotIndex: 0 }
+        return {
+          updateText: 'Your order has been received',
+          eta: 'Restaurant will start preparing your order soon',
+          dotIndex: 0,
+        };
       case 'on the way':
-        return { updateText: 'Your order is on the way', eta: 'Your order will be delivered soon', dotIndex: 1 }
+        return {
+          updateText: 'Your order is on the way',
+          eta: 'Your order will be delivered soon',
+          dotIndex: 1,
+        };
       case 'ready':
-        return { updateText: 'Your order is ready for pickup', eta: 'Please pick up your order from the restaurant', dotIndex: 2 }
+        return {
+          updateText: 'Your order is ready for pickup',
+          eta: 'Please pick up your order from the restaurant',
+          dotIndex: 2,
+        };
       case 'picked':
-        return { updateText: 'Food Picked up', eta: '15 mins to get delivered to Lockers', dotIndex: 3 }
+        return { updateText: 'Food Picked up', eta: '15 mins to get delivered to Lockers', dotIndex: 3 };
       case 'delivered':
-        return { updateText: 'Your order has been delivered', eta: 'Enjoy your meal!', dotIndex: 4 }
+        return { updateText: 'Your order has been delivered', eta: 'Enjoy your meal!', dotIndex: 4 };
       case 'completed':
-        return { updateText: 'Order completed', eta: 'Thank you for using our service', dotIndex: 5 }
+        return { updateText: 'Order completed', eta: 'Thank you for using our service', dotIndex: 5 };
       default:
-        return { updateText: 'Status unknown', eta: '', dotIndex: -1 }
+        return { updateText: 'Status unknown', eta: '', dotIndex: -1 };
     }
-  }
+  };
 
   if (isLoading) {
     return (
       <View style={styles.loaderContainer}>
         <ActivityIndicator size="large" color={colors.theme} />
       </View>
-    )
+    );
   }
 
   if (!orderDetails) {
@@ -58,10 +70,10 @@ const OrderStatus = ({ orderId }) => {
       <View style={styles.infoContainer}>
         <Text style={styles.updateText}>Order details not found.</Text>
       </View>
-    )
+    );
   }
 
-  const { updateText, eta, dotIndex } = getOrderStatusInfo(orderDetails.orderStatus)
+  const { updateText, eta, dotIndex } = getOrderStatusInfo(orderDetails.orderStatus);
 
   return (
     <View style={styles.infoContainer}>
@@ -78,20 +90,14 @@ const OrderStatus = ({ orderId }) => {
       <Text style={styles.eta}>{eta}</Text>
       <View style={styles.dotsContainer}>
         {[...Array(6)].map((_, index) => (
-          <View
-            key={index}
-            style={[
-              styles.dot,
-              index === dotIndex && styles.activeDot,
-            ]}
-          />
+          <View key={index} style={[styles.dot, index === dotIndex && styles.activeDot]} />
         ))}
       </View>
     </View>
-  )
-}
+  );
+};
 
-export default OrderStatus
+export default OrderStatus;
 
 const styles = StyleSheet.create({
   loaderContainer: {
@@ -166,4 +172,4 @@ const styles = StyleSheet.create({
   activeDot: {
     backgroundColor: colors.theme,
   },
-})
+});
