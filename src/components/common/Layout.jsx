@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   View,
   StyleSheet,
@@ -19,7 +18,6 @@ const Layout = ({
   title2,
   backTitle,
   onBtnPress,
-  isPaymentScreen,
   rightButton,
   bottomBar,
   price,
@@ -29,7 +27,6 @@ const Layout = ({
   iconLeft,
   leftBtnText,
   onLeftBtnPress,
-  timeDuration,
 }) => {
   const items = useSelector(state => state.cart.items);
 
@@ -38,7 +35,6 @@ const Layout = ({
       style={styles.fullWidth}
       // eslint-disable-next-line no-undef
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      // keyboardVerticalOffset={Platform.OS === "ios" ? 24 : 0}
     >
       <StatusBar barStyle="dark-content" backgroundColor="white" />
       <SafeAreaView style={styles.fullWidth}>

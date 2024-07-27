@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { View, ActivityIndicator } from 'react-native';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import firestore from '@react-native-firebase/firestore';
 import auth from '@react-native-firebase/auth';
 import { CommonActions } from '@react-navigation/native';
@@ -115,7 +115,7 @@ export const AuthenticationWrapper = ({ children }) => {
 
   if (initializing) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <View style={styles.containerCenter}>
         <ActivityIndicator size="large" color={colors.theme} />
       </View>
     );
@@ -123,3 +123,11 @@ export const AuthenticationWrapper = ({ children }) => {
 
   return children;
 };
+
+const styles = StyleSheet.create({
+  containerCenter: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+});

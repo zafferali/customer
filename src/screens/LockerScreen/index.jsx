@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import Layout from 'components/common/Layout';
 import colors from 'constants/colors';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import axios from 'axios';
 import RazorpayCheckout from 'react-native-razorpay';
 import KEYS from 'constants/KEYS';
@@ -25,9 +25,7 @@ const LockerScreen = ({ navigation }) => {
   const [selectedId, setSelectedId] = useState(1);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
   const [orderId, setOrderId] = useState('');
-  const dispatch = useDispatch();
   const [isComponentMounted, setIsComponentMounted] = useState(true);
 
   const cart = useSelector(state => state.cart);
@@ -52,11 +50,9 @@ const LockerScreen = ({ navigation }) => {
         startPayment(data.id, data.amount); // Razorpay checkout starts here
       } else {
         console.error('Failed to create order');
-        setError('Failed to create order');
       }
     } catch (error) {
       console.error('Error creating order:', error);
-      setError('Error creating order');
       throw error;
     } finally {
       setIsLoading(false);
@@ -92,7 +88,6 @@ const LockerScreen = ({ navigation }) => {
       })
       .catch(error => {
         setIsLoading(false);
-        setError(`Payment error: ${error.description}`);
         console.log(`Error: ${error.code} | ${error.description}`);
       })
       .finally(() => {
@@ -136,8 +131,8 @@ const LockerScreen = ({ navigation }) => {
   };
 
   const createBriskitOrder = async paymentData => {
-    const orderId = await generateOrderID();
-    const pickupCode = await generatePickupCode(currentRestaurant.id, orderId);
+    const generatedOrderId = await generateOrderID();
+    const pickupCode = await generatePickupCode(currentRestaurant.id, generatedOrderId);
 
     const orderData = {
       customer: customerRef,
@@ -149,7 +144,7 @@ const LockerScreen = ({ navigation }) => {
       ...(currentRestaurant.branch && { branchName: currentRestaurant.branch }),
       restaurantImage: currentRestaurant.thumbnailUrl || '',
       deliveryTime: selectedTimeSlot,
-      orderNum: orderId,
+      orderNum: generatedOrderId,
       pickupCode,
       items,
       subTotal: cart.subTotal,

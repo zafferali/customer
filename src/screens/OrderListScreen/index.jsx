@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   FlatList,
@@ -101,13 +101,12 @@ const OrderListScreen = ({ navigation }) => {
               {item.name}
               {item.branch && `, ${item.branch}`}
             </Text>
-            {item.status == 'Past' && <Text style={styles.date}>{item.date}</Text>}
+            {item.status === 'Past' && <Text style={styles.date}>{item.date}</Text>}
             <Text style={styles.orderNum}>Order# {item.orderNum}</Text>
             {item.status === 'Ongoing' && item.deliveryTime && (
               <Text style={styles.date}>Pickup Time: {item.deliveryTime}</Text>
             )}
           </>
-          {/* <Text style={item.status === 'Past' ? styles.subtitle : styles.ongoing}>{item.status}</Text> */}
         </View>
       </TouchableOpacity>
     ),
@@ -116,7 +115,7 @@ const OrderListScreen = ({ navigation }) => {
 
   return (
     <Layout navigation title="Orders">
-      <SearchBar style={{ marginBottom: 15 }} placeholder="Search Restaurants.." onSearch={setSearchQuery} />
+      <SearchBar style={styles.mb15} placeholder="Search Restaurants.." onSearch={setSearchQuery} />
       <View style={styles.tabsContainer}>
         <TouchableOpacity
           style={[styles.tab, selectedTab === 'ongoing' && styles.selectedTab]}
@@ -172,11 +171,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginBottom: 6,
   },
-  // subtitle: {
-  //   fontSize: 12,
-  //   fontWeight: '600',
-  //   color: colors.theme,
-  // },
   date: {
     fontSize: 12,
     fontWeight: '600',
@@ -188,16 +182,9 @@ const styles = StyleSheet.create({
     color: 'black',
     marginTop: 5,
   },
-  // ongoing: {
-  //   fontSize: 12,
-  //   fontWeight: '600',
-  //   color: '#407305',
-  // },
-  // deliveryTime: {
-  //   fontSize: 12,
-  //   color: 'black',
-  //   marginTop: 5,
-  // },
+  mb15: {
+    marginBottom: 15,
+  },
   noOrderContainer: {
     flex: 1,
     justifyContent: 'center',

@@ -65,7 +65,7 @@ const SettingsScreen = ({ navigation }) => {
       <Layout backTitle="Settings" navigation={navigation}>
         <View style={styles.container}>
           <TouchableOpacity
-            style={[styles.imageUploadContainer, imageUrl && { borderWidth: 0 }]}
+            style={[styles.imageUploadContainer, imageUrl && styles.zeroBorder]}
             onPress={() => setModalVisible(true)}
           >
             {imageUrl ? (
@@ -181,6 +181,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 2,
+  },
+  zeroBorder: {
+    borderWidth: 0,
   },
 });
 

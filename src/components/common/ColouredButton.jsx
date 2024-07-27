@@ -1,7 +1,7 @@
 import React from 'react';
 import { TouchableOpacity, Text, StyleSheet, Image } from 'react-native';
 
-const ColouredButton = ({ onPress, title, style, textStyle, icon, textColor, bgColor }) => (
+const ColouredButton = ({ onPress, title, style, icon, textColor, bgColor }) => (
   <TouchableOpacity onPress={onPress} style={[styles.button, style, { backgroundColor: bgColor }]}>
     {icon && <Image source={require('assets/images/phone.png')} style={styles.icon} />}
     <Text style={[styles.text, { color: textColor }]}>{title}</Text>

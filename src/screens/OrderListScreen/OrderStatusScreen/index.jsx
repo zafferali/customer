@@ -3,21 +3,13 @@ import React, { useEffect, useState } from 'react';
 import Layout from 'components/common/Layout';
 import colors from 'constants/colors';
 import CustomButton from 'components/common/CustomButton';
-import { logout } from 'redux/slices/authenticationSlice';
-import { useDispatch } from 'react-redux';
 import firestore from '@react-native-firebase/firestore';
 import { makeCall } from 'utils/makeCall';
-import { logoutCustomer } from '../../../firebase/auth';
 
 const OrderStatusScreen = ({ navigation, route }) => {
-  const dispatch = useDispatch();
   const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-
-  const handleLogout = () => {
-    logoutCustomer(navigation, dispatch);
-  };
 
   const callCustomerCare = () => {
     Alert.alert(
@@ -80,7 +72,7 @@ const OrderStatusScreen = ({ navigation, route }) => {
           ]}
         >
           {currentStep >= stepNumber ? (
-            <Image style={{ height: 18, width: 18 }} source={require('assets/images/tick.png')} />
+            <Image style={styles.tickSize} source={require('assets/images/tick.png')} />
           ) : (
             <Text style={styles.stepCheckMark}>{stepNumber}</Text>
           )}
@@ -131,7 +123,7 @@ const OrderStatusScreen = ({ navigation, route }) => {
       </View>
       <CustomButton
         title="View all Orders"
-        style={{ marginTop: 20 }}
+        style={styles.mt20}
         onPress={() => navigation.navigate('OrderListScreen')}
       />
       {isLoading && (
@@ -197,6 +189,9 @@ const styles = StyleSheet.create({
   activeDashLine: {
     borderColor: colors.theme,
   },
+  mt20: {
+    marginTop: 20,
+  },
   stepContent: {
     flex: 1,
     alignSelf: 'flex-start',
@@ -217,6 +212,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: colors.theme,
   },
+  tickSize: { height: 18, width: 18 },
   overlayStyle: {
     position: 'absolute',
     backgroundColor: 'rgba(255,255,255,0.5)',
