@@ -40,7 +40,6 @@ const ProfileScreen = ({ navigation }) => {
   return (
     <Layout showMenu navigation={navigation} title="Profile">
       <View style={styles.container}>
-        {/* <Image source={require('images/profile-placeholder.png')} style={styles.userImage} /> */}
         <Image
           source={
             customer.photoUrl ? { uri: customer.photoUrl } : require('assets/images/profile-placeholder.png')
@@ -53,11 +52,11 @@ const ProfileScreen = ({ navigation }) => {
             <Text style={styles.buttonText}>Settings</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.button} onPress={handleCallCustomerCarePress}>
-            <Text style={styles.buttonText}>Call customer care</Text>
+            <Text style={styles.buttonText}>Call Customer Care</Text>
           </TouchableOpacity>
         </View>
         <TouchableOpacity
-          style={[GlobalStyles.lightBorder, { width: '100%', marginTop: 15, paddingVertical: 12 }]}
+          style={[GlobalStyles.lightBorder, styles.logoutText]}
           onPress={() => handleLogoutPress()}
         >
           <Text style={styles.buttonText}>Logout</Text>
@@ -108,5 +107,10 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '500',
     color: colors.theme,
+  },
+  logoutText: {
+    width: '100%',
+    marginTop: 15,
+    paddingVertical: 12,
   },
 });

@@ -67,7 +67,7 @@ const TimeSlotScreen = ({ navigation }) => {
 
   return (
     <Layout title="Choose a Time slot" navigation={navigation}>
-      <View style={[GlobalStyles.lightBorder, { padding: 20, marginTop: 10 }]}>
+      <View style={[GlobalStyles.lightBorder, styles.p20, styles.mt10]}>
         <Text style={styles.title}>Set your Pickup time</Text>
         <Text style={styles.text}>
           Let us know when would like to pick up your food from this station and we’ll curate the listing of
@@ -211,5 +211,11 @@ const styles = StyleSheet.create({
   closeButtonText: {
     fontSize: 18,
     color: colors.theme,
+  },
+  p20: {
+    padding: 20,
+  },
+  mt10: {
+    marginTop: 10,
   },
 });

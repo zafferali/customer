@@ -1,14 +1,7 @@
 import { View, TextInput, TouchableOpacity, Text, StyleSheet } from 'react-native';
 import colors from 'constants/colors';
 
-const InputWithButton = ({
-  placeholder,
-  onChangeText,
-  value,
-  buttonText,
-  handleValidate,
-  buttonDisabled,
-}) => {
+const InputWithButton = ({ placeholder, onChangeText, value, buttonText, handleValidate }) => {
   return (
     <View style={styles.container}>
       <TextInput

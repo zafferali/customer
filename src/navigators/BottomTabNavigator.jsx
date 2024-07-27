@@ -5,10 +5,28 @@ import { HomeStackScreen, OrderListStackScreen, ProfileStackScreen } from './Sta
 
 const Tab = createBottomTabNavigator();
 
+const tabIt = (focused, tabName) => {
+  let iconSrc;
+  switch (tabName) {
+    case 'Home':
+      iconSrc = require('assets/images/home-icon.png');
+      break;
+    case 'Orders':
+      iconSrc = require('assets/images/orders-icon.png');
+      break;
+    case 'Profile':
+      iconSrc = require('assets/images/user-icon.png');
+      break;
+    default:
+      iconSrc = null;
+  }
+  return <TabItem focused={focused} iconSrc={iconSrc} tabName={tabName} />;
+};
+
 const BottomTabNavigator = () => {
   return (
     <Tab.Navigator
-      initialRouteName="TimeSlotScreen"
+      initialRouteName="HomeStackScreen" // Ensure this is correct
       screenOptions={{
         tabBarShowLabel: false,
         headerShown: false,
@@ -43,9 +61,7 @@ const BottomTabNavigator = () => {
               height: 65,
               paddingTop: 10,
             },
-            tabBarIcon: ({ focused }) => (
-              <TabItem focused={focused} iconSrc={require('assets/images/home-icon.png')} tabName="Home" />
-            ),
+            tabBarIcon: ({ focused }) => tabIt(focused, 'Home'),
           };
         }}
       />
@@ -54,33 +70,35 @@ const BottomTabNavigator = () => {
       <Tab.Screen
         name="OrderListStackScreen"
         component={OrderListStackScreen}
-        options={({ route }) => ({
-          tabBarStyle: {
-            display: getFocusedRouteNameFromRoute(route) === 'OrderStatusScreen' ? 'none' : 'flex',
-            height: 65,
-            paddingTop: 10,
-          },
-          tabBarIcon: ({ focused }) => (
-            <TabItem focused={focused} iconSrc={require('assets/images/orders-icon.png')} tabName="Orders" />
-          ),
-        })}
+        options={({ route }) => {
+          const routeName = getFocusedRouteNameFromRoute(route);
+          return {
+            tabBarStyle: {
+              display: routeName === 'OrderStatusScreen' ? 'none' : 'flex',
+              height: 65,
+              paddingTop: 10,
+            },
+            tabBarIcon: ({ focused }) => tabIt(focused, 'Orders'),
+          };
+        }}
       />
 
       {/* Profile */}
       <Tab.Screen
         name="ProfileStackScreen"
         component={ProfileStackScreen}
-        options={({ route }) => ({
-          tabBarStyle: {
-            display: getFocusedRouteNameFromRoute(route) === 'SettingsScreen' ? 'none' : 'flex',
-            height: 65,
-            justifyContent: 'center',
-            paddingTop: 10,
-          },
-          tabBarIcon: ({ focused }) => (
-            <TabItem focused={focused} iconSrc={require('assets/images/user-icon.png')} tabName="Profile" />
-          ),
-        })}
+        options={({ route }) => {
+          const routeName = getFocusedRouteNameFromRoute(route);
+          return {
+            tabBarStyle: {
+              display: routeName === 'SettingsScreen' ? 'none' : 'flex',
+              height: 65,
+              justifyContent: 'center',
+              paddingTop: 10,
+            },
+            tabBarIcon: ({ focused }) => tabIt(focused, 'Profile'),
+          };
+        }}
       />
     </Tab.Navigator>
   );
