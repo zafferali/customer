@@ -1,6 +1,8 @@
 import { PermissionsAndroid, Alert, Linking, Platform } from 'react-native';
 import messaging from '@react-native-firebase/messaging';
-import { request, PERMISSIONS, RESULTS } from 'react-native-permissions';
+import { request, check, PERMISSIONS, RESULTS } from 'react-native-permissions';
+
+import Geolocation from 'react-native-geolocation-service';
 
 export const requestCallPermission = async () => {
   if (Platform.OS === 'android') {
@@ -71,4 +73,53 @@ export const promptForSettings = () => {
       },
     ],
   );
+};
+
+export const checkLocationPermission = async () => {
+  try {
+    if (Platform.OS === 'ios') {
+      return await check(PERMISSIONS.IOS.LOCATION_WHEN_IN_USE);
+    } else if (Platform.OS === 'android') {
+      return await check(PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION);
+    }
+  } catch (error) {
+    console.error('Error checking location permission:', error);
+    return RESULTS.UNAVAILABLE;
+  }
+};
+
+export const requestLocationPermission = async () => {
+  try {
+    if (Platform.OS === 'ios') {
+      return await request(PERMISSIONS.IOS.LOCATION_WHEN_IN_USE);
+    } else if (Platform.OS === 'android') {
+      return await request(PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION);
+    }
+  } catch (error) {
+    console.error('Error requesting location permission:', error);
+    return RESULTS.UNAVAILABLE;
+  }
+};
+
+export const openLocationSettings = () => {
+  if (Platform.OS === 'ios') {
+    Linking.openSettings();
+  } else {
+    Linking.openSettings();
+  }
+};
+
+/**
+ * Checks if location is enabled on the device.
+ *
+ * @return {Promise<boolean>} A promise that resolves to true if location is enabled, false otherwise.
+ */
+export const checkLocationEnabled = () => {
+  return new Promise((resolve, reject) => {
+    Geolocation.getCurrentPosition(
+      position => resolve(true),
+      error => resolve(false),
+      { enableHighAccuracy: false },
+    );
+  });
 };

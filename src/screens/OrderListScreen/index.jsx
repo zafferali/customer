@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import {
   View,
   FlatList,
@@ -16,12 +16,15 @@ import { GlobalStyles } from 'constants/GlobalStyles';
 import colors from 'constants/colors';
 import { useSelector } from 'react-redux';
 import firestore from '@react-native-firebase/firestore';
+import TrackOrderModal from './TrackOrderModal';
 
 const OrderListScreen = ({ navigation }) => {
   const [orders, setOrders] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [selectedTab, setSelectedTab] = useState('ongoing');
+  const [isModalVisible, setModalVisible] = useState(false);
+  const [selectedOrderId, setSelectedOrderId] = useState(null);
   const customerId = useSelector(state => state.authentication.customer.id);
 
   const fetchOrders = useCallback(async () => {
@@ -90,13 +93,10 @@ const OrderListScreen = ({ navigation }) => {
 
   const RenderItem = useCallback(
     ({ item }) => (
-      <TouchableOpacity
-        style={[GlobalStyles.lightBorder, styles.orderItem]}
-        onPress={() => navigation.navigate('OrderStatusScreen', { orderId: item.id })}
-      >
-        <Image source={{ uri: item.image }} style={styles.thumbnail} />
-        <View style={styles.infoContainer}>
-          <>
+      <View style={[GlobalStyles.lightBorder, styles.orderItem]}>
+        <View style={styles.orderDetails}>
+          <Image source={{ uri: item.image }} style={styles.thumbnail} />
+          <View style={styles.infoContainer}>
             <Text style={styles.title}>
               {item.name}
               {item.branch && `, ${item.branch}`}
@@ -106,11 +106,27 @@ const OrderListScreen = ({ navigation }) => {
             {item.status === 'Ongoing' && item.deliveryTime && (
               <Text style={styles.date}>Pickup Time: {item.deliveryTime}</Text>
             )}
-          </>
+          </View>
         </View>
-      </TouchableOpacity>
+        <View style={styles.dualBtnContainer}>
+          <TouchableOpacity style={styles.trackButton} onPress={() => {}}>
+            <Text style={styles.trackButtonText}>Order Details</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.trackButton}
+            onPress={() => {
+              setSelectedOrderId(item.id);
+              setModalVisible(true);
+            }}
+          >
+            <Image style={styles.navigateIcon} source={require('assets/images/navigate.png')} />
+            <Text style={styles.trackButtonText}>Track Order</Text>
+          </TouchableOpacity>
+        </View>
+        {/* </TouchableOpacity> */}
+      </View>
     ),
-    [navigation],
+    [],
   );
 
   return (
@@ -143,6 +159,11 @@ const OrderListScreen = ({ navigation }) => {
           keyExtractor={item => item.id}
         />
       )}
+      <TrackOrderModal
+        isVisible={isModalVisible}
+        onClose={() => setModalVisible(false)}
+        orderId={selectedOrderId}
+      />
     </Layout>
   );
 };
@@ -151,6 +172,10 @@ export default OrderListScreen;
 
 const styles = StyleSheet.create({
   orderItem: {
+    // flexDirection: 'row',
+    marginBottom: 10,
+  },
+  orderDetails: {
     flexDirection: 'row',
     marginBottom: 10,
   },
@@ -212,5 +237,30 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: 'black',
+  },
+  dualBtnContainer: {
+    flexDirection: 'row',
+    gap: 4,
+  },
+  trackButton: {
+    backgroundColor: colors.theme,
+    flexDirection: 'row',
+    width: '50%',
+    justifyContent: 'center',
+    gap: 4,
+    padding: 8,
+    borderRadius: 6,
+    alignItems: 'center',
+    marginTop: 5,
+  },
+  trackButtonText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  navigateIcon: {
+    width: 16,
+    height: 16,
+    tintColor: 'white',
   },
 });

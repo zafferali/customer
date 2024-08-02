@@ -8,12 +8,16 @@ import firestore from '@react-native-firebase/firestore';
 import { useSelector, useDispatch } from 'react-redux';
 import { setTimeSlot } from 'redux/slices/restaurantsSlice';
 import { useFocusEffect } from '@react-navigation/native';
+import OrderStatus from '../OrderListScreen/components/OrderStatus';
+import TrackOrderModal from '../OrderListScreen/TrackOrderModal';
 
 const TimeSlotScreen = ({ navigation }) => {
   const [timeSlots, setTimeSlots] = useState([]);
   const [selectedTime, setSelectedTime] = useState('');
   const [showModal, setShowModal] = useState(false);
   const customer = useSelector(state => state.authentication.customer);
+  const [showTrackOrderModal, setShowTrackOrderModal] = useState(false);
+  const [selectedOrderId, setSelectedOrderId] = useState(null);
   console.log('cus', customer?.id);
   const dispatch = useDispatch();
 
@@ -110,6 +114,7 @@ const TimeSlotScreen = ({ navigation }) => {
                   ))
                 )}
               </ScrollView>
+
               <TouchableOpacity style={styles.closeButton} onPress={() => setShowModal(false)}>
                 <Text style={styles.closeButtonText}>Close</Text>
               </TouchableOpacity>
@@ -117,10 +122,17 @@ const TimeSlotScreen = ({ navigation }) => {
           </View>
         </Modal>
       </View>
-
+      <View style={styles.orderStatusContainer}>
+        <OrderStatus onPress={() => setShowTrackOrderModal(true)} orderId="10UD8QNpAnwE2uqkF6kR" />
+      </View>
       <View style={styles.btnContainer}>
         <CustomButton title="Browse Restaurants" onPress={onGetStarted} />
       </View>
+      <TrackOrderModal
+        isVisible={showTrackOrderModal}
+        onClose={() => setShowTrackOrderModal(false)}
+        orderId={selectedOrderId}
+      />
     </Layout>
   );
 };
@@ -217,5 +229,11 @@ const styles = StyleSheet.create({
   },
   mt10: {
     marginTop: 10,
+  },
+  orderStatusContainer: {
+    position: 'absolute',
+    bottom: 10,
+    right: '4%',
+    left: '4%',
   },
 });
