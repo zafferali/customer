@@ -1,4 +1,5 @@
 import { StyleSheet } from 'react-native';
+// import { useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator, TransitionPresets } from '@react-navigation/stack';
 import { setCustomText } from 'react-native-global-props';
@@ -7,6 +8,7 @@ import { useSelector } from 'react-redux';
 import IntroScreen from 'screens/IntroScreen';
 import BottomTabNavigator from './navigators/BottomTabNavigator';
 import { AuthStackNavigator } from './navigators/AuthStackNavigator';
+// import { requestLocationPermission } from './utils/permissions';
 
 const customTextProps = {
   style: {
@@ -22,6 +24,11 @@ const App = () => {
   const Stack = createStackNavigator();
   const isAuthenticated = useSelector(state => state.authentication.isAuthenticated);
   const isFirstTime = useSelector(state => state.authentication.isFirstTime);
+
+  // useEffect(() => {
+  //   // Request location permission when the screen mounts
+  //   requestLocationPermission();
+  // }, []);
 
   return (
     <SafeAreaView style={styles.fullWidth}>

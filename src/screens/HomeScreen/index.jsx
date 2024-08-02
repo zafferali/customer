@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
   Modal,
   SafeAreaView,
+  Platform,
 } from 'react-native';
 import firestore from '@react-native-firebase/firestore';
 import { useDispatch, useSelector } from 'react-redux';
@@ -19,6 +20,9 @@ import SearchBar from 'components/common/SearchBar';
 import Restaurant from 'components/restaurant/Restaurant';
 import colors from 'constants/colors';
 import moment from 'moment-timezone';
+import { RESULTS, PERMISSIONS, request } from 'react-native-permissions';
+// import { requestLocationPermission } from 'utils/permissions';
+import LocationModal from './components/LocationModal';
 
 const HomeScreen = ({ navigation }) => {
   const dispatch = useDispatch();
@@ -44,6 +48,28 @@ const HomeScreen = ({ navigation }) => {
 
     return selectedMinutes >= fromMinutes && selectedMinutes <= untilMinutes;
   }
+
+  useEffect(() => {
+    // Request location permission when the screen mounts
+    // requestLocationPermission();
+    const permission = Platform.select({
+      ios: PERMISSIONS.IOS.LOCATION_WHEN_IN_USE,
+      android: PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION,
+    });
+
+    const handleRequestPermission = async () => {
+      try {
+        const result = await request(permission);
+        return result;
+      } catch (error) {
+        console.error('Error requesting location permission:', error);
+        // setPermissionStatus(RESULTS.UNAVAILABLE);
+        return RESULTS.UNAVAILABLE;
+      }
+    };
+
+    handleRequestPermission();
+  }, []);
 
   useEffect(() => {
     setIsLoading(true);
@@ -313,6 +339,8 @@ const HomeScreen = ({ navigation }) => {
           contentContainerStyle={styles.flatListContent}
         />
       )}
+
+      <LocationModal />
       <Modal
         visible={modalVisible}
         animationType="slide"
