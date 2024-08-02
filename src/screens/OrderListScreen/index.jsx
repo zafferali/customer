@@ -172,8 +172,6 @@ const OrderListScreen = ({ navigation }) => {
       <TrackOrderModal
         isVisible={isModalVisible}
         onClose={() => setModalVisible(false)}
-        runnerLocation={runnerLocation}
-        lockerLocation={lockerLocation}
         orderId={selectedOrderId}
       />
     </Layout>
