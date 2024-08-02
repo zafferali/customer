@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import firestore from '@react-native-firebase/firestore';
 import colors from 'constants/colors';
-import CustomButton from 'common/CustomButton';
+import CustomButton from 'components/common/CustomButton';
 
 const OrderStatus = ({ orderId, mapScreen, onPress }) => {
   const [orderDetails, setOrderDetails] = useState(null);
@@ -206,14 +206,16 @@ const styles = StyleSheet.create({
     marginVertical: 8,
   },
   dot: {
-    width: 10,
-    height: 10,
+    width: 12,
+    height: 3,
     borderRadius: 5,
-    backgroundColor: 'rgba(0,0,0,0.7)',
+    backgroundColor: '#fff',
     marginHorizontal: 2,
   },
   activeDot: {
-    backgroundColor: '#fff',
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    width: 14,
+    height: 4,
   },
   backgroundImage: {
     padding: 20,
