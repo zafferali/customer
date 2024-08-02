@@ -75,60 +75,6 @@ export const promptForSettings = () => {
   );
 };
 
-// export const requestLocationPermission = async () => {
-//   if (Platform.OS === 'android') {
-//     try {
-//       const granted = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION, {
-//         title: 'Location Permission',
-//         message: 'This app needs access to your location to show your position on the map.',
-//         buttonNeutral: 'Ask Me Later',
-//         buttonNegative: 'Cancel',
-//         buttonPositive: 'OK',
-//       });
-//       if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-//         return true;
-//       } else {
-//         Alert.alert(
-//           'Permission Required',
-//           'Location permission is required to show your position on the map',
-//         );
-//         return false;
-//       }
-//     } catch (err) {
-//       console.warn(err);
-//       return false;
-//     }
-//   } else if (Platform.OS === 'ios') {
-//     try {
-//       const permissionStatus = await request(PERMISSIONS.IOS.LOCATION_WHEN_IN_USE);
-//       return permissionStatus === RESULTS.GRANTED;
-//     } catch (error) {
-//       console.error('Error requesting location permission:', error);
-//       return false;
-//     }
-//   }
-// };
-
-// export const checkLocationPermission = async () => {
-//   if (Platform.OS === 'android') {
-//     try {
-//       const granted = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION);
-//       return granted;
-//     } catch (err) {
-//       console.warn(err);
-//       return false;
-//     }
-//   } else if (Platform.OS === 'ios') {
-//     try {
-//       const permissionStatus = await check(PERMISSIONS.IOS.LOCATION_WHEN_IN_USE);
-//       return permissionStatus === RESULTS.GRANTED;
-//     } catch (error) {
-//       console.error('Error checking location permission:', error);
-//       return false;
-//     }
-//   }
-// };
-
 export const checkLocationPermission = async () => {
   try {
     if (Platform.OS === 'ios') {
@@ -163,6 +109,11 @@ export const openLocationSettings = () => {
   }
 };
 
+/**
+ * Checks if location is enabled on the device.
+ *
+ * @return {Promise<boolean>} A promise that resolves to true if location is enabled, false otherwise.
+ */
 export const checkLocationEnabled = () => {
   return new Promise((resolve, reject) => {
     Geolocation.getCurrentPosition(

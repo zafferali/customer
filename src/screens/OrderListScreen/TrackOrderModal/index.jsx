@@ -10,7 +10,7 @@ import {
   SafeAreaView,
   Platform,
 } from 'react-native';
-import MapView, { PROVIDER_GOOGLE, Marker, Polyline } from 'react-native-maps';
+import MapView, { Marker, Polyline } from 'react-native-maps';
 import colors from 'constants/colors';
 import Geolocation from 'react-native-geolocation-service';
 import axios from 'axios';
@@ -18,7 +18,7 @@ import firestore from '@react-native-firebase/firestore';
 import { Svg, Image as ImageSvg } from 'react-native-svg';
 import OrderStatus from '../components/OrderStatus';
 
-const { width, height } = Dimensions.get('window');
+const { height } = Dimensions.get('window');
 
 const TrackOrderModal = ({ orderId, isVisible, onClose }) => {
   const [userLocation, setUserLocation] = useState(null);
@@ -93,6 +93,13 @@ const TrackOrderModal = ({ orderId, isVisible, onClose }) => {
     }
   };
 
+  /**
+   * Decodes a polyline string into an array of latitude and longitude coordinates.
+   *
+   * @param {string} t - The polyline string to decode.
+   * @param {number} [e] - The precision of the decoded coordinates. Defaults to 5.
+   * @return {Array<{latitude: number, longitude: number}>} An array of latitude and longitude coordinates.
+   */
   const decodePolyline = (t, e) => {
     for (var n, o, u = 0, l = 0, r = 0, d = [], h = 0, i = 0, a = null, c = 10 ** (e || 5); u < t.length; ) {
       (a = null), (h = 0), (i = 0);

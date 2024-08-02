@@ -1,5 +1,4 @@
-/* eslint-disable import/no-unresolved */
-import React, { useEffect, useState, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import {
   View,
   FlatList,
@@ -27,9 +26,6 @@ const OrderListScreen = ({ navigation }) => {
   const [isModalVisible, setModalVisible] = useState(false);
   const [selectedOrderId, setSelectedOrderId] = useState(null);
   const customerId = useSelector(state => state.authentication.customer.id);
-
-  const runnerLocation = { latitude: 19.06523, longitude: 72.86556 };
-  const lockerLocation = { latitude: 19.06823, longitude: 72.86356 };
 
   const fetchOrders = useCallback(async () => {
     setIsLoading(true);
@@ -98,12 +94,6 @@ const OrderListScreen = ({ navigation }) => {
   const RenderItem = useCallback(
     ({ item }) => (
       <View style={[GlobalStyles.lightBorder, styles.orderItem]}>
-        {/* <TouchableOpacity
-          style={[GlobalStyles.lightBorder, styles.orderItem]}
-          onPress={() =>
-            navigation.navigate('OrderStatusScreen', { orderId: item.id })
-          }
-        > */}
         <View style={styles.orderDetails}>
           <Image source={{ uri: item.image }} style={styles.thumbnail} />
           <View style={styles.infoContainer}>
