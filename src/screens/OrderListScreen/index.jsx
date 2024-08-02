@@ -1,4 +1,5 @@
-import React, { useState, useCallback } from 'react';
+/* eslint-disable import/no-unresolved */
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   FlatList,
@@ -135,7 +136,7 @@ const OrderListScreen = ({ navigation }) => {
         {/* </TouchableOpacity> */}
       </View>
     ),
-    [navigation],
+    [],
   );
 
   return (
@@ -171,8 +172,6 @@ const OrderListScreen = ({ navigation }) => {
       <TrackOrderModal
         isVisible={isModalVisible}
         onClose={() => setModalVisible(false)}
-        runnerLocation={runnerLocation}
-        lockerLocation={lockerLocation}
         orderId={selectedOrderId}
       />
     </Layout>

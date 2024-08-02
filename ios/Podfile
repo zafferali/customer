@@ -50,6 +50,9 @@ target 'Customer' do
     # An absolute path to your application root.
     :app_path => "#{Pod::Config.instance.installation_root}/.."
   )
+  permissions_path = '../node_modules/react-native-permissions/ios'
+  # pod 'Permission-LocationWhenInUse', :path => "#{permissions_path}/LocationWhenInUse"
+  # pod 'Permission-LocationAlways', :path => "#{permissions_path}/LocationAlways"
 
   setup_permissions([
     # 'AppTrackingTransparency',

@@ -1,9 +1,18 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Image,
+  ActivityIndicator,
+  ImageBackground,
+} from 'react-native';
 import firestore from '@react-native-firebase/firestore';
 import colors from 'constants/colors';
+import CustomButton from 'common/CustomButton';
 
-const OrderStatus = ({ orderId }) => {
+const OrderStatus = ({ orderId, mapScreen, onPress }) => {
   const [orderDetails, setOrderDetails] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -27,30 +36,46 @@ const OrderStatus = ({ orderId }) => {
   }, [orderId, fetchOrderDetails]);
 
   const getOrderStatusInfo = status => {
+    const calculateTimeDifference = deliveryTime => {
+      const [deliveryHour, deliveryMinute] = deliveryTime.split(':').map(Number);
+      const now = new Date();
+      const deliveryDate = new Date();
+      deliveryDate.setHours(deliveryHour, deliveryMinute, 0, 0);
+      const differenceInMinutes = Math.round((deliveryDate - now) / (1000 * 60));
+      return `${differenceInMinutes} mins to get delivered to Locker`;
+    };
     switch (status) {
       case 'received':
         return {
-          updateText: 'Your order has been received',
+          updateText: 'Order Received',
           eta: 'Restaurant will start preparing your order soon',
           dotIndex: 0,
         };
       case 'on the way':
         return {
-          updateText: 'Your order is on the way',
-          eta: 'Your order will be delivered soon',
+          updateText: 'Runner Assigned',
+          eta: 'Runner has been asigned and on the way to the restaurant pick up your order',
           dotIndex: 1,
         };
       case 'ready':
         return {
-          updateText: 'Your order is ready for pickup',
-          eta: 'Please pick up your order from the restaurant',
+          updateText: 'Food Prepared',
+          eta: 'Your food is ready. Runner will pickup your food in a while',
           dotIndex: 2,
         };
       case 'picked':
-        return { updateText: 'Food Picked up', eta: '15 mins to get delivered to Lockers', dotIndex: 3 };
+        return {
+          updateText: 'Food Picked up',
+          eta: `${calculateTimeDifference(orderDetails.deliveryTime)} mins to get delivered to Lockers`,
+          dotIndex: 3,
+        };
       case 'delivered':
-        return { updateText: 'Your order has been delivered', eta: 'Enjoy your meal!', dotIndex: 4 };
-      case 'completed':
+        return {
+          updateText: 'Food Delivered',
+          eta: 'Please pick up your food from the locker',
+          dotIndex: 4,
+        };
+      case 'Order Completed':
         return { updateText: 'Order completed', eta: 'Thank you for using our service', dotIndex: 5 };
       default:
         return { updateText: 'Status unknown', eta: '', dotIndex: -1 };
@@ -75,24 +100,45 @@ const OrderStatus = ({ orderId }) => {
 
   const { updateText, eta, dotIndex } = getOrderStatusInfo(orderDetails.orderStatus);
 
-  return (
+  return mapScreen ? (
     <View style={styles.infoContainer}>
       <View style={styles.headerContainer}>
         <View style={styles.updateContainer}>
           <Text style={styles.updateTitle}>Latest Update</Text>
         </View>
         <TouchableOpacity style={styles.refreshButton} onPress={fetchOrderDetails}>
-          <Image style={styles.refreshImage} source={require('images/refresh.png')} />
+          <Image style={styles.refreshImage} source={require('assets/images/refresh.png')} />
           <Text style={styles.refreshButtonText}>Refresh</Text>
         </TouchableOpacity>
       </View>
-      <Text style={styles.updateText}>{updateText}</Text>
-      <Text style={styles.eta}>{eta}</Text>
+      <View style={styles.detailContainer}>
+        <Text style={styles.updateText}>{updateText}</Text>
+        <Text style={styles.eta}>{eta}</Text>
+      </View>
       <View style={styles.dotsContainer}>
         {[...Array(6)].map((_, index) => (
           <View key={index} style={[styles.dot, index === dotIndex && styles.activeDot]} />
         ))}
       </View>
+    </View>
+  ) : (
+    <View style={styles.orderStatusContainer}>
+      <ImageBackground source={require('assets/images/map-bg.png')} style={styles.backgroundImage}>
+        {/* <View style={styles.headerContainer}>
+          <View style={styles.updateContainer}>
+            <Text style={styles.updateTitle}>Latest Update</Text>
+          </View>
+          <TouchableOpacity style={styles.refreshButton} onPress={fetchOrderDetails}>
+            <Image style={styles.refreshImage} source={require('assets/images/refresh.png')} />
+            <Text style={styles.refreshButtonText}>Refresh</Text>
+          </TouchableOpacity>
+        </View> */}
+        <View style={styles.detailContainer}>
+          <Text style={styles.updateText}>{updateText}</Text>
+          <Text style={styles.eta}>{eta}</Text>
+          <CustomButton title="Track Order" onPress={onPress} />
+        </View>
+      </ImageBackground>
     </View>
   );
 };
@@ -106,14 +152,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   infoContainer: {
-    padding: 16,
-    backgroundColor: '#fff',
+    padding: 12,
+    backgroundColor: colors.theme,
     borderRadius: 12,
-    position: 'absolute',
-    width: '96%',
-    bottom: 80,
-    right: '2%',
-    left: '2%',
+    margin: 10,
     flexDirection: 'column',
     alignItems: 'flex-start',
   },
@@ -141,22 +183,23 @@ const styles = StyleSheet.create({
   refreshImage: {
     width: 16,
     height: 16,
+    tintColor: '#fff',
   },
   refreshButtonText: {
-    color: colors.theme,
+    color: '#fff',
     fontSize: 14,
     marginLeft: 4,
   },
   updateText: {
-    fontSize: 16,
+    fontSize: 20,
     fontWeight: 'bold',
-    color: colors.theme,
+    color: 'rgb(223, 241, 255)',
     marginBottom: 4,
   },
   eta: {
-    color: 'rgba(0,0,0,0.6)',
-    fontSize: 14,
-    marginBottom: 4,
+    color: 'rgb(223, 241, 255)',
+    fontSize: 16,
+    marginBottom: 8,
   },
   dotsContainer: {
     flexDirection: 'row',
@@ -166,10 +209,14 @@ const styles = StyleSheet.create({
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: 'rgba(0,0,0,0.3)',
+    backgroundColor: 'rgba(0,0,0,0.7)',
     marginHorizontal: 2,
   },
   activeDot: {
-    backgroundColor: colors.theme,
+    backgroundColor: '#fff',
   },
+  backgroundImage: {
+    padding: 20,
+  },
+  orderStatusContainer: {},
 });

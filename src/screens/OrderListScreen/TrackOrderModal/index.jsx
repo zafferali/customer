@@ -10,11 +10,12 @@ import {
   SafeAreaView,
   Platform,
 } from 'react-native';
-import MapView, { Marker, Polyline } from 'react-native-maps';
+import MapView, { PROVIDER_GOOGLE, Marker, Polyline } from 'react-native-maps';
 import colors from 'constants/colors';
 import Geolocation from 'react-native-geolocation-service';
 import axios from 'axios';
 import firestore from '@react-native-firebase/firestore';
+import { Svg, Image as ImageSvg } from 'react-native-svg';
 import OrderStatus from '../components/OrderStatus';
 
 const { width, height } = Dimensions.get('window');
@@ -57,7 +58,7 @@ const TrackOrderModal = ({ orderId, isVisible, onClose }) => {
     try {
       const orderDoc = await firestore().collection('orders').doc(orderId).get();
       const lockerRef = orderDoc.data().locker;
-      const lockerDoc = await lockerRef.get();
+      const lockerDoc = await lockerRef?.get();
       const lockerGeo = lockerDoc.data().location.geo;
       setLockerLocation({ latitude: lockerGeo.latitude, longitude: lockerGeo.longitude });
     } catch (error) {
@@ -68,7 +69,7 @@ const TrackOrderModal = ({ orderId, isVisible, onClose }) => {
   const fetchRunnerLocation = () => {
     const orderRef = firestore().collection('orders').doc(orderId);
     orderRef.onSnapshot(async orderDoc => {
-      const runnerRef = orderDoc.data().runner;
+      const runnerRef = orderDoc.data()?.runner;
       runnerRef.onSnapshot(runnerDoc => {
         const runnerGeo = runnerDoc.data().geo;
         setRunnerLocation({ latitude: runnerGeo.latitude, longitude: runnerGeo.longitude });
@@ -147,7 +148,14 @@ const TrackOrderModal = ({ orderId, isVisible, onClose }) => {
                 </Marker>
                 {runnerLocation && (
                   <Marker style={styles.center} coordinate={runnerLocation} tracksViewChanges={false}>
-                    <Image source={require('assets/images/runner.png')} />
+                    <Svg width={50} height={50}>
+                      <ImageSvg
+                        width="100%"
+                        height="100%"
+                        preserveAspectRatio="xMidYMid slice"
+                        href={require('assets/images/runner.png')}
+                      />
+                    </Svg>
                     <View style={[styles.markerContainer, styles.runnerBg]}>
                       <Text style={styles.runnerText}>Runner</Text>
                     </View>
@@ -169,7 +177,7 @@ const TrackOrderModal = ({ orderId, isVisible, onClose }) => {
             <TouchableOpacity style={styles.mapCenter} onPress={getCurrentLocation}>
               <Image style={styles.mapCenterImage} source={require('assets/images/map-center.png')} />
             </TouchableOpacity>
-            <OrderStatus orderId={orderId} />
+            <OrderStatus mapScreen orderId={orderId} />
             <View style={styles.buttonsContainer}>
               <TouchableOpacity style={styles.button}>
                 <Image style={styles.phone} source={require('assets/images/phone.png')} />
@@ -266,25 +274,30 @@ const styles = StyleSheet.create({
   },
   buttonsContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    padding: 16,
-    backgroundColor: 'white',
+    gap: 8,
+    padding: 10,
+    position: 'relative',
+    bottom: 0,
+    backgroundColor: colors.theme,
+    width: '100%',
   },
   button: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.theme,
+    backgroundColor: 'rgb(63, 128, 176)',
     padding: 10,
-    borderRadius: 6,
-    width: (width - 48) / 2,
+    borderRadius: 10,
+    borderColor: 'rgb(156, 220, 255)',
+    borderWidth: 3,
   },
   phone: {
     width: 20,
     height: 20,
     marginRight: 10,
+    tintColor: 'rgb(156, 220, 255)',
   },
   buttonText: {
-    color: 'white',
+    color: 'rgb(156, 220, 255)',
     fontWeight: 'bold',
   },
   mt60: {
