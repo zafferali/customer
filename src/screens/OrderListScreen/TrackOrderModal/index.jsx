@@ -1,5 +1,4 @@
-/* eslint-disable react-hooks/exhaustive-deps */
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -158,6 +157,7 @@ const TrackOrderModal = ({ orderId, isVisible, onClose }) => {
     return d;
   };
 
+  // FIXME: React Hook useCallback does nothing when called with only one argument. Did you forget to pass an array of dependencies?
   const focusMapOnStatus = useCallback(() => {
     if (!mapRef.current) return;
 
@@ -433,8 +433,6 @@ const styles = StyleSheet.create({
   },
   container: {
     height,
-    // borderTopLeftRadius: 20,
-    // borderTopRightRadius: 20,
     overflow: 'hidden',
   },
   header: {
@@ -455,18 +453,6 @@ const styles = StyleSheet.create({
   map: {
     flex: 1,
   },
-  // mapCenter: {
-  //   position: 'absolute',
-  //   bottom: 230,
-  //   right: 14,
-  //   backgroundColor: colors.themeLight,
-  //   padding: 6,
-  //   borderRadius: 100,
-  // },
-  // mapCenterImage: {
-  //   width: 20,
-  //   height: 20,
-  // },
   markerContainer: {
     paddingHorizontal: 8,
     paddingVertical: 6,

@@ -1,5 +1,5 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, ActivityIndicator } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import firestore from '@react-native-firebase/firestore';
 import colors from 'constants/colors';
 import CustomButton from 'components/common/CustomButton';
@@ -110,10 +110,6 @@ const OrderStatus = ({ orderId, mapScreen, onPress }) => {
         <View style={styles.updateContainer}>
           <Text style={styles.updateTitle}>Latest Update</Text>
         </View>
-        {/* <TouchableOpacity style={styles.refreshButton} onPress={() => fetchOrderDetails()}>
-          <Image style={styles.refreshImage} source={require('assets/images/refresh.png')} />
-          <Text style={styles.refreshButtonText}>Refresh</Text>
-        </TouchableOpacity> */}
       </View>
       <View style={styles.detailContainer}>
         <Text style={styles.updateText}>{updateText}</Text>
@@ -179,20 +175,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: 'rgb(88, 166, 255)',
   },
-  // refreshButton: {
-  //   flexDirection: 'row',
-  //   alignItems: 'center',
-  // },
-  // refreshImage: {
-  //   width: 16,
-  //   height: 16,
-  //   tintColor: '#fff',
-  // },
-  // refreshButtonText: {
-  //   color: '#fff',
-  //   fontSize: 14,
-  //   marginLeft: 4,
-  // },
   updateText: {
     fontSize: 20,
     fontWeight: 'bold',
