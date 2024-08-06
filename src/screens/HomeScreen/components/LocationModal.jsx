@@ -41,8 +41,8 @@ const LocationModal = () => {
       if (result === RESULTS.GRANTED) {
         setModalVisible(false);
       } else {
-        // handlePermissionDenied();
-        setModalVisible(true);
+        handlePermissionDenied();
+        // setModalVisible(true);
       }
       setPermissionStatus(result);
     } catch (error) {
@@ -64,22 +64,22 @@ const LocationModal = () => {
   //   );
   // };
 
-  // const handlePermissionDenied = () => {
-  //   Alert.alert(
-  //     "Location Permission Required",
-  //     "This app needs access to your location. Would you like to open settings and grant permission?",
-  //     [
-  //       {
-  //         text: "Cancel",
-  //         style: "cancel",
-  //       },
-  //       {
-  //         text: "Open Settings",
-  //         onPress: () => Linking.openSettings(),
-  //       },
-  //     ]
-  //   );
-  // };
+  const handlePermissionDenied = () => {
+    Alert.alert(
+      "Location Permission Required",
+      "This app needs access to your location. Would you like to open settings and grant permission?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Open Settings",
+          onPress: () => Linking.openSettings(),
+        },
+      ]
+    );
+  };
 
   useEffect(() => {
     const checkPermission = async () => {
@@ -102,8 +102,8 @@ const LocationModal = () => {
 
   const handleButtonPress = async () => {
     // if (permissionStatus === RESULTS.BLOCKED) {
-      // Open app settings if permission is blocked
-      openAppSettings();
+    // Open app settings if permission is blocked
+    openAppSettings();
     // }
     // else {
     //   // Request permission directly if it's denied
