@@ -49,27 +49,25 @@ const HomeScreen = ({ navigation }) => {
     return selectedMinutes >= fromMinutes && selectedMinutes <= untilMinutes;
   }
 
-  useEffect(() => {
-    // Request location permission when the screen mounts
-    // requestLocationPermission();
-    const permission = Platform.select({
-      ios: PERMISSIONS.IOS.LOCATION_WHEN_IN_USE,
-      android: PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION,
-    });
+  // useEffect(() => {
+  //   const permission = Platform.select({
+  //     ios: PERMISSIONS.IOS.LOCATION_WHEN_IN_USE,
+  //     android: PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION,
+  //   });
 
-    const handleRequestPermission = async () => {
-      try {
-        const result = await request(permission);
-        return result;
-      } catch (error) {
-        console.error('Error requesting location permission:', error);
-        // setPermissionStatus(RESULTS.UNAVAILABLE);
-        return RESULTS.UNAVAILABLE;
-      }
-    };
+  //   const handleRequestPermission = async () => {
+  //     try {
+  //       const result = await request(permission);
+  //       return result;
+  //     } catch (error) {
+  //       console.error('Error requesting location permission:', error);
+  //       // setPermissionStatus(RESULTS.UNAVAILABLE);
+  //       return RESULTS.UNAVAILABLE;
+  //     }
+  //   };
 
-    handleRequestPermission();
-  }, []);
+  //   handleRequestPermission();
+  // }, []);
 
   useEffect(() => {
     setIsLoading(true);
@@ -158,7 +156,12 @@ const HomeScreen = ({ navigation }) => {
           }
         });
 
-        dispatch(setRestaurants({ available: availableRestaurants, unavailable: unavailableRestaurants }));
+        dispatch(
+          setRestaurants({
+            available: availableRestaurants,
+            unavailable: unavailableRestaurants,
+          }),
+        );
       } catch (err) {
         console.log(err.message);
       } finally {

@@ -6,13 +6,13 @@ import {
   Modal,
   Platform,
   StyleSheet,
+  Button,
   TouchableOpacity,
   TouchableWithoutFeedback,
   Linking,
 } from 'react-native';
-import { RESULTS, request, check, PERMISSIONS, openSettings } from 'react-native-permissions';
+import { RESULTS, request, check, PERMISSIONS } from 'react-native-permissions';
 import { BlurView } from '@react-native-community/blur'; // Use expo-blur if using Expo
-import Geolocation from 'react-native-geolocation-service';
 // import { requestLocationPermission, openLocationSettings } from 'utils/permissions';
 import LocationSVG from 'components/svg/LocationSVG';
 import LocationMarker from 'components/svg/LocationMarker';
@@ -34,122 +34,84 @@ const LocationModal = () => {
     setModalVisible(false);
   };
 
-  const checkLocationPermission = async () => {
-    const result = await check(permission);
-    setPermissionStatus(result);
-    if (result !== RESULTS.GRANTED) {
-      setModalVisible(true);
-    } else {
-      setModalVisible(false);
-    }
-  };
-
   const requestLocationPermission = async () => {
+    console.log('Pressed');
     try {
       const result = await request(permission);
+      if (result === RESULTS.GRANTED) {
+        setModalVisible(false);
+      } else {
+        // handlePermissionDenied();
+        setModalVisible(true);
+      }
       setPermissionStatus(result);
-      return result;
     } catch (error) {
-      console.error('Error requesting location permission:', error);
-      setPermissionStatus(RESULTS.UNAVAILABLE);
-      return RESULTS.UNAVAILABLE;
+      console.error(error);
     }
   };
 
-  const handleRequestPermission = async () => {
-    const result = await request(permission);
-    if (result === RESULTS.GRANTED) {
-      setModalVisible(false);
-      // You can now use Geolocation
-      Geolocation.getCurrentPosition(
-        position => {
-          console.log(position);
-        },
-        error => console.log('Error', error),
-        { enableHighAccuracy: true, timeout: 20000, maximumAge: 1000 },
-      );
-    }
-  };
-
-  // const openAppSettings = () => {
-  //   if (Platform.OS === 'ios') {
-  //     Linking.openSettings().catch(() => Alert.alert('Unable to open settings'));
-  //   } else {
-  //     Linking.openSettings().catch(() => Alert.alert('Unable to open settings'));
-  //   }
+  // const getLocation = () => {
+  //   Geolocation.getCurrentPosition(
+  //     position => {
+  //       setLocation(position);
+  //       setErrorMsg(null);
+  //     },
+  //     error => {
+  //       // setErrorMsg("Error getting location");
+  //       console.error(error);
+  //     },
+  //     { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 },
+  //   );
   // };
 
+  // const handlePermissionDenied = () => {
+  //   Alert.alert(
+  //     "Location Permission Required",
+  //     "This app needs access to your location. Would you like to open settings and grant permission?",
+  //     [
+  //       {
+  //         text: "Cancel",
+  //         style: "cancel",
+  //       },
+  //       {
+  //         text: "Open Settings",
+  //         onPress: () => Linking.openSettings(),
+  //       },
+  //     ]
+  //   );
+  // };
+
+  useEffect(() => {
+    const checkPermission = async () => {
+      const result = await check(permission);
+      if (result === RESULTS.GRANTED) {
+        getLocation();
+      } else {
+        requestLocationPermission();
+      }
+      setPermissionStatus(result);
+    };
+
+    checkPermission();
+  }, []);
+
   const openAppSettings = () => {
-    if (Platform.OS === 'ios') {
-      Linking.openSettings();
-    } else {
-      Linking.openSettings();
-    }
+    console.log('Location settings');
+    Linking.openSettings();
   };
 
   const handleButtonPress = async () => {
-    if (permissionStatus === RESULTS.BLOCKED) {
+    // if (permissionStatus === RESULTS.BLOCKED) {
       // Open app settings if permission is blocked
       openAppSettings();
-    } else {
-      // Request permission directly if it's denied
-      await requestLocationPermission();
-    }
-    setModalVisible(false);
+    // }
+    // else {
+    //   // Request permission directly if it's denied
+    //   console.log('handle press', permissionStatus);
+    //   await request(permission);
+    // }
+    // setModalVisible(false);
   };
-
-  useEffect(() => {
-    requestLocationPermission();
-  }, []);
-
-  useEffect(() => {
-    checkLocationPermission();
-    console.log('Hello Sir', permissionStatus);
-  }, [permissionStatus]);
-
-  // const requestPermission = async () => {
-  //   const result = await request(PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION); // Use PERMISSIONS.IOS.LOCATION_WHEN_IN_USE for iOS
-  //   setPermissionStatus(result);
-
-  //   if (result === RESULTS.GRANTED) {
-  //     Alert.alert('Permission Granted', 'You can now use location services.');
-  //   } else {
-  //     Alert.alert('Permission Denied', 'You will not be able to use location services.');
-  //   }
-
-  //   // setModalVisible(false);
-  // };
-
-  // useEffect(() => {
-  //   requestPermission();
-  //   // requestLocationPermission();
-  //   const checkPermissionsAndLocation = async () => {
-  //     const permissionStatus = await checkLocationPermission();
-  //     const locationEnabled = await checkLocationEnabled();
-
-  //     if (permissionStatus === RESULTS.DENIED || permissionStatus === RESULTS.BLOCKED || !locationEnabled) {
-  //       setModalVisible(true);
-  //     }
-  //   };
-
-  //   checkPermissionsAndLocation();
-  // }, []);
-
-  // const handleOpenSettings = () => {
-  //   openLocationSettings();
-  //   setModalVisible(false);
-  // };
-
-  // const handleRequestPermission = async () => {
-  //   await requestLocationPermission();
-  //   // if (status === RESULTS.GRANTED) {
-  //   //   setModalVisible(false);
-  //   // } else {
-  //   //   Alert.alert('Location Permission', 'Location permission is required for this feature.', [
-  //   //     { text: 'OK' },
-  //   //   ]);
-  //   // }
-  // };
 
   const titleText = 'Location Permission is Off';
   const bodyText = 'Enable device location for accurate, hassle free delivery to your lockers.';
@@ -170,7 +132,6 @@ const LocationModal = () => {
             <View>
               <TouchableWithoutFeedback>
                 <View style={styles.modalContainer}>
-                  {/* <Image style={styles.locationIcon} source={require('assets/images/location.svg')} /> */}
                   <View style={styles.content}>
                     <LocationSVG />
                     <Text style={styles.titleText}>{titleText}</Text>
@@ -183,6 +144,24 @@ const LocationModal = () => {
                 </View>
               </TouchableWithoutFeedback>
             </View>
+
+            {/* <View
+              style={{
+                flex: 1,
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <Text style={{ fontSize: 18, marginBottom: 20 }}>
+                {location
+                  ? `Latitude: ${location.coords.latitude}\nLongitude: ${location.coords.longitude}`
+                  : errorMsg || "Requesting location permission..."}
+              </Text>
+              <Button
+                title="Request Location Permission"
+                onPress={requestLocationPermission}
+              />
+            </View> */}
           </View>
         </TouchableWithoutFeedback>
       </Modal>
