@@ -1,13 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Image,
-  ActivityIndicator,
-  ImageBackground,
-} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, ActivityIndicator } from 'react-native';
 import firestore from '@react-native-firebase/firestore';
 import colors from 'constants/colors';
 import CustomButton from 'components/common/CustomButton';
@@ -16,24 +8,28 @@ const OrderStatus = ({ orderId, mapScreen, onPress }) => {
   const [orderDetails, setOrderDetails] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const fetchOrderDetails = useCallback(async () => {
-    try {
-      const orderDoc = await firestore().collection('orders').doc(orderId).get();
-      if (orderDoc.exists) {
-        setOrderDetails(orderDoc.data());
-      }
-    } catch (error) {
-      console.error('Error fetching order details: ', error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [orderId]);
-
   useEffect(() => {
     if (orderId) {
-      fetchOrderDetails();
+      const unsubscribe = firestore()
+        .collection('orders')
+        .doc(orderId)
+        .onSnapshot(
+          doc => {
+            if (doc.exists) {
+              setOrderDetails(doc.data());
+            }
+            setIsLoading(false);
+          },
+          error => {
+            console.error('Error fetching order details: ', error);
+            setIsLoading(false);
+          },
+        );
+
+      // Cleanup the listener on component unmount
+      return () => unsubscribe();
     }
-  }, [orderId, fetchOrderDetails]);
+  }, [orderId]);
 
   const getOrderStatusInfo = status => {
     const calculateTimeDifference = deliveryTime => {
@@ -42,7 +38,7 @@ const OrderStatus = ({ orderId, mapScreen, onPress }) => {
       const deliveryDate = new Date();
       deliveryDate.setHours(deliveryHour, deliveryMinute, 0, 0);
       const differenceInMinutes = Math.round((deliveryDate - now) / (1000 * 60));
-      return `${differenceInMinutes} mins to get delivered to Locker`;
+      return differenceInMinutes;
     };
     switch (status) {
       case 'received':
@@ -54,31 +50,39 @@ const OrderStatus = ({ orderId, mapScreen, onPress }) => {
       case 'on the way':
         return {
           updateText: 'Runner Assigned',
-          eta: 'Runner has been asigned and on the way to the restaurant pick up your order',
+          eta: 'Runner has been assigned and is on the way to the restaurant to pick up your order',
           dotIndex: 1,
         };
       case 'ready':
         return {
           updateText: 'Food Prepared',
-          eta: 'Your food is ready. Runner will pickup your food in a while',
+          eta: 'Your food is ready. Runner will pick up your food in a while',
           dotIndex: 2,
         };
       case 'picked':
         return {
           updateText: 'Food Picked up',
-          eta: `${calculateTimeDifference(orderDetails.deliveryTime)} mins to get delivered to Lockers`,
+          eta: `${calculateTimeDifference(orderDetails.deliveryTime)} mins to get delivered to Locker`,
           dotIndex: 3,
         };
       case 'delivered':
         return {
           updateText: 'Food Delivered',
-          eta: 'Please pick up your food from the locker',
+          eta: 'Please pick up your food from the Locker',
           dotIndex: 4,
         };
-      case 'Order Completed':
-        return { updateText: 'Order completed', eta: 'Thank you for using our service', dotIndex: 5 };
+      case 'completed':
+        return {
+          updateText: 'Order completed',
+          eta: 'Thank you for using our service',
+          dotIndex: 5,
+        };
       default:
-        return { updateText: 'Status unknown', eta: '', dotIndex: -1 };
+        return {
+          updateText: 'Status unknown',
+          eta: '',
+          dotIndex: -1,
+        };
     }
   };
 
@@ -106,10 +110,10 @@ const OrderStatus = ({ orderId, mapScreen, onPress }) => {
         <View style={styles.updateContainer}>
           <Text style={styles.updateTitle}>Latest Update</Text>
         </View>
-        <TouchableOpacity style={styles.refreshButton} onPress={fetchOrderDetails}>
+        {/* <TouchableOpacity style={styles.refreshButton} onPress={() => fetchOrderDetails()}>
           <Image style={styles.refreshImage} source={require('assets/images/refresh.png')} />
           <Text style={styles.refreshButtonText}>Refresh</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
       </View>
       <View style={styles.detailContainer}>
         <Text style={styles.updateText}>{updateText}</Text>
@@ -123,22 +127,19 @@ const OrderStatus = ({ orderId, mapScreen, onPress }) => {
     </View>
   ) : (
     <View style={styles.orderStatusContainer}>
-      <ImageBackground source={require('assets/images/map-bg.png')} style={styles.backgroundImage}>
-        {/* <View style={styles.headerContainer}>
-          <View style={styles.updateContainer}>
-            <Text style={styles.updateTitle}>Latest Update</Text>
-          </View>
-          <TouchableOpacity style={styles.refreshButton} onPress={fetchOrderDetails}>
-            <Image style={styles.refreshImage} source={require('assets/images/refresh.png')} />
-            <Text style={styles.refreshButtonText}>Refresh</Text>
-          </TouchableOpacity>
-        </View> */}
-        <View style={styles.detailContainer}>
+      <View style={styles.infoContainer}>
+        <View style={styles.contentContainer}>
           <Text style={styles.updateText}>{updateText}</Text>
           <Text style={styles.eta}>{eta}</Text>
-          <CustomButton title="Track Order" onPress={onPress} />
         </View>
-      </ImageBackground>
+        <View style={styles.buttonContainer}>
+          <CustomButton
+            title="Track Order"
+            onPress={onPress}
+            style={{ backgroundColor: 'rgb(63, 128, 176)' }}
+          />
+        </View>
+      </View>
     </View>
   );
 };
@@ -158,6 +159,8 @@ const styles = StyleSheet.create({
     margin: 10,
     flexDirection: 'column',
     alignItems: 'flex-start',
+    height: 150,
+    justifyContent: 'space-between',
   },
   headerContainer: {
     width: '100%',
@@ -176,20 +179,20 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: 'rgb(88, 166, 255)',
   },
-  refreshButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  refreshImage: {
-    width: 16,
-    height: 16,
-    tintColor: '#fff',
-  },
-  refreshButtonText: {
-    color: '#fff',
-    fontSize: 14,
-    marginLeft: 4,
-  },
+  // refreshButton: {
+  //   flexDirection: 'row',
+  //   alignItems: 'center',
+  // },
+  // refreshImage: {
+  //   width: 16,
+  //   height: 16,
+  //   tintColor: '#fff',
+  // },
+  // refreshButtonText: {
+  //   color: '#fff',
+  //   fontSize: 14,
+  //   marginLeft: 4,
+  // },
   updateText: {
     fontSize: 20,
     fontWeight: 'bold',
@@ -207,18 +210,19 @@ const styles = StyleSheet.create({
   },
   dot: {
     width: 12,
-    height: 3,
+    height: 4,
     borderRadius: 5,
-    backgroundColor: '#fff',
-    marginHorizontal: 2,
+    backgroundColor: 'gray',
+    marginHorizontal: 4,
   },
   activeDot: {
-    backgroundColor: 'rgba(0,0,0,0.7)',
-    width: 14,
+    backgroundColor: 'rgba(156, 220, 255, 1)',
+    width: 12,
     height: 4,
   },
-  backgroundImage: {
-    padding: 20,
+  buttonContainer: {
+    width: '100%',
+    alignItems: 'center',
+    marginTop: 10,
   },
-  orderStatusContainer: {},
 });
