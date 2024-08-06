@@ -66,18 +66,18 @@ const LocationModal = () => {
 
   const handlePermissionDenied = () => {
     Alert.alert(
-      "Location Permission Required",
-      "This app needs access to your location. Would you like to open settings and grant permission?",
+      'Location Permission Required',
+      'This app needs access to your location. Would you like to open settings and grant permission?',
       [
         {
-          text: "Cancel",
-          style: "cancel",
+          text: 'Cancel',
+          style: 'cancel',
         },
         {
-          text: "Open Settings",
+          text: 'Open Settings',
           onPress: () => Linking.openSettings(),
         },
-      ]
+      ],
     );
   };
 
