@@ -142,22 +142,22 @@ const TimeSlotScreen = ({ navigation }) => {
         <CustomButton title="Browse Restaurants" onPress={onGetStarted} />
       </View>
       <View style={styles.orderStatusContainer}>
-  <Text style={styles.onGoingText}>Ongoing Order(s)</Text>
-  {ongoingOrders.length > 0 && (
-    <CustomSwiper>
-      {ongoingOrders.map(order => (
-        <OrderStatus
-          key={order.id}
-          onPress={() => {
-            setSelectedOrderId(order.id);
-            setShowTrackOrderModal(true);
-          }}
-          orderId={order.id}
-        />
-      ))}
-    </CustomSwiper>
-  )}
-</View>
+        <Text style={styles.onGoingText}>Ongoing Order(s)</Text>
+        {ongoingOrders.length > 0 && (
+          <CustomSwiper>
+            {ongoingOrders.map(order => (
+              <OrderStatus
+                key={order.id}
+                onPress={() => {
+                  setSelectedOrderId(order.id);
+                  setShowTrackOrderModal(true);
+                }}
+                orderId={order.id}
+              />
+            ))}
+          </CustomSwiper>
+        )}
+      </View>
       <TrackOrderModal
         isVisible={showTrackOrderModal}
         onClose={() => setShowTrackOrderModal(false)}
