@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, Image, Modal, ScrollView } from 'react-native';
 import Layout from 'components/common/Layout';
 import CustomButton from 'components/common/CustomButton';
@@ -9,8 +9,8 @@ import { useSelector, useDispatch } from 'react-redux';
 import { setTimeSlot } from 'redux/slices/restaurantsSlice';
 import { useFocusEffect } from '@react-navigation/native';
 import CustomSwiper from 'components/common/CustomSwiper';
-import OrderStatus from '../OrderListScreen/components/OrderStatus';
-import TrackOrderModal from '../OrderListScreen/TrackOrderModal';
+import OrderStatus from 'screens/OrderListScreen/components/OrderStatus';
+import TrackOrderModal from 'screens/OrderListScreen/components/TrackOrderModal';
 
 const TimeSlotScreen = ({ navigation }) => {
   const [timeSlots, setTimeSlots] = useState([]);

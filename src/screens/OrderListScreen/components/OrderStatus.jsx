@@ -163,10 +163,7 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   updateContainer: {
-    // backgroundColor: 'rgba(211, 242, 255, 1)',
     borderRadius: 4,
-    // paddingHorizontal: 8,
-    // paddingVertical: 4,
   },
   updateTitle: {
     fontSize: 12,

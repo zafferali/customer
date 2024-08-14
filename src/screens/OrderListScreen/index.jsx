@@ -11,14 +11,13 @@ import {
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import Layout from 'components/common/Layout';
-import SearchBar from 'components/common/SearchBar';
 import { GlobalStyles } from 'constants/GlobalStyles';
 import colors from 'constants/colors';
 import { useSelector } from 'react-redux';
 import firestore from '@react-native-firebase/firestore';
-import TrackOrderModal from './TrackOrderModal';
+import TrackOrderModal from './components/TrackOrderModal';
 
-const OrderListScreen = ({ navigation }) => {
+const OrderListScreen = () => {
   const [orders, setOrders] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -207,10 +206,6 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: 'black',
     marginBottom: 2,
-    
-  },
-  mb15: {
-    marginBottom: 15,
   },
   noOrderContainer: {
     flex: 1,

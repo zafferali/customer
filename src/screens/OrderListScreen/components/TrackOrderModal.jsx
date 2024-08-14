@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, Alert } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -18,10 +18,10 @@ import axios from 'axios';
 import firestore from '@react-native-firebase/firestore';
 import { Svg, Image as ImageSvg } from 'react-native-svg';
 import { RESULTS } from 'react-native-permissions';
-import OpenSettingsModal from 'utils/OpenSettingsModal';
+import OpenSettingsModal from 'components/common/OpenSettingsModal';
 import { checkLocationPermission, openLocationSettings, requestLocationPermission } from 'utils/permissions';
 import CustomButton from 'components/common/CustomButton';
-import OrderStatus from '../components/OrderStatus';
+import OrderStatus from './OrderStatus';
 
 const { height } = Dimensions.get('window');
 
@@ -469,7 +469,7 @@ const TrackOrderModal = ({ orderId, isVisible, onClose }) => {
               }}
               message={settingsMessage}
             />
-            <View style={[styles.bottomSection, Platform.OS === 'ios' && {marginBottom: 20}]}>
+            <View style={[styles.bottomSection, Platform.OS === 'ios' && { marginBottom: 20 }]}>
               <OrderStatus mapScreen orderId={orderId} />
               <View style={styles.buttonsContainer}>
                 <TouchableOpacity style={styles.button}>

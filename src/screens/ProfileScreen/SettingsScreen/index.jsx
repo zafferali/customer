@@ -14,8 +14,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { updateCustomer } from 'redux/slices/authenticationSlice';
 import firestore from '@react-native-firebase/firestore';
 import uploadImageToFirebase from 'utils/uploadImage';
-import UploadImageModal from 'utils/UploadImageModal';
 import colors from 'constants/colors';
+import UploadImageModal from './components/UploadImageModal';
 
 const SettingsScreen = ({ navigation }) => {
   const customer = useSelector(state => state.authentication.customer);

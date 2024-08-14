@@ -34,7 +34,7 @@ const authenticationSlice = createSlice({
     },
     setManualLocation(state, action) {
       state.manualLocation = action.payload;
-    }
+    },
   },
 });
 

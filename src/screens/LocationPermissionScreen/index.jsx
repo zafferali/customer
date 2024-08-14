@@ -1,15 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Alert, AppState, Image, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, AppState, Image, TouchableOpacity, ScrollView } from 'react-native';
 import { RESULTS } from 'react-native-permissions';
 import CustomButton from 'components/common/CustomButton';
 import Layout from 'components/common/Layout';
 import colors from 'constants/colors';
-import OpenSettingsModal from 'utils/OpenSettingsModal';
-import {
-  checkLocationPermission,
-  requestLocationPermission,
-  openLocationSettings,
-} from '../../utils/permissions';
+import OpenSettingsModal from 'components/common/OpenSettingsModal';
+import { checkLocationPermission, requestLocationPermission, openLocationSettings } from 'utils/permissions';
 import ManualLocationModal from './components/ManualLocationModal';
 
 const LocationPermissionScreen = ({ onPermissionGranted }) => {
@@ -76,19 +72,13 @@ const LocationPermissionScreen = ({ onPermissionGranted }) => {
               style={styles.btn}
               textStyle={styles.btnText}
             />
-            {/* <CustomButton
-            title="Select location manually"
-            onPress={() => setModalVisible(true)}
-            style={styles.btn}
-            textStyle={styles.btnText}
-          /> */}
           </View>
           <TouchableOpacity onPress={() => setModalVisible(true)}>
             <Text style={styles.manualLocationText}>Select location manually</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
-       <ManualLocationModal isVisible={isModalVisible} onClose={() => setModalVisible(false)} />
+      <ManualLocationModal isVisible={isModalVisible} onClose={() => setModalVisible(false)} />
       <OpenSettingsModal
         isVisible={showSettingsModal}
         onClose={() => setShowSettingsModal(false)}

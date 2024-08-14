@@ -19,7 +19,7 @@ import SearchBar from 'components/common/SearchBar';
 import Restaurant from 'components/restaurant/Restaurant';
 import colors from 'constants/colors';
 import moment from 'moment-timezone';
-import TrackOrderModal from '../OrderListScreen/TrackOrderModal';
+import TrackOrderModal from 'screens/OrderListScreen/components/TrackOrderModal';
 
 const HomeScreen = ({ navigation, route }) => {
   const dispatch = useDispatch();
@@ -327,8 +327,6 @@ const HomeScreen = ({ navigation, route }) => {
           contentContainerStyle={styles.flatListContent}
         />
       )}
-
-      {/* <LocationModal /> */}
       <Modal
         visible={modalVisible}
         animationType="slide"

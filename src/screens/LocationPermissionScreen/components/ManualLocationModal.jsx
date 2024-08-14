@@ -69,9 +69,7 @@ const ManualLocationModal = ({ isVisible, onClose }) => {
       <Modal visible={isVisible} animationType="slide" transparent>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <View style={[styles.header, Platform.OS === 'ios' && styles.mt60]}>
-              {/* <Text style={styles.headerText}>Select Location</Text> */}
-            </View>
+            <View style={[styles.header, Platform.OS === 'ios' && styles.mt60]} />
             <ScrollView contentContainerStyle={styles.scrollContainer}>
               {cards.map(card => (
                 <TouchableOpacity
@@ -93,7 +91,7 @@ const ManualLocationModal = ({ isVisible, onClose }) => {
         </View>
         <TouchableOpacity onPress={onClose} style={styles.closeButton}>
           <Text style={styles.closeButtonText}>Select Location</Text>
-          <Image style={styles.closeImage} source={require('assets/images/close.png')}/>
+          <Image style={styles.closeImage} source={require('assets/images/close.png')} />
         </TouchableOpacity>
       </Modal>
     </View>
