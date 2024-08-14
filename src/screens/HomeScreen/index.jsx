@@ -10,7 +10,6 @@ import {
   TouchableOpacity,
   Modal,
   SafeAreaView,
-  Platform,
 } from 'react-native';
 import firestore from '@react-native-firebase/firestore';
 import { useDispatch, useSelector } from 'react-redux';
@@ -20,11 +19,9 @@ import SearchBar from 'components/common/SearchBar';
 import Restaurant from 'components/restaurant/Restaurant';
 import colors from 'constants/colors';
 import moment from 'moment-timezone';
-import { RESULTS, PERMISSIONS, request } from 'react-native-permissions';
-// import { requestLocationPermission } from 'utils/permissions';
-import LocationModal from './components/LocationModal';
+import TrackOrderModal from '../OrderListScreen/TrackOrderModal';
 
-const HomeScreen = ({ navigation }) => {
+const HomeScreen = ({ navigation, route }) => {
   const dispatch = useDispatch();
   const { available, unavailable, selectedTimeSlot } = useSelector(state => state.restaurants);
   const [searchQuery, setSearchQuery] = useState('');
@@ -36,6 +33,8 @@ const HomeScreen = ({ navigation }) => {
   const [categorySearchQuery, setCategorySearchQuery] = useState('');
   const [filteredCategories, setFilteredCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const [showTrackOrderModal, setShowTrackOrderModal] = useState(false);
+  const { orderId } = route.params;
 
   function isTimeSlotWithin(selected, from, until) {
     const [selectedHour, selectedMinute] = selected.split(':').map(Number);
@@ -49,25 +48,11 @@ const HomeScreen = ({ navigation }) => {
     return selectedMinutes >= fromMinutes && selectedMinutes <= untilMinutes;
   }
 
-  // useEffect(() => {
-  //   const permission = Platform.select({
-  //     ios: PERMISSIONS.IOS.LOCATION_WHEN_IN_USE,
-  //     android: PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION,
-  //   });
-
-  //   const handleRequestPermission = async () => {
-  //     try {
-  //       const result = await request(permission);
-  //       return result;
-  //     } catch (error) {
-  //       console.error('Error requesting location permission:', error);
-  //       // setPermissionStatus(RESULTS.UNAVAILABLE);
-  //       return RESULTS.UNAVAILABLE;
-  //     }
-  //   };
-
-  //   handleRequestPermission();
-  // }, []);
+  useEffect(() => {
+    if (orderId) {
+      setShowTrackOrderModal(true);
+    }
+  }, [orderId]);
 
   useEffect(() => {
     setIsLoading(true);
@@ -343,7 +328,7 @@ const HomeScreen = ({ navigation }) => {
         />
       )}
 
-      <LocationModal />
+      {/* <LocationModal /> */}
       <Modal
         visible={modalVisible}
         animationType="slide"
@@ -378,6 +363,11 @@ const HomeScreen = ({ navigation }) => {
           </TouchableOpacity>
         </SafeAreaView>
       </Modal>
+      <TrackOrderModal
+        isVisible={showTrackOrderModal}
+        onClose={() => setShowTrackOrderModal(false)}
+        orderId={orderId}
+      />
     </Layout>
   );
 };
