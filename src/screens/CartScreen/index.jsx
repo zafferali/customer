@@ -15,6 +15,7 @@ import colors from 'constants/colors';
 import { useDispatch, useSelector } from 'react-redux';
 import { specialInstructions, applyDiscount, removeDiscount } from 'redux/slices/cartSlice';
 import firestore from '@react-native-firebase/firestore';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import LineItem from './components/LineItem';
 import BillSummary from './components/BillSummary';
 import DiscountPopup from './components/DiscountPopup';
@@ -25,6 +26,7 @@ const CartScreen = ({ navigation }) => {
   const [discountCode, setDiscountCode] = useState('');
   const [isPopupVisible, setPopupVisible] = useState(false);
   const [discountError, setDiscountError] = useState(null);
+  const [asyncCartItems, setAsyncCartItems] = useState([]);
   const [additionalAmountNeeded, setAdditionalAmountNeeded] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -32,6 +34,40 @@ const CartScreen = ({ navigation }) => {
   const restaurantId = useSelector(state => state.restaurants.currentRestaurant.id);
   const userOrderCount = useSelector(state => state.authentication.customer.orderCount);
   const appliedDiscount = useSelector(state => state.cart.discountCode);
+
+  const getCartItems = async () => {
+    try {
+      const keys = await AsyncStorage.getAllKeys();
+      const cartItemKeys = keys.filter(key => key.startsWith('cart-item-'));
+      const cartItems = await Promise.all(
+        cartItemKeys.map(async key => {
+          const itemData = await AsyncStorage.getItem(key);
+          return JSON.parse(itemData);
+        }),
+      );
+      return cartItems;
+    } catch (error) {
+      console.error('Error retrieving cart items from async storage:', error);
+      return [];
+    }
+  };
+
+  useEffect(() => {
+    const fetchCartItems = async () => {
+      // const items = await AsyncStorage.getAllKeys();
+
+      const storedCart = await AsyncStorage.getItem('cart');
+
+      console.log('parsedCart', storedCart);
+
+      if (storedCart) {
+        const parsedCart = JSON.parse(storedCart);
+        setAsyncCartItems(parsedCart);
+        // console.log('parsedCart', parsedCart);
+      }
+    };
+    fetchCartItems();
+  }, []);
 
   const validateDiscountCode = async (code, autoApply = false) => {
     try {
@@ -155,6 +191,8 @@ const CartScreen = ({ navigation }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cart.subTotal, appliedDiscount, dispatch]);
 
+  const hasItems = (asyncCartItems?.items ?? []).length > 0;
+
   return (
     <Layout
       navigation={navigation}
@@ -166,12 +204,12 @@ const CartScreen = ({ navigation }) => {
       price={cart.total.toString()}
       onBtnPress={() => saveCartDetails()}
     >
-      {cart.items.length !== 0 ? (
+      {hasItems ? (
         <ScrollView>
           <View>
             <Text style={styles.title}>Order Summary</Text>
             <View style={styles.itemsContainer}>
-              {cart.items.map(item => (
+              {asyncCartItems.items.map(item => (
                 <LineItem key={item.cartItemId} data={item} />
               ))}
             </View>

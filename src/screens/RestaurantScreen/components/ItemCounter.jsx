@@ -4,7 +4,8 @@ import colors from 'constants/colors';
 import { useSelector } from 'react-redux';
 
 const ItemCounter = ({ count, dispatch, data, openModal }) => {
-  const cartItems = useSelector(state => state.cart.items.filter(item => item.itemId === data.id));
+  const cartItems = useSelector(state => state.cart.items);
+  const filteredCartItems = cartItems.filter(item => item.itemId === data.id);
   const customisations = useSelector(
     state => state.cart.items.find(item => item.itemId === data.id)?.customisations || [],
   );
@@ -14,8 +15,8 @@ const ItemCounter = ({ count, dispatch, data, openModal }) => {
   };
 
   const handleDecrement = () => {
-    if (cartItems.length > 0) {
-      const lastAddedItem = cartItems[cartItems.length - 1];
+    if (filteredCartItems.length > 0) {
+      const lastAddedItem = filteredCartItems[filteredCartItems.length - 1];
       removeItem(lastAddedItem.cartItemId, dispatch);
     }
   };

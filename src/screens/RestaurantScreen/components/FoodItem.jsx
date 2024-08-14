@@ -8,6 +8,10 @@ import ItemCounter from './ItemCounter';
 
 const FoodItem = ({ data, dispatch, openModal }) => {
   const count = useSelector(state => selectItemQuantity(state, data));
+  const restaurantId = useSelector(state => state.restaurants.currentRestaurant.id);
+
+  const dataWithID = data;
+  dataWithID.restaurantId = restaurantId;
 
   return (
     <View style={[styles.foodItemContainer, GlobalStyles.lightBorder]}>
@@ -20,9 +24,9 @@ const FoodItem = ({ data, dispatch, openModal }) => {
       </View>
       <View>
         {count === 0 ? (
-          <Add onPress={() => addItem(data, [], dispatch, openModal)} />
+          <Add onPress={() => addItem(dataWithID, [], dispatch, openModal)} />
         ) : (
-          <ItemCounter count={count} dispatch={dispatch} data={data} openModal={openModal} />
+          <ItemCounter count={count} dispatch={dispatch} data={dataWithID} openModal={openModal} />
         )}
       </View>
     </View>

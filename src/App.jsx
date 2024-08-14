@@ -1,13 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { StyleSheet, AppState } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator, TransitionPresets } from '@react-navigation/stack';
 import { setCustomText } from 'react-native-global-props';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import IntroScreen from 'screens/IntroScreen';
 import { RESULTS } from 'react-native-permissions';
 import LocationPermissionScreen from 'screens/LocationPermissionScreen';
+import { initializeCart } from 'redux/slices/initializeCart';
 import BottomTabNavigator from './navigators/BottomTabNavigator';
 import { AuthStackNavigator } from './navigators/AuthStackNavigator';
 import { checkLocationPermission } from './utils/permissions';
@@ -53,10 +54,16 @@ const App = () => {
     setLocationPermissionGranted(true);
   };
 
-  if (!isAuthenticated) {
-    return (
-      <SafeAreaView style={styles.fullWidth}>
-        <NavigationContainer>
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    dispatch(initializeCart());
+  }, [dispatch]);
+
+  return (
+    <SafeAreaView style={styles.fullWidth}>
+      <NavigationContainer>
+        {!isAuthenticated ? (
           <AuthStackNavigator />
         </NavigationContainer>
       </SafeAreaView>

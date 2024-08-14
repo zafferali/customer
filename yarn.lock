@@ -1999,9 +1999,9 @@
   resolved "https://registry.npmjs.org/@protobufjs/utf8/-/utf8-1.1.0.tgz"
   integrity sha512-Vvn3zZrhQZkkBE8LSuW3em98c0FwgO4nxzv6OdSxPKJIEKY2bGbHn+mhGIPerzI4twdxaP8/0+06HBpwf345Lw==
 
-"@react-native-async-storage/async-storage@^1.23.1":
+"@react-native-async-storage/async-storage@^1.24.0":
   version "1.24.0"
-  resolved "https://registry.npmjs.org/@react-native-async-storage/async-storage/-/async-storage-1.24.0.tgz"
+  resolved "https://registry.yarnpkg.com/@react-native-async-storage/async-storage/-/async-storage-1.24.0.tgz#888efbc62a26f7d9464b32f4d3027b7f2771999b"
   integrity sha512-W4/vbwUOYOjco0x3toB8QCr7EjIP6nE9G7o8PMguvvjYT5Awg09lyV4enACRx4s++PPulBiBSjL0KTFx2u0Z/g==
   dependencies:
     merge-options "^3.0.4"
@@ -7761,6 +7761,11 @@ range-parser@~1.2.1:
   resolved "https://registry.npmjs.org/range-parser/-/range-parser-1.2.1.tgz"
   integrity sha512-Hrgsx+orqoygnmhFbKaHE6c296J+HTAQXoxEF6gNupROmmGJRoyzfG3ccAveqCBrwr/2yxQ5BVd/GTl5agOwSg==
 
+re-reselect@^5.1.0:
+  version "5.1.0"
+  resolved "https://registry.yarnpkg.com/re-reselect/-/re-reselect-5.1.0.tgz#60d06beab016ccf9f710fce36a077b9017cefcf5"
+  integrity sha512-3ZHxFOvhIqBTrHzXKQEGxjUYzL78w6JhLJGvZas/Fmb7eju7pKDbRZFZgvTnJ1X9X6LWvYUOvLveAl0s/JAJvg==
+
 react-devtools-core@^4.27.7:
   version "4.28.5"
   resolved "https://registry.npmjs.org/react-devtools-core/-/react-devtools-core-4.28.5.tgz"
@@ -8155,7 +8160,7 @@ reselect@^4.1.7:
   resolved "https://registry.npmjs.org/reselect/-/reselect-4.1.8.tgz"
   integrity sha512-ab9EmR80F/zQTMNeneUr4cv+jSwPJgIlvEmVwLerwrWVbpLlBuls9XHzIeTFy4cegU2NHBp3va0LKOzU5qFEYQ==
 
-reselect@^5.1.0:
+reselect@^5.1.0, reselect@^5.1.1:
   version "5.1.1"
   resolved "https://registry.npmjs.org/reselect/-/reselect-5.1.1.tgz"
   integrity sha512-K/BG6eIky/SBpzfHZv/dd+9JBFiS4SWV7FIujVyJRux6e45+73RaUHXLmIR1f7WOMaQ0U1km6qwklRQxpJJY0w==

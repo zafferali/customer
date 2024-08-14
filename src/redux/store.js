@@ -1,4 +1,5 @@
 import { configureStore } from '@reduxjs/toolkit';
+import asyncStorageMiddleware from 'redux/middlewares/asyncStorageMiddleware';
 import cartReducer from 'redux/slices/cartSlice';
 import ordersReducer from 'redux/slices/ordersSlice';
 import uiReducer from 'redux/slices/uiSlice';
@@ -15,6 +16,7 @@ const store = configureStore({
     restaurants: restaurantsReducer,
     menu: menuReducer,
   },
+  middleware: getDefaultMiddleware => getDefaultMiddleware().concat(asyncStorageMiddleware),
 });
 
 export default store;

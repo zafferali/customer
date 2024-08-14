@@ -16,12 +16,19 @@ import SearchBar from 'components/common/SearchBar';
 import colors from 'constants/colors';
 import { useSelector, useDispatch } from 'react-redux';
 import firestore from '@react-native-firebase/firestore';
-import { addToCart, setRestaurantId } from 'redux/slices/cartSlice';
+import { setCart as loadCart, setRestaurantId } from 'redux/slices/cartSlice';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import CustomButton from 'components/common/CustomButton';
 import FoodItem from './components/FoodItem';
 import UnavailableFoodItem from './components/UnavailableFoodItem';
 import { CustomCheckbox, CustomRadioButton, MultiSelectButton } from './components/CustomFormEl';
-import { createOrUpdateCart, checkAvailability, parseTime, generateSubtitle } from './utils/helpers';
+import {
+  createOrUpdateCart,
+  checkAvailability,
+  parseTime,
+  generateSubtitle,
+  confirmAddItem,
+} from './utils/helpers';
 
 const RestaurantScreen = ({ navigation, route }) => {
   const restaurant = useSelector(state => state.restaurants.currentRestaurant);
@@ -47,6 +54,21 @@ const RestaurantScreen = ({ navigation, route }) => {
   useEffect(() => {
     dispatch(setRestaurantId(restaurantId));
   }, [dispatch, restaurantId]);
+
+  useEffect(() => {
+    const loadStoredCart = async () => {
+      try {
+        const storedCart = await AsyncStorage.getItem('cart');
+        if (storedCart) {
+          const parsedCart = JSON.parse(storedCart);
+          dispatch(loadCart(parsedCart));
+        }
+      } catch (error) {
+        console.error('Error loading cart from AsyncStorage:', error);
+      }
+    };
+    loadStoredCart();
+  }, []);
 
   useEffect(() => {
     setIsLoading(true);
@@ -204,40 +226,41 @@ const RestaurantScreen = ({ navigation, route }) => {
     setSelectedItem(null);
   };
 
-  const confirmAddItem = () => {
-    const customisationsWithPrice = Object.entries(selectedCustomisations).map(([key, choices]) => {
-      const originalCustomisation = selectedItem.customisations.find(c => c.title === key);
-      return {
-        title: key,
-        choices: Array.isArray(choices)
-          ? choices.map(choice => ({
-              name: choice.name,
-              price: Number(choice.price) || 0,
-            }))
-          : [],
-        multiOption: originalCustomisation ? originalCustomisation.multiOption : false,
-      };
-    });
+  // const confirmAddItem = () => {
+  //   const customisationsWithPrice = Object.entries(selectedCustomisations).map(([key, choices]) => {
+  //     const originalCustomisation = selectedItem.customisations.find(c => c.title === key);
+  //     return {
+  //       title: key,
+  //       choices: Array.isArray(choices)
+  //         ? choices.map(choice => ({
+  //             name: choice.name,
+  //             price: Number(choice.price) || 0,
+  //           }))
+  //         : [],
+  //       multiOption: originalCustomisation ? originalCustomisation.multiOption : false,
+  //     };
+  //   });
 
-    setLastUsedCustomisations(prev => ({
-      ...prev,
-      [selectedItem.id]: selectedCustomisations,
-    }));
+  //   setLastUsedCustomisations(prev => ({
+  //     ...prev,
+  //     [selectedItem.id]: selectedCustomisations,
+  //   }));
 
-    dispatch(
-      addToCart({
-        name: selectedItem.name,
-        itemId: selectedItem.id,
-        quantity: 1,
-        price: Number(selectedItem.price) || 0,
-        temperature: selectedItem.temperature,
-        thumbnailUrl: selectedItem.thumbnailUrl,
-        customisations: customisationsWithPrice,
-      }),
-    );
+  //   dispatch(
+  //     addToCart({
+  //       name: selectedItem.name,
+  //       itemId: selectedItem.id,
+  //       quantity: 1,
+  //       price: Number(selectedItem.price) || 0,
+  //       temperature: selectedItem.temperature,
+  //       thumbnailUrl: selectedItem.thumbnailUrl,
+  //       customisations: customisationsWithPrice,
+  //       restaurantId,
+  //     }),
+  //   );
 
-    closeModal();
-  };
+  //   closeModal();
+  // };
 
   const handleCustomisationSelect = (customisationTitle, choice, multiOption, limit) => {
     setSelectedCustomisations(prevSelections => {
@@ -425,7 +448,18 @@ const RestaurantScreen = ({ navigation, route }) => {
                         ))}
                     </ScrollView>
                   )}
-                  <CustomButton style={styles.button} title="Add to Cart" onPress={confirmAddItem} />
+                  <CustomButton
+                    style={styles.button}
+                    title="Add to Cart"
+                    onPress={confirmAddItem(
+                      selectedItem,
+                      dispatch,
+                      closeModal,
+                      restaurantId,
+                      selectedCustomisations,
+                      setLastUsedCustomisations,
+                    )}
+                  />
                 </TouchableOpacity>
               </TouchableOpacity>
             </Modal>
