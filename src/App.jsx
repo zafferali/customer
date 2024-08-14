@@ -25,7 +25,6 @@ setCustomText(customTextProps);
 const App = () => {
   const Stack = createStackNavigator();
   const { isAuthenticated, isFirstTime, manualLocation } = useSelector(state => state.authentication);
-  console.log('hi', isAuthenticated);
   const [locationPermissionGranted, setLocationPermissionGranted] = useState(false);
 
   useEffect(() => {

@@ -26,7 +26,6 @@ export const storeCustomerDetails = async customerDetails => {
   try {
     const docRef = await db.collection('customers').add(customerDetails);
     const customerId = docRef.id;
-    console.log('Customer details stored successfully');
     return customerId;
   } catch (error) {
     console.error('Error storing customer details:', error);
@@ -74,21 +73,16 @@ export const AuthenticationWrapper = ({ children }) => {
           // Remove '+91' prefix from the phone number
           const phoneNumberWithoutPrefix = user.phoneNumber.replace('+91', '');
 
-          console.log('Querying Firestore for phone number:', phoneNumberWithoutPrefix);
-
           const querySnapshot = await db
             .collection('customers')
             .where('mobile', '==', phoneNumberWithoutPrefix)
             .limit(1)
             .get();
 
-          console.log('Query result:', querySnapshot.empty ? 'No matching customer' : 'Customer found');
-
           if (!querySnapshot.empty) {
             const documentSnapshot = querySnapshot.docs[0];
             const customerData = documentSnapshot.data();
             const ordersPaths = customerData.orders ? customerData.orders.map(orderRef => orderRef.path) : [];
-            console.log('Dispatching login action');
             dispatch(login({ ...customerData, id: documentSnapshot.id, orders: ordersPaths }));
           } else {
             console.error('User authenticated but not found in Firestore');
@@ -101,11 +95,9 @@ export const AuthenticationWrapper = ({ children }) => {
           // Handle the error as needed
         }
       } else {
-        console.log('Dispatching logout action');
         dispatch(logout());
       }
       if (initializing) {
-        console.log('Initialization complete');
         setInitializing(false);
       }
     });

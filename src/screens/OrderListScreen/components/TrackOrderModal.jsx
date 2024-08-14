@@ -96,7 +96,6 @@ const TrackOrderModal = ({ orderId, isVisible, onClose }) => {
         },
         error => {
           setIsLoadingUser(false);
-          console.log('location err', error.message);
         },
         { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 },
       );

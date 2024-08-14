@@ -208,9 +208,6 @@ const HomeScreen = ({ navigation, route }) => {
           const hasMatch = restaurant.menuItems.some(item =>
             categoryWords.some(categoryWord => item.toLowerCase().includes(categoryWord)),
           );
-          if (hasMatch) {
-            console.log(`Restaurant ${restaurant.name} matches category ${selectedCategory}`);
-          }
           return hasMatch;
         });
       };

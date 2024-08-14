@@ -50,7 +50,6 @@ const SettingsScreen = ({ navigation }) => {
     setIsLoading(true);
     try {
       const url = await uploadImageToFirebase(fromCamera);
-      console.log('url is', url);
       setImageUrl(url);
       setModalVisible(false);
     } catch (error) {
