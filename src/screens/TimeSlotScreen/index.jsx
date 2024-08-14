@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, Image, Modal, ScrollView } from 'react-native';
 import Layout from 'components/common/Layout';
 import CustomButton from 'components/common/CustomButton';
@@ -8,6 +8,7 @@ import firestore from '@react-native-firebase/firestore';
 import { useSelector, useDispatch } from 'react-redux';
 import { setTimeSlot } from 'redux/slices/restaurantsSlice';
 import { useFocusEffect } from '@react-navigation/native';
+import CustomSwiper from 'components/common/CustomSwiper';
 import OrderStatus from '../OrderListScreen/components/OrderStatus';
 import TrackOrderModal from '../OrderListScreen/TrackOrderModal';
 
@@ -18,7 +19,7 @@ const TimeSlotScreen = ({ navigation }) => {
   const customer = useSelector(state => state.authentication.customer);
   const [showTrackOrderModal, setShowTrackOrderModal] = useState(false);
   const [selectedOrderId, setSelectedOrderId] = useState(null);
-  console.log('cus', customer?.id);
+  const [ongoingOrders, setOngoingOrders] = useState([]);
   const dispatch = useDispatch();
 
   const populateTimeSlots = startFromTime => {
@@ -43,7 +44,7 @@ const TimeSlotScreen = ({ navigation }) => {
 
   const onGetStarted = () => {
     dispatch(setTimeSlot(selectedTime));
-    navigation.navigate('HomeScreen');
+    navigation.navigate('HomeScreen', { orderId: null });
     firestore()
       .collection('customers')
       .doc(customer.id)
@@ -66,7 +67,22 @@ const TimeSlotScreen = ({ navigation }) => {
 
       populateTimeSlots(startFromTime);
       setSelectedTime(formatTime(startFromTime)); // Set the initial selected time
-    }, []),
+
+      const unsubscribe = firestore()
+        .collection('orders')
+        .where('customer', '==', firestore().doc(`customers/${customer.id}`))
+        .onSnapshot(snapshot => {
+          const filteredOrders = snapshot.docs.filter(doc => {
+            const { orderStatus } = doc.data();
+            return orderStatus !== 'completed' && orderStatus !== 'cancelled';
+          });
+          setOngoingOrders(filteredOrders);
+        });
+
+      return () => {
+        unsubscribe();
+      };
+    }, [customer.id]),
   );
 
   return (
@@ -122,11 +138,25 @@ const TimeSlotScreen = ({ navigation }) => {
           </View>
         </Modal>
       </View>
-      <View style={styles.orderStatusContainer}>
-        <OrderStatus onPress={() => setShowTrackOrderModal(true)} orderId="10UD8QNpAnwE2uqkF6kR" />
-      </View>
       <View style={styles.btnContainer}>
         <CustomButton title="Browse Restaurants" onPress={onGetStarted} />
+      </View>
+      <View style={styles.orderStatusContainer}>
+        <Text style={styles.onGoingText}>Ongoing Order(s)</Text>
+        {ongoingOrders.length > 0 && (
+          <CustomSwiper>
+            {ongoingOrders.map(order => (
+              <OrderStatus
+                key={order.id}
+                onPress={() => {
+                  setSelectedOrderId(order.id);
+                  setShowTrackOrderModal(true);
+                }}
+                orderId={order.id}
+              />
+            ))}
+          </CustomSwiper>
+        )}
       </View>
       <TrackOrderModal
         isVisible={showTrackOrderModal}
@@ -195,45 +225,42 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   modalTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: 'black',
-    marginBottom: 10,
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 16,
     textAlign: 'center',
   },
   modalContent: {
-    maxHeight: '80%',
-  },
-  noSlotsText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: 'red',
-    textAlign: 'center',
-    marginTop: 20,
+    marginBottom: 16,
   },
   timeSlot: {
-    padding: 10,
+    padding: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#ccc',
   },
+  noSlotsText: {
+    textAlign: 'center',
+    color: '#aaa',
+  },
   closeButton: {
-    marginTop: 20,
     alignSelf: 'center',
+    marginTop: 16,
   },
   closeButtonText: {
-    fontSize: 18,
     color: colors.theme,
-  },
-  p20: {
-    padding: 20,
-  },
-  mt10: {
-    marginTop: 10,
+    fontWeight: 'bold',
   },
   orderStatusContainer: {
     position: 'absolute',
-    bottom: 10,
-    right: '4%',
-    left: '4%',
+    bottom: 0,
+    left: 0,
+    right: 0,
+  },
+  onGoingText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: 'black',
+    marginBottom: 10,
+    textAlign: 'center',
   },
 });

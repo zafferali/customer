@@ -108,30 +108,31 @@ const OrderListScreen = ({ navigation }) => {
             )}
           </View>
         </View>
-        <View style={styles.dualBtnContainer}>
-          <TouchableOpacity style={styles.trackButton} onPress={() => {}}>
-            <Text style={styles.trackButtonText}>Order Details</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.trackButton}
-            onPress={() => {
-              setSelectedOrderId(item.id);
-              setModalVisible(true);
-            }}
-          >
-            <Image style={styles.navigateIcon} source={require('assets/images/navigate.png')} />
-            <Text style={styles.trackButtonText}>Track Order</Text>
-          </TouchableOpacity>
-        </View>
-        {/* </TouchableOpacity> */}
+        {item.status !== 'Past' && (
+          <View style={styles.dualBtnContainer}>
+            <TouchableOpacity style={styles.trackButton} onPress={() => {}}>
+              <Text style={styles.trackButtonText}>Order Details</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.trackButton}
+              onPress={() => {
+                setSelectedOrderId(item.id);
+                setModalVisible(true);
+              }}
+            >
+              <Image style={styles.navigateIcon} source={require('assets/images/navigate.png')} />
+              <Text style={styles.trackButtonText}>Track Order</Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
     ),
     [],
   );
 
   return (
-    <Layout navigation title="Orders">
-      <SearchBar style={styles.mb15} placeholder="Search Restaurants.." onSearch={setSearchQuery} />
+    <Layout navigation>
+      {/* <SearchBar style={styles.mb15} placeholder="Search Restaurants.." onSearch={setSearchQuery} /> */}
       <View style={styles.tabsContainer}>
         <TouchableOpacity
           style={[styles.tab, selectedTab === 'ongoing' && styles.selectedTab]}
@@ -191,21 +192,22 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   title: {
-    fontSize: 14,
+    fontSize: 16,
     color: 'black',
-    fontWeight: '600',
+    fontWeight: '700',
     marginBottom: 6,
   },
   date: {
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '500',
     color: 'black',
   },
   orderNum: {
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '500',
     color: 'black',
-    marginTop: 5,
+    marginBottom: 2,
+    
   },
   mb15: {
     marginBottom: 15,
@@ -247,7 +249,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     width: '50%',
     justifyContent: 'center',
-    gap: 4,
+    gap: 6,
     padding: 8,
     borderRadius: 6,
     alignItems: 'center',
@@ -259,8 +261,8 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   navigateIcon: {
-    width: 16,
-    height: 16,
+    width: 14,
+    height: 14,
     tintColor: 'white',
   },
 });

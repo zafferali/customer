@@ -41,6 +41,7 @@ const BottomTabNavigator = () => {
             e.preventDefault();
             navigation.navigate('HomeStackScreen', {
               screen: 'HomeScreen',
+              params: { orderId: null },
             });
           },
         })}
