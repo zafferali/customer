@@ -10,7 +10,6 @@ import { logoutCustomer } from '../../firebase/auth';
 const ProfileScreen = ({ navigation }) => {
   const dispatch = useDispatch();
   const customer = useSelector(state => state.authentication.customer);
-  console.log('cus', customer);
   const handleSettingsPress = () => {
     navigation.navigate('SettingsScreen');
   };

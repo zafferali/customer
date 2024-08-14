@@ -1,14 +1,16 @@
-import { StyleSheet } from 'react-native';
-// import { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, AppState } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator, TransitionPresets } from '@react-navigation/stack';
 import { setCustomText } from 'react-native-global-props';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import IntroScreen from 'screens/IntroScreen';
+import { RESULTS } from 'react-native-permissions';
+import LocationPermissionScreen from 'screens/LocationPermissionScreen';
 import BottomTabNavigator from './navigators/BottomTabNavigator';
 import { AuthStackNavigator } from './navigators/AuthStackNavigator';
-// import { requestLocationPermission } from './utils/permissions';
+import { checkLocationPermission } from './utils/permissions';
 
 const customTextProps = {
   style: {
@@ -22,13 +24,32 @@ setCustomText(customTextProps);
 
 const App = () => {
   const Stack = createStackNavigator();
-  const isAuthenticated = useSelector(state => state.authentication.isAuthenticated);
-  const isFirstTime = useSelector(state => state.authentication.isFirstTime);
+  const { isAuthenticated, isFirstTime, manualLocation } = useSelector(state => state.authentication);
+  const [locationPermissionGranted, setLocationPermissionGranted] = useState(false);
 
-  // useEffect(() => {
-  //   // Request location permission when the screen mounts
-  //   requestLocationPermission();
-  // }, []);
+  useEffect(() => {
+    checkInitialPermission();
+
+    const subscription = AppState.addEventListener('change', handleAppStateChange);
+    return () => {
+      subscription.remove();
+    };
+  }, []);
+
+  const checkInitialPermission = async () => {
+    const status = await checkLocationPermission();
+    setLocationPermissionGranted(status === RESULTS.GRANTED);
+  };
+
+  const handleAppStateChange = nextAppState => {
+    if (nextAppState === 'active') {
+      checkInitialPermission();
+    }
+  };
+
+  const handlePermissionGranted = () => {
+    setLocationPermissionGranted(true);
+  };
 
   return (
     <SafeAreaView style={styles.fullWidth}>
@@ -45,6 +66,8 @@ const App = () => {
           >
             <Stack.Screen name="IntroScreen" component={IntroScreen} />
           </Stack.Navigator>
+        ) : !locationPermissionGranted && !manualLocation ? (
+          <LocationPermissionScreen onPermissionGranted={handlePermissionGranted} />
         ) : (
           <BottomTabNavigator />
         )}

@@ -46,14 +46,10 @@ const LockerScreen = ({ navigation }) => {
       const response = await axios.post(RAZORPAY_CREATE_ORDER, { amount: cart.total });
       const { data } = response;
       if (data && data.id) {
-        console.log('Order created with ID:', data);
         startPayment(data.id, data.amount); // Razorpay checkout starts here
       } else {
         console.error('Failed to create order');
       }
-    } catch (error) {
-      console.error('Error creating order:', error);
-      throw error;
     } finally {
       setIsLoading(false);
     }

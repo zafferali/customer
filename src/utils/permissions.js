@@ -1,4 +1,4 @@
-import { PermissionsAndroid, Alert, Linking, Platform } from 'react-native';
+import { Alert, Linking, Platform, PermissionsAndroid } from 'react-native';
 import messaging from '@react-native-firebase/messaging';
 import { request, check, PERMISSIONS, RESULTS } from 'react-native-permissions';
 
@@ -35,7 +35,6 @@ export const requestNotificationPermission = async () => {
     const currentStatus = await messaging().hasPermission();
 
     if (currentStatus === messaging.AuthorizationStatus.AUTHORIZED) {
-      console.log('Notification permissions are enabled');
       return true;
     } else if (currentStatus === messaging.AuthorizationStatus.NOT_DETERMINED) {
       const permissionResult = await request(
@@ -43,18 +42,14 @@ export const requestNotificationPermission = async () => {
       );
 
       if (permissionResult === RESULTS.GRANTED) {
-        console.log('Notification permissions granted');
         return true;
       } else {
-        console.log('Notification permissions not granted');
         return false;
       }
     } else {
-      console.log('Notification permissions are not enabled');
       return false;
     }
   } catch (error) {
-    console.error('Failed to check notification permissions', error);
     return false;
   }
 };
@@ -83,7 +78,6 @@ export const checkLocationPermission = async () => {
       return await check(PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION);
     }
   } catch (error) {
-    console.error('Error checking location permission:', error);
     return RESULTS.UNAVAILABLE;
   }
 };
@@ -96,30 +90,20 @@ export const requestLocationPermission = async () => {
       return await request(PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION);
     }
   } catch (error) {
-    console.error('Error requesting location permission:', error);
     return RESULTS.UNAVAILABLE;
   }
 };
 
 export const openLocationSettings = () => {
-  if (Platform.OS === 'ios') {
-    Linking.openSettings();
-  } else {
-    Linking.openSettings();
-  }
+  Linking.openSettings();
 };
 
-/**
- * Checks if location is enabled on the device.
- *
- * @return {Promise<boolean>} A promise that resolves to true if location is enabled, false otherwise.
- */
 export const checkLocationEnabled = () => {
-  return new Promise((resolve, reject) => {
+  return new Promise(resolve => {
     Geolocation.getCurrentPosition(
-      position => resolve(true),
-      error => resolve(false),
-      { enableHighAccuracy: false },
+      () => resolve(true),
+      () => resolve(false),
+      { enableHighAccuracy: false, timeout: 15000, maximumAge: 10000 },
     );
   });
 };

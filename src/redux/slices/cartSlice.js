@@ -30,7 +30,6 @@ const cartSlice = createSlice({
   reducers: {
     addToCart: (state, action) => {
       const { itemId, customisations, quantity, cartItemId, restaurantId } = action.payload;
-      console.log('Adding to cart:', JSON.stringify({ state }));
 
       // Reset the cart if the restaurantId is different
       if (state.restaurantId && state.restaurantId !== restaurantId) {

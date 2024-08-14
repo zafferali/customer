@@ -111,7 +111,7 @@ const OrderStatus = ({ orderId, mapScreen, onPress }) => {
           <Text style={styles.updateTitle}>Latest Update</Text>
         </View>
       </View>
-      <View style={styles.detailContainer}>
+      <View>
         <Text style={styles.updateText}>{updateText}</Text>
         <Text style={styles.eta}>{eta}</Text>
       </View>
@@ -124,16 +124,12 @@ const OrderStatus = ({ orderId, mapScreen, onPress }) => {
   ) : (
     <View style={styles.orderStatusContainer}>
       <View style={styles.infoContainer}>
-        <View style={styles.contentContainer}>
+        <View>
           <Text style={styles.updateText}>{updateText}</Text>
           <Text style={styles.eta}>{eta}</Text>
         </View>
         <View style={styles.buttonContainer}>
-          <CustomButton
-            title="Track Order"
-            onPress={onPress}
-            style={{ backgroundColor: 'rgb(63, 128, 176)' }}
-          />
+          <CustomButton title="Track Order" onPress={onPress} />
         </View>
       </View>
     </View>
@@ -150,7 +146,8 @@ const styles = StyleSheet.create({
   },
   infoContainer: {
     padding: 12,
-    backgroundColor: colors.theme,
+    borderColor: 'rgba(171, 171, 171, 0.29)',
+    borderWidth: 2,
     borderRadius: 12,
     margin: 10,
     flexDirection: 'column',
@@ -166,23 +163,20 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   updateContainer: {
-    backgroundColor: 'rgba(211, 242, 255, 1)',
     borderRadius: 4,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
   },
   updateTitle: {
     fontSize: 12,
-    color: 'rgb(88, 166, 255)',
+    color: '#000',
   },
   updateText: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: 'rgb(223, 241, 255)',
+    color: colors.theme,
     marginBottom: 4,
   },
   eta: {
-    color: 'rgb(223, 241, 255)',
+    color: colors.theme,
     fontSize: 16,
     marginBottom: 8,
   },
@@ -194,11 +188,11 @@ const styles = StyleSheet.create({
     width: 12,
     height: 4,
     borderRadius: 5,
-    backgroundColor: 'gray',
+    backgroundColor: colors.themeLight,
     marginHorizontal: 4,
   },
   activeDot: {
-    backgroundColor: 'rgba(156, 220, 255, 1)',
+    backgroundColor: colors.theme,
     width: 12,
     height: 4,
   },

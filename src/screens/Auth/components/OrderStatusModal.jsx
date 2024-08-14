@@ -26,7 +26,6 @@ const OrderStatusModal = ({ isVisible, onClose }) => {
         .get();
 
       if (orderQuerySnapshot.empty) {
-        console.log('No order found with this order number.');
         setOrderStatus({
           title: 'Order Not Found',
           description: 'Please check the order number and try again.',

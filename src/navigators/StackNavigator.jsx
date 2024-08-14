@@ -7,7 +7,6 @@ import RestaurantScreen from 'screens/RestaurantScreen';
 import CartScreen from 'screens/CartScreen';
 import LockerScreen from 'screens/LockerScreen';
 import OrderListScreen from 'screens/OrderListScreen';
-import OrderStatusScreen from 'screens/OrderListScreen/OrderStatusScreen';
 import ProfileScreen from 'screens/ProfileScreen';
 import SettingsScreen from 'screens/ProfileScreen/SettingsScreen';
 
@@ -45,7 +44,6 @@ export const OrderListStackScreen = () => (
     }}
   >
     <OrderListStack.Screen name="OrderListScreen" component={OrderListScreen} />
-    <OrderListStack.Screen name="OrderStatusScreen" component={OrderStatusScreen} />
   </OrderListStack.Navigator>
 );
 

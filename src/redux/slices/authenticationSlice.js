@@ -4,6 +4,7 @@ const initialState = {
   customer: null,
   isAuthenticated: false,
   isFirstTime: false,
+  manualLocation: null,
 };
 
 const authenticationSlice = createSlice({
@@ -31,9 +32,12 @@ const authenticationSlice = createSlice({
         state.customer.photoUrl = photoUrl;
       }
     },
+    setManualLocation(state, action) {
+      state.manualLocation = action.payload;
+    },
   },
 });
 
-export const { login, logout, register, updateCustomer } = authenticationSlice.actions;
+export const { login, logout, register, updateCustomer, setManualLocation } = authenticationSlice.actions;
 
 export default authenticationSlice.reducer;

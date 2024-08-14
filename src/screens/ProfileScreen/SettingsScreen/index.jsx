@@ -14,8 +14,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { updateCustomer } from 'redux/slices/authenticationSlice';
 import firestore from '@react-native-firebase/firestore';
 import uploadImageToFirebase from 'utils/uploadImage';
-import UploadImageModal from 'utils/UploadImageModal';
 import colors from 'constants/colors';
+import UploadImageModal from './components/UploadImageModal';
 
 const SettingsScreen = ({ navigation }) => {
   const customer = useSelector(state => state.authentication.customer);
@@ -50,7 +50,6 @@ const SettingsScreen = ({ navigation }) => {
     setIsLoading(true);
     try {
       const url = await uploadImageToFirebase(fromCamera);
-      console.log('url is', url);
       setImageUrl(url);
       setModalVisible(false);
     } catch (error) {

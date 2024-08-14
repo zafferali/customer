@@ -45,7 +45,6 @@ export const checkAvailability = ({ from, until, isAvailable }, selectedTime) =>
 
 export const parseTime = timeStr => {
   if (!timeStr) {
-    console.log('parseTime called with undefined or null argument');
     return null;
   }
   const [hours, minutes] = timeStr.split(':').map(Number);
@@ -78,7 +77,6 @@ export const createOrUpdateCart = async (cartState, customerId, restaurantId) =>
       },
       { merge: true },
     );
-    console.log('Cart successfully created or updated');
   } catch (error) {
     console.log('Error creating or updating cart: ', error);
   }
