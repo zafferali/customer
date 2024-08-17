@@ -64,6 +64,41 @@ export const confirmAddItem = (
   closeModal();
 };
 
+export const handleCustomisationSelect = (
+  customisationTitle,
+  choice,
+  multiOption,
+  limit,
+  setSelectedCustomisations,
+) => {
+  setSelectedCustomisations(prevSelections => {
+    const updatedSelections = { ...prevSelections };
+    if (!updatedSelections[customisationTitle]) {
+      updatedSelections[customisationTitle] = [];
+    }
+
+    const choiceExists = updatedSelections[customisationTitle].some(
+      selectedChoice => selectedChoice.name === choice.name,
+    );
+
+    if (choiceExists) {
+      updatedSelections[customisationTitle] = updatedSelections[customisationTitle].filter(
+        selectedChoice => selectedChoice.name !== choice.name,
+      );
+    } else {
+      if (multiOption) {
+        if (updatedSelections[customisationTitle].length < limit) {
+          updatedSelections[customisationTitle].push({ name: choice.name, price: choice.price });
+        }
+      } else {
+        updatedSelections[customisationTitle] = [{ name: choice.name, price: choice.price }];
+      }
+    }
+
+    return updatedSelections;
+  });
+};
+
 export const removeItem = (cartItemId, dispatch) => {
   dispatch(removeFromCart({ cartItemId }));
 };

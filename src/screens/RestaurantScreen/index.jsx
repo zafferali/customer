@@ -28,6 +28,7 @@ import {
   parseTime,
   generateSubtitle,
   confirmAddItem,
+  handleCustomisationSelect,
 } from './utils/helpers';
 
 const RestaurantScreen = ({ navigation, route }) => {
@@ -226,71 +227,6 @@ const RestaurantScreen = ({ navigation, route }) => {
     setSelectedItem(null);
   };
 
-  // const confirmAddItem = () => {
-  //   const customisationsWithPrice = Object.entries(selectedCustomisations).map(([key, choices]) => {
-  //     const originalCustomisation = selectedItem.customisations.find(c => c.title === key);
-  //     return {
-  //       title: key,
-  //       choices: Array.isArray(choices)
-  //         ? choices.map(choice => ({
-  //             name: choice.name,
-  //             price: Number(choice.price) || 0,
-  //           }))
-  //         : [],
-  //       multiOption: originalCustomisation ? originalCustomisation.multiOption : false,
-  //     };
-  //   });
-
-  //   setLastUsedCustomisations(prev => ({
-  //     ...prev,
-  //     [selectedItem.id]: selectedCustomisations,
-  //   }));
-
-  //   dispatch(
-  //     addToCart({
-  //       name: selectedItem.name,
-  //       itemId: selectedItem.id,
-  //       quantity: 1,
-  //       price: Number(selectedItem.price) || 0,
-  //       temperature: selectedItem.temperature,
-  //       thumbnailUrl: selectedItem.thumbnailUrl,
-  //       customisations: customisationsWithPrice,
-  //       restaurantId,
-  //     }),
-  //   );
-
-  //   closeModal();
-  // };
-
-  const handleCustomisationSelect = (customisationTitle, choice, multiOption, limit) => {
-    setSelectedCustomisations(prevSelections => {
-      const updatedSelections = { ...prevSelections };
-      if (!updatedSelections[customisationTitle]) {
-        updatedSelections[customisationTitle] = [];
-      }
-
-      const choiceExists = updatedSelections[customisationTitle].some(
-        selectedChoice => selectedChoice.name === choice.name,
-      );
-
-      if (choiceExists) {
-        updatedSelections[customisationTitle] = updatedSelections[customisationTitle].filter(
-          selectedChoice => selectedChoice.name !== choice.name,
-        );
-      } else {
-        if (multiOption) {
-          if (updatedSelections[customisationTitle].length < limit) {
-            updatedSelections[customisationTitle].push({ name: choice.name, price: choice.price });
-          }
-        } else {
-          updatedSelections[customisationTitle] = [{ name: choice.name, price: choice.price }];
-        }
-      }
-
-      return updatedSelections;
-    });
-  };
-
   const handleCartNavigation = async () => {
     navigation.navigate('CartScreen');
     await createOrUpdateCart(cart, customerId, restaurantId);
@@ -420,6 +356,7 @@ const RestaurantScreen = ({ navigation, route }) => {
                                             choice,
                                             customisation.multiOption,
                                             customisation.limit,
+                                            setSelectedCustomisations,
                                           )
                                         }
                                       />
@@ -436,6 +373,7 @@ const RestaurantScreen = ({ navigation, route }) => {
                                             choice,
                                             customisation.multiOption,
                                             customisation.limit,
+                                            setSelectedCustomisations,
                                           )
                                         }
                                       />
@@ -451,14 +389,16 @@ const RestaurantScreen = ({ navigation, route }) => {
                   <CustomButton
                     style={styles.button}
                     title="Add to Cart"
-                    onPress={confirmAddItem(
-                      selectedItem,
-                      dispatch,
-                      closeModal,
-                      restaurantId,
-                      selectedCustomisations,
-                      setLastUsedCustomisations,
-                    )}
+                    onPress={() =>
+                      confirmAddItem(
+                        selectedItem,
+                        dispatch,
+                        closeModal,
+                        restaurantId,
+                        selectedCustomisations,
+                        setLastUsedCustomisations,
+                      )
+                    }
                   />
                 </TouchableOpacity>
               </TouchableOpacity>
