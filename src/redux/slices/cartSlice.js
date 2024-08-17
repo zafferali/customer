@@ -46,9 +46,6 @@ const cartSlice = createSlice({
         state.instructions = '';
         state.restaurantId = restaurantId;
       }
-      // else {
-      //   state.restaurantId = restaurantId;
-      // }
 
       const existingItemIndex = state.items.findIndex(
         item =>
