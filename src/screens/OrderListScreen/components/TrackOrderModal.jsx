@@ -3,13 +3,11 @@ import {
   View,
   Text,
   StyleSheet,
-  Dimensions,
   TouchableOpacity,
   Modal,
   Image,
-  SafeAreaView,
-  Platform,
   ActivityIndicator,
+  ImageBackground,
 } from 'react-native';
 import MapView, { Marker, Polyline } from 'react-native-maps';
 import colors from 'constants/colors';
@@ -21,17 +19,24 @@ import { RESULTS } from 'react-native-permissions';
 import OpenSettingsModal from 'components/common/OpenSettingsModal';
 import { checkLocationPermission, openLocationSettings, requestLocationPermission } from 'utils/permissions';
 import CustomButton from 'components/common/CustomButton';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { ScrollView } from 'react-native-gesture-handler';
+import { GlobalStyles } from 'constants/GlobalStyles';
+import { makeCall } from 'utils/makeCall';
+import openGoogleMaps from 'utils/openGoogleMaps';
 import OrderStatus from './OrderStatus';
-
-const { height } = Dimensions.get('window');
 
 const TrackOrderModal = ({ orderId, isVisible, onClose }) => {
   const [userLocation, setUserLocation] = useState(null);
   const [runnerLocation, setRunnerLocation] = useState(null);
+  const [runnerDetails, setRunnerDetails] = useState(null);
   const [lockerLocation, setLockerLocation] = useState(null);
+  const [lockerDetails, setLockerDetails] = useState(null);
   const [restaurantLocation, setRestaurantLocation] = useState(null);
+  const [restaurantDetails, setRestaurantDetails] = useState(null);
   const [route, setRoute] = useState([]);
   const [orderStatus, setOrderStatus] = useState('');
+  const [orderDetails, setOrderDetails] = useState(null);
   const [isLoadingUser, setIsLoadingUser] = useState(true);
   const [isLoadingLocker, setIsLoadingLocker] = useState(true);
   const [isLoadingRestaurant, setIsLoadingRestaurant] = useState(true);
@@ -45,6 +50,25 @@ const TrackOrderModal = ({ orderId, isVisible, onClose }) => {
       checkLocationPermissionStatus();
     }
   }, [isVisible]);
+
+  useEffect(() => {
+    const fetchOrderDetails = async () => {
+      if (orderId && isVisible) {
+        try {
+          const orderDoc = await firestore().collection('orders').doc(orderId).get();
+          if (orderDoc.exists) {
+            setOrderDetails(orderDoc.data());
+          } else {
+            console.log('Order not found');
+          }
+        } catch (error) {
+          console.error('Error fetching order details:', error);
+        }
+      }
+    };
+
+    fetchOrderDetails();
+  }, [orderId, isVisible]);
 
   const checkLocationPermissionStatus = async () => {
     const status = await checkLocationPermission();
@@ -78,10 +102,13 @@ const TrackOrderModal = ({ orderId, isVisible, onClose }) => {
 
   const renderLocationPermissionMessage = () => {
     return (
-      <View style={styles.loadingContainer}>
-        <Text style={styles.permissionText}>We need access to your location to track your order.</Text>
-        <CustomButton title="Allow Location Permission" onPress={handleLocationPermission} />
-      </View>
+      <ImageBackground source={require('assets/images/map-placeholder.png')} style={styles.loadingContainer}>
+        <View style={styles.overlay} />
+        <View style={styles.contentContainer}>
+          <Text style={styles.permissionText}>We need access to your location to show it on the map.</Text>
+          <CustomButton title="Allow Location Permission" onPress={handleLocationPermission} />
+        </View>
+      </ImageBackground>
     );
   };
 
@@ -108,6 +135,8 @@ const TrackOrderModal = ({ orderId, isVisible, onClose }) => {
       const orderDoc = await firestore().collection('orders').doc(orderId).get();
       const lockerRef = orderDoc.data()?.locker;
       const lockerDoc = await lockerRef?.get();
+      const lockerData = lockerDoc.data();
+      setLockerDetails(lockerData);
       const lockerGeo = lockerDoc.data().location.geo;
       setLockerLocation({ latitude: lockerGeo.latitude, longitude: lockerGeo.longitude });
     } catch (error) {
@@ -123,6 +152,8 @@ const TrackOrderModal = ({ orderId, isVisible, onClose }) => {
       const orderDoc = await firestore().collection('orders').doc(orderId).get();
       const restaurantRef = orderDoc.data().restaurant;
       const restaurantDoc = await restaurantRef?.get();
+      const restaurantData = restaurantDoc.data();
+      setRestaurantDetails(restaurantData);
       const restaurantGeo = restaurantDoc.data().location.geo;
       setRestaurantLocation({ latitude: restaurantGeo.latitude, longitude: restaurantGeo.longitude });
     } catch (error) {
@@ -132,13 +163,23 @@ const TrackOrderModal = ({ orderId, isVisible, onClose }) => {
     }
   };
 
-  const fetchRunnerLocation = () => {
-    const orderRef = firestore().collection('orders').doc(orderId);
-
+  const fetchRunnerLocation = async () => {
     let orderUnsubscribe = null;
     let runnerUnsubscribe = null;
 
     try {
+      const orderRef = firestore().collection('orders').doc(orderId);
+      const orderSnapshot = await orderRef.get();
+      const runnerRef = orderSnapshot.data()?.runner;
+
+      if (runnerRef) {
+        const runnerSnapshot = await runnerRef.get();
+        const runnerData = runnerSnapshot.data();
+        setRunnerDetails(runnerData);
+      } else {
+        console.log('Runner reference not found');
+      }
+
       orderUnsubscribe = orderRef.onSnapshot(
         orderDoc => {
           const runnerRef = orderDoc.data()?.runner;
@@ -170,7 +211,7 @@ const TrackOrderModal = ({ orderId, isVisible, onClose }) => {
         },
       );
     } catch (error) {
-      console.error('Error setting up listeners:', error);
+      console.error('Error fetching runner data:', error);
     }
 
     return () => {
@@ -290,7 +331,7 @@ const TrackOrderModal = ({ orderId, isVisible, onClose }) => {
       default:
         break;
     }
-  });
+  }, [orderStatus, restaurantLocation, runnerLocation, userLocation, lockerLocation]);
 
   useEffect(() => {
     if (isVisible) {
@@ -421,99 +462,159 @@ const TrackOrderModal = ({ orderId, isVisible, onClose }) => {
   };
 
   return (
-    <SafeAreaView>
-      <Modal visible={isVisible} animationType="slide" transparent>
-        <View style={styles.modal}>
-          <View style={styles.container}>
-            <View style={[styles.header, Platform.OS === 'ios' && styles.mt60]}>
-              <Text style={styles.headerText}>Track Order</Text>
-              <TouchableOpacity onPress={onClose}>
-                <Image source={require('assets/images/close.png')} style={styles.closeButton} />
-              </TouchableOpacity>
+    <Modal visible={isVisible} animationType="slide">
+      <SafeAreaProvider>
+        <SafeAreaView style={styles.flex}>
+          <View style={styles.header}>
+            <View>
+              <Text style={styles.headerText}>Order #{orderDetails?.orderNum}</Text>
             </View>
-            {locationPermissionStatus === RESULTS.GRANTED ? (
-              !isMapReady() ? (
-                <View style={styles.loadingContainer}>
-                  <ActivityIndicator size="large" color={colors.theme} />
-                </View>
-              ) : (
-                <MapView
-                  showsUserLocation={true}
-                  followsUserLocation={true}
-                  zoomControlEnabled={true}
-                  zoomEnabled={true}
-                  scrollEnabled={true}
-                  pitchEnabled={true}
-                  ref={mapRef}
-                  style={styles.map}
-                  loadingEnabled
-                  loadingIndicatorColor={colors.theme}
-                >
-                  {renderMarkers()}
-                  {['received', 'on the way', 'ready', 'picked', 'delivered'].includes(orderStatus) &&
-                    route?.length > 0 && (
-                      <Polyline coordinates={route} strokeColor={colors.theme} strokeWidth={2} />
-                    )}
-                </MapView>
-              )
+            <TouchableOpacity onPress={onClose}>
+              <Image source={require('assets/images/close.png')} style={styles.closeButton} />
+            </TouchableOpacity>
+          </View>
+          {locationPermissionStatus === RESULTS.GRANTED ? (
+            !isMapReady() ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color={colors.theme} />
+              </View>
             ) : (
-              renderLocationPermissionMessage()
-            )}
-            <OpenSettingsModal
-              isVisible={showSettingsModal}
-              onClose={() => setShowSettingsModal(false)}
-              onOpenSettings={() => {
-                setShowSettingsModal(false);
-                openLocationSettings();
-              }}
-              message={settingsMessage}
-            />
-            <View style={[styles.bottomSection, Platform.OS === 'ios' && { marginBottom: 20 }]}>
+              <MapView
+                showsUserLocation={true}
+                followsUserLocation={true}
+                zoomControlEnabled={true}
+                zoomEnabled={true}
+                scrollEnabled={true}
+                pitchEnabled={true}
+                ref={mapRef}
+                style={styles.map}
+                loadingEnabled
+                loadingIndicatorColor={colors.theme}
+              >
+                {renderMarkers()}
+                {['received', 'on the way', 'ready', 'picked', 'delivered'].includes(orderStatus) &&
+                  route?.length > 0 && (
+                    <Polyline coordinates={route} strokeColor={colors.theme} strokeWidth={2} />
+                  )}
+              </MapView>
+            )
+          ) : (
+            renderLocationPermissionMessage()
+          )}
+          <OpenSettingsModal
+            isVisible={showSettingsModal}
+            onClose={() => setShowSettingsModal(false)}
+            onOpenSettings={() => {
+              setShowSettingsModal(false);
+              openLocationSettings();
+            }}
+            message={settingsMessage}
+          />
+          <ScrollView style={styles.mainContent}>
+            <View style={styles.mb20}>
               <OrderStatus mapScreen orderId={orderId} />
-              <View style={styles.buttonsContainer}>
-                <TouchableOpacity style={styles.button}>
-                  <Image style={styles.phone} source={require('assets/images/phone.png')} />
-                  <Text style={styles.buttonText}>Call Runner</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.button}>
-                  <Image style={styles.phone} source={require('assets/images/phone.png')} />
-                  <Text style={styles.buttonText}>Customer Care</Text>
+            </View>
+            <View style={GlobalStyles.lightBorder}>
+              <View style={[styles.lineItem, styles.mv5]}>
+                <Text style={styles.lockerDetails}>Pickup Time</Text>
+                <Text style={styles.lockerName}>{orderDetails?.deliveryTime}</Text>
+              </View>
+              <View style={[styles.lineItem, styles.mv5]}>
+                <Text style={styles.lockerDetails}>Locker</Text>
+                <TouchableOpacity style={styles.lightBgCard}>
+                  <Text style={[styles.text, { color: colors.theme }]}>
+                    {lockerDetails?.campus}, {lockerDetails?.lockerName}
+                  </Text>
+                  <View onPress={() => openGoogleMaps(lockerLocation.latitude, lockerLocation.longitude)}>
+                    <Image source={require('assets/images/map-icon.png')} style={styles.icon} />
+                  </View>
                 </TouchableOpacity>
               </View>
+              <View style={[styles.lineItem, styles.mv5]}>
+                <Text style={styles.lockerDetails}>Runner</Text>
+                <View style={styles.lightBgCard}>
+                  <Text style={[styles.text, { color: colors.theme }]}>{runnerDetails?.name}</Text>
+                  <TouchableOpacity onPress={() => makeCall(`+91${runnerDetails?.mobile}`)}>
+                    <Image source={require('assets/images/call-icon.png')} style={styles.icon} />
+                  </TouchableOpacity>
+                </View>
+              </View>
             </View>
-          </View>
-        </View>
-      </Modal>
-    </SafeAreaView>
+            <View style={styles.lightBorder}>
+              <View style={styles.restaurant}>
+                <Image source={{ uri: restaurantDetails?.thumbnailUrl }} style={styles.restaurantImage} />
+                <Text style={styles.restaurantName}>
+                  {restaurantDetails?.name} {restaurantDetails?.branch && `, ' ${restaurantDetails?.branch}`}
+                </Text>
+              </View>
+              <View style={styles.foodItems}>
+                {orderDetails?.items.map(foodItem => (
+                  <View key={foodItem.cartItemId} style={[styles.lineItem, styles.mb20]}>
+                    <Text style={styles.mdText}>
+                      {foodItem.name} x {foodItem.quantity}
+                    </Text>
+                    <Text style={[styles.mdText, styles.themeColor]}>₹{foodItem.price}</Text>
+                  </View>
+                ))}
+              </View>
+              <View style={styles.lineItem}>
+                <Text style={[styles.mdText, styles.blackColor]}>Total (Incl. GST)</Text>
+                <Text style={[styles.mdText, styles.blackColor]}>₹{orderDetails?.totalPrice}</Text>
+              </View>
+            </View>
+            {/* <View style={styles.supportContainer}>
+              <Text style={styles.text}>
+                If you have any quries, please
+                <TouchableOpacity onPress={() => makeCall('+919884713398')}>
+                  <Text style={styles.text}>Call Support</Text>
+                </TouchableOpacity>{' '}
+              </Text>
+            </View> */}
+            <TouchableOpacity style={styles.button} onPress={() => makeCall('+919884713398')}>
+              <Image style={styles.phone} source={require('assets/images/phone.png')} />
+              <Text style={styles.buttonText}>Customer Care</Text>
+            </TouchableOpacity>
+          </ScrollView>
+          {/* <View style={styles.bottomSection}>
+             <OrderStatus mapScreen orderId={orderId} />
+            <View style={styles.buttonsContainer}>
+              <TouchableOpacity style={styles.button}>
+                <Image style={styles.phone} source={require('assets/images/phone.png')} />
+                <Text style={styles.buttonText}>Call Runner</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.button}>
+                <Image style={styles.phone} source={require('assets/images/phone.png')} />
+                <Text style={styles.buttonText}>Customer Care</Text>
+              </TouchableOpacity>
+            </View>
+          </View> */}
+        </SafeAreaView>
+      </SafeAreaProvider>
+    </Modal>
   );
 };
 
 export default TrackOrderModal;
 
 const styles = StyleSheet.create({
-  modal: {
+  flex: {
     flex: 1,
-    justifyContent: 'flex-end',
-    backgroundColor: '#fff',
-  },
-  container: {
-    height,
-    overflow: 'hidden',
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    padding: 16,
-    // backgroundColor: colors.theme,
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
   },
   headerText: {
-    color: colors.theme,
+    color: '#000',
     fontSize: 18,
     fontWeight: 'bold',
   },
   closeButton: {
-    width: 20,
-    height: 20,
+    width: 24,
+    height: 24,
   },
   map: {
     flex: 1,
@@ -558,18 +659,113 @@ const styles = StyleSheet.create({
     color: 'rgb(0, 200, 83)',
     fontWeight: 'bold',
   },
-  buttonsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 8,
-    padding: 10,
-    // backgroundColor: colors.theme,
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+  },
+  contentContainer: {
     width: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  bottomSection: {
-    position: 'realtive',
-    bottom: 0,
+  mainContent: {
+    // backgroundColor: '#fff',
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    paddingHorizontal: 14,
+    paddingTop: 20,
+    height: '20%',
   },
+  lockerDetails: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: 'gray',
+    marginTop: 4,
+    marginBottom: 6,
+  },
+  lockerName: {
+    textTransform: 'capitalize',
+    color: colors.theme,
+    fontWeight: '600',
+    width: 180,
+  },
+  lightBorder: {
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 20,
+    borderColor: colors.border,
+    borderWidth: 1,
+    marginVertical: 20,
+  },
+  darkBorder: {
+    borderRadius: 8,
+    padding: 8,
+    borderColor: colors.theme,
+    borderWidth: 2,
+  },
+  restaurant: {
+    flexDirection: 'row',
+    gap: 10,
+    alignItems: 'center',
+    borderBottomColor: colors.themeLight,
+    borderBottomWidth: 1,
+    paddingBottom: 14,
+  },
+  restaurantImage: {
+    width: 50,
+    height: 50,
+    borderRadius: 14,
+  },
+  restaurantName: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#000',
+    marginBottom: 4,
+  },
+  foodItems: {
+    paddingTop: 20,
+    borderBottomColor: colors.themeLight,
+    borderBottomWidth: 1,
+    marginBottom: 16,
+  },
+  lineItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  mv5: {
+    marginVertical: 5,
+  },
+  mb20: {
+    marginBottom: 20,
+  },
+  mdText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: 'gray',
+  },
+  themeColor: {
+    color: colors.theme,
+  },
+  blackColor: {
+    color: '#000',
+  },
+  // foodItemsText: {
+  //   fontSize: 14,
+  //   color: '#666',
+  //   fontWeight: '600',
+  // },
+  // buttonsContainer: {
+  //   flexDirection: 'row',
+  //   justifyContent: 'center',
+  //   gap: 8,
+  //   padding: 10,
+  //   width: '100%',
+  // },
+  // bottomSection: {
+  //   position: 'realtive',
+  //   bottom: 0,
+  // },
   button: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -580,6 +776,7 @@ const styles = StyleSheet.create({
     flex: 1,
     // borderColor: 'rgb(156, 220, 255)',
     // borderWidth: 3,
+    marginBottom: 20,
   },
   phone: {
     width: 20,
@@ -591,9 +788,6 @@ const styles = StyleSheet.create({
     color: 'rgb(156, 220, 255)',
     fontWeight: 'bold',
   },
-  mt60: {
-    marginTop: 60,
-  },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -602,10 +796,48 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   permissionText: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: '600',
-    color: colors.theme,
+    color: 'gray',
     textAlign: 'center',
     marginBottom: 20,
+  },
+  // lightBgCard: {
+  //   flexDirection: 'row',
+  //   justifyContent: 'space-around',
+  //   alignItems: 'center',
+  //   backgroundColor: '#2E5E821A',
+  //   borderRadius: 6,
+  //   paddingHorizontal: 8,
+  //   paddingVertical: 12,
+  //   width: 160,
+  // },
+  text: {
+    color: colors.darkGray,
+    fontWeight: '600',
+    fontSize: 14,
+    width: '70%',
+    textTransform: 'capitalize',
+  },
+  lightBgCard: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 8,
+    alignItems: 'center',
+    backgroundColor: '#2E5E821A',
+    borderRadius: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    width: 180,
+    minHeight: 40,
+  },
+  icon: {
+    width: 26,
+    height: 26,
+  },
+  supportContainer: {
+    flexDirection: 'row',
+    marginBottom: 20,
+    paddingHorizontal: 10,
   },
 });

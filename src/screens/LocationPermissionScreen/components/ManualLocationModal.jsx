@@ -13,6 +13,7 @@ import {
 import colors from 'constants/colors';
 import { useDispatch } from 'react-redux';
 import { setManualLocation } from 'redux/slices/authenticationSlice';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
 const { width, height } = Dimensions.get('window');
 
@@ -20,41 +21,13 @@ const ManualLocationModal = ({ isVisible, onClose }) => {
   const dispatch = useDispatch();
 
   const cards = [
-    {
-      id: 1,
-      text: 'Mumbai',
-      selectable: true,
-    },
-    {
-      id: 2,
-      text: 'New Delhi',
-      selectable: false,
-    },
-    {
-      id: 3,
-      text: 'Bengaluru',
-      selectable: false,
-    },
-    {
-      id: 4,
-      text: 'Chennai',
-      selectable: false,
-    },
-    {
-      id: 5,
-      text: 'Hyderabad',
-      selectable: false,
-    },
-    {
-      id: 6,
-      text: 'Ahmedabad',
-      selectable: false,
-    },
-    {
-      id: 7,
-      text: 'Kolkata',
-      selectable: false,
-    },
+    { id: 1, text: 'Mumbai', selectable: true },
+    { id: 2, text: 'New Delhi', selectable: false },
+    { id: 3, text: 'Bengaluru', selectable: false },
+    { id: 4, text: 'Chennai', selectable: false },
+    { id: 5, text: 'Hyderabad', selectable: false },
+    { id: 6, text: 'Ahmedabad', selectable: false },
+    { id: 7, text: 'Kolkata', selectable: false },
   ];
 
   const handleLocationSelect = location => {
@@ -65,70 +38,62 @@ const ManualLocationModal = ({ isVisible, onClose }) => {
   };
 
   return (
-    <View style={styles.container}>
-      <Modal visible={isVisible} animationType="slide" transparent>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={[styles.header, Platform.OS === 'ios' && styles.mt60]} />
-            <ScrollView contentContainerStyle={styles.scrollContainer}>
-              {cards.map(card => (
-                <TouchableOpacity
-                  onPress={() => handleLocationSelect(card.text)}
-                  key={card.id}
-                  style={[styles.cardContainer, !card.selectable && styles.disabledCard]}
-                  disabled={!card.selectable}
-                >
-                  <View style={styles.imageWrapper}>
-                    <ImageBackground source={require('assets/images/mumbai.jpg')} style={styles.cardImage}>
-                      <View style={[styles.overlay, !card.selectable && styles.disabledOverlay]} />
-                      <Text style={styles.cardText}>{card.text}</Text>
-                    </ImageBackground>
-                  </View>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
+    <Modal visible={isVisible} animationType="slide">
+      <SafeAreaProvider>
+        <SafeAreaView style={styles.modalContent}>
+          <View style={styles.header}>
+            <Text style={styles.headerText}>Select Location</Text>
+            <TouchableOpacity onPress={onClose}>
+              <Image style={styles.closeImage} source={require('assets/images/close.png')} />
+            </TouchableOpacity>
           </View>
-        </View>
-        <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-          <Text style={styles.closeButtonText}>Select Location</Text>
-          <Image style={styles.closeImage} source={require('assets/images/close.png')} />
-        </TouchableOpacity>
-      </Modal>
-    </View>
+          <ScrollView contentContainerStyle={styles.scrollContainer}>
+            {cards.map(card => (
+              <TouchableOpacity
+                onPress={() => handleLocationSelect(card.text)}
+                key={card.id}
+                style={[styles.cardContainer, !card.selectable && styles.disabledCard]}
+                disabled={!card.selectable}
+              >
+                <View style={styles.imageWrapper}>
+                  <ImageBackground source={require('assets/images/mumbai.jpg')} style={styles.cardImage}>
+                    <View style={[styles.overlay, !card.selectable && styles.disabledOverlay]} />
+                    <Text style={styles.cardText}>{card.text}</Text>
+                  </ImageBackground>
+                </View>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </SafeAreaView>
+      </SafeAreaProvider>
+    </Modal>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalOverlay: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  },
   modalContent: {
-    width: width * 1,
-    height: height * 1,
-    backgroundColor: 'white',
-    borderRadius: 10,
-    padding: 10,
+    flex: 1,
+    paddingHorizontal: 10,
   },
   scrollContainer: {
     paddingVertical: 10,
   },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 5,
+    paddingBottom: 5,
+  },
   cardContainer: {
     marginBottom: 15,
     height: 200,
-    borderRadius: 15, // Added borderRadius to the card
+    borderRadius: 15,
+    overflow: 'hidden',
   },
   imageWrapper: {
     flex: 1,
     borderRadius: 15,
-    overflow: 'hidden', // Ensures the borderRadius applies to the image
   },
   cardImage: {
     flex: 1,
@@ -144,39 +109,23 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: 'bold',
   },
-  mt60: {
-    marginTop: 60,
-  },
-  header: {
-    paddingTop: 30,
-  },
-  closeButton: {
-    position: 'absolute',
-    top: 20,
-    right: 0,
-    marginTop: 20,
-    alignItems: 'center',
-    paddingVertical: 15,
-    borderRadius: 5,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '100%',
-    paddingHorizontal: 20,
-  },
-  closeImage: {
-    width: 36,
-    height: 36,
-  },
-  closeButtonText: {
+  headerText: {
     color: colors.theme,
     fontSize: 24,
     fontWeight: 'bold',
+  },
+  closeImage: {
+    width: 26,
+    height: 26,
   },
   disabledCard: {
     opacity: 0.4,
   },
   disabledOverlay: {
     backgroundColor: 'rgba(0, 0, 0, 0.7)',
+  },
+  mt20: {
+    marginTop: 20,
   },
 });
 

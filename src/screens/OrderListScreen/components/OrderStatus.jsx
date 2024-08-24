@@ -62,7 +62,8 @@ const OrderStatus = ({ orderId, mapScreen, onPress }) => {
       case 'picked':
         return {
           updateText: 'Food Picked up',
-          eta: `${calculateTimeDifference(orderDetails.deliveryTime)} mins to get delivered to Locker`,
+          // eta: `${calculateTimeDifference(orderDetails.deliveryTime)} mins to get delivered to Locker`,
+          ete: `Your food will be dilivered to locker before ${orderDetails.deliveryTime}`,
           dotIndex: 3,
         };
       case 'delivered':
@@ -105,21 +106,19 @@ const OrderStatus = ({ orderId, mapScreen, onPress }) => {
   const { updateText, eta, dotIndex } = getOrderStatusInfo(orderDetails.orderStatus);
 
   return mapScreen ? (
-    <View style={styles.infoContainer}>
-      <View style={styles.headerContainer}>
+    /* <View style={styles.headerContainer}>
         <View style={styles.updateContainer}>
           <Text style={styles.updateTitle}>Latest Update</Text>
         </View>
       </View>
-      <View>
-        <Text style={styles.updateText}>{updateText}</Text>
-        <Text style={styles.eta}>{eta}</Text>
-      </View>
-      <View style={styles.dotsContainer}>
+     <View style={styles.dotsContainer}>
         {[...Array(6)].map((_, index) => (
           <View key={index} style={[styles.dot, index === dotIndex && styles.activeDot]} />
         ))}
-      </View>
+      </View> */
+    <View>
+      <Text style={styles.updateText}>{updateText}</Text>
+      <Text style={styles.eta}>{eta}</Text>
     </View>
   ) : (
     <View style={styles.orderStatusContainer}>
@@ -170,13 +169,13 @@ const styles = StyleSheet.create({
     color: '#000',
   },
   updateText: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: 'bold',
-    color: colors.theme,
-    marginBottom: 4,
+    color: '#000',
+    marginBottom: 6,
   },
   eta: {
-    color: colors.theme,
+    color: 'gray',
     fontSize: 16,
     marginBottom: 8,
   },

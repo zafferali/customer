@@ -24,12 +24,19 @@ import { generatePickupCode } from './generatePickupCode';
 const LockerScreen = ({ navigation }) => {
   const [selectedId, setSelectedId] = useState(1);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [orderId, setOrderId] = useState('');
   const [isComponentMounted, setIsComponentMounted] = useState(true);
 
   const cart = useSelector(state => state.cart);
-  const items = cart.items.map(item => ({ id: item.itemId, name: item.name, quantity: item.quantity }));
+  const items = cart.items.map(item => ({
+    id: item.itemId,
+    cartItemId: item.cartItemId,
+    price: item.price,
+    name: item.name,
+    quantity: item.quantity,
+  }));
   const customer = useSelector(state => state.authentication.customer);
   const { currentRestaurant, selectedTimeSlot } = useSelector(state => state.restaurants);
   const customerRef = firestore().collection('customers').doc(customer.id);
@@ -81,6 +88,7 @@ const LockerScreen = ({ navigation }) => {
         };
         verifyPayment(paymentData);
         console.log(`Success: ${data.razorpay_payment_id}`);
+        A;
       })
       .catch(error => {
         setIsLoading(false);
@@ -92,17 +100,22 @@ const LockerScreen = ({ navigation }) => {
   };
 
   const verifyPayment = async paymentData => {
+    setIsProcessingPayment(true);
     try {
       const verificationResponse = await axios.post(RAZORPAY_VERIFY_PAYMENT, paymentData);
       if (verificationResponse.data.success) {
+        await createBriskitOrder(paymentData);
         setPaymentSuccess(true);
-        createBriskitOrder(paymentData);
       } else {
-        Alert.alert('Payment verification failed. Please contact customer support.');
+        throw new Error('Payment verification failed');
       }
     } catch (error) {
-      Alert.alert('There was an issue verifying your payment. Please contact customer support.');
-      console.error(error.response || error);
+      Alert.alert(
+        `${error.message}`,
+        'There was an issue verifying your payment. Please contact customer support.',
+      );
+    } finally {
+      setIsProcessingPayment(false);
     }
   };
 
@@ -171,17 +184,19 @@ const LockerScreen = ({ navigation }) => {
 
   useEffect(() => {
     if (paymentSuccess && orderId) {
-      navigation.navigate('OrderListStackScreen', {
-        screen: 'OrderStatusScreen',
-        params: {
-          orderId,
-        },
-      });
-      // Reset the paymentSuccess state after navigation
-      setPaymentSuccess(false);
+      const timer = setTimeout(() => {
+        setPaymentSuccess(false);
+        navigation.navigate('HomeStackScreen', {
+          screen: 'HomeScreen',
+          params: {
+            orderId,
+          },
+        });
+      }, 2000); // Show success message for 2 seconds
+
+      return () => clearTimeout(timer);
     }
 
-    // Cleanup function to set isComponentMounted to false when the component is unmounted
     return () => {
       setIsComponentMounted(false);
     };
@@ -245,8 +260,11 @@ const LockerScreen = ({ navigation }) => {
           </View>
         </Modal>
       </Layout>
-      {isLoading && (
+      {(isLoading || isProcessingPayment) && (
         <View style={styles.overlayStyle}>
+          {isProcessingPayment && (
+            <Text style={styles.verifyPaymentText}> Verifying Payment. Please wait..</Text>
+          )}
           <ActivityIndicator size="large" color={colors.theme} />
         </View>
       )}
@@ -323,11 +341,18 @@ const styles = StyleSheet.create({
   },
   overlayStyle: {
     position: 'absolute',
-    backgroundColor: 'rgba(255,255,255,0.5)',
+    backgroundColor: 'rgb(255,255,255)',
     width: '100%',
     height: '100%',
     justifyContent: 'center',
     alignItems: 'center',
-    zIndex: 2, // Make sure this overlays all other content
+    zIndex: 2,
   },
+  verifyPaymentText: {
+    color: 'gray',
+    textAlign: 'center',
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 10,
+  }
 });
