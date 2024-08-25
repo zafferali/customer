@@ -41,6 +41,8 @@ const LockerScreen = ({ navigation }) => {
   const { currentRestaurant, selectedTimeSlot } = useSelector(state => state.restaurants);
   const customerRef = firestore().collection('customers').doc(customer.id);
   const restaurantRef = firestore().collection('restaurants').doc(currentRestaurant.id);
+  const lockerRef = firestore().collection('lockers').doc('GPfcvKf73QLEoh09yZfX');
+  console.log('lock', lockerRef);
 
   const briskit_logo =
     'https://firebasestorage.googleapis.com/v0/b/briskit-52b77.appspot.com/o/logo-black.png?alt=media&token=4bf8ca06-8031-41d4-9b54-5f9102a9b0ac';
@@ -55,7 +57,7 @@ const LockerScreen = ({ navigation }) => {
       if (data && data.id) {
         startPayment(data.id, data.amount); // Razorpay checkout starts here
       } else {
-        console.error('Failed to create order');
+        console.log('Failed to create order');
       }
     } finally {
       setIsLoading(false);
@@ -88,10 +90,8 @@ const LockerScreen = ({ navigation }) => {
         };
         verifyPayment(paymentData);
         console.log(`Success: ${data.razorpay_payment_id}`);
-        A;
       })
       .catch(error => {
-        setIsLoading(false);
         console.log(`Error: ${error.code} | ${error.description}`);
       })
       .finally(() => {
@@ -146,6 +146,7 @@ const LockerScreen = ({ navigation }) => {
     const orderData = {
       customer: customerRef,
       restaurant: restaurantRef,
+      locker: lockerRef,
       customerId: customer.id,
       restaurantId: currentRestaurant.id,
       restaurantName: currentRestaurant.name,
@@ -178,7 +179,7 @@ const LockerScreen = ({ navigation }) => {
 
       return docRef.id; // Optionally return it if needed elsewhere
     } catch (error) {
-      console.error('Error adding document: ', error);
+      console.log('Error adding document: ', error);
     }
   };
 

@@ -8,8 +8,11 @@ import {
   Image,
   ActivityIndicator,
   ImageBackground,
+  Linking,
+  Alert,
+  AppState,
 } from 'react-native';
-import MapView, { Marker, Polyline } from 'react-native-maps';
+import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from 'react-native-maps';
 import colors from 'constants/colors';
 import Geolocation from 'react-native-geolocation-service';
 import axios from 'axios';
@@ -23,7 +26,6 @@ import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { ScrollView } from 'react-native-gesture-handler';
 import { GlobalStyles } from 'constants/GlobalStyles';
 import { makeCall } from 'utils/makeCall';
-import openGoogleMaps from 'utils/openGoogleMaps';
 import OrderStatus from './OrderStatus';
 
 const TrackOrderModal = ({ orderId, isVisible, onClose }) => {
@@ -44,12 +46,35 @@ const TrackOrderModal = ({ orderId, isVisible, onClose }) => {
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [settingsMessage, setSettingsMessage] = useState('');
   const mapRef = useRef(null);
+  const appStateRef = useRef(AppState.currentState);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', nextAppState => {
+      if (appStateRef.current.match(/inactive|background/) && nextAppState === 'active') {
+        // App has come to the foreground
+        checkLocationPermissionStatus();
+      }
+      appStateRef.current = nextAppState;
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, []);
 
   useEffect(() => {
     if (isVisible) {
       checkLocationPermissionStatus();
     }
   }, [isVisible]);
+
+  useEffect(() => {
+    if (orderStatus === 'delivered') {
+      checkLocationPermissionStatus();
+    } else {
+      setLocationPermissionStatus(RESULTS.GRANTED);
+    }
+  }, [orderStatus]);
 
   useEffect(() => {
     const fetchOrderDetails = async () => {
@@ -62,7 +87,7 @@ const TrackOrderModal = ({ orderId, isVisible, onClose }) => {
             console.log('Order not found');
           }
         } catch (error) {
-          console.error('Error fetching order details:', error);
+          console.log('Error fetching order details:', error);
         }
       }
     };
@@ -71,33 +96,79 @@ const TrackOrderModal = ({ orderId, isVisible, onClose }) => {
   }, [orderId, isVisible]);
 
   const checkLocationPermissionStatus = async () => {
-    const status = await checkLocationPermission();
-    setLocationPermissionStatus(status);
-    if (status === RESULTS.GRANTED) {
-      getCurrentLocation();
-      fetchLockerLocation();
-      fetchRunnerLocation();
-      fetchRestaurantLocation();
+    if (orderStatus === 'delivered') {
+      const status = await checkLocationPermission();
+      setLocationPermissionStatus(status);
+      if (status === RESULTS.GRANTED) {
+        getCurrentLocation();
+      }
+    } else {
+      setLocationPermissionStatus(RESULTS.GRANTED);
+    }
+    fetchLockerLocation();
+    fetchRunnerLocation();
+    fetchRestaurantLocation();
+  };
+
+  const openGoogleMaps = async (destinationLat, destinationLng) => {
+    const showMapAlert = url => {
+      Alert.alert(
+        'Open Google Maps',
+        'Do you want to open Google Maps for navigation?',
+        [
+          {
+            text: 'Cancel',
+            style: 'cancel',
+          },
+          {
+            text: 'Yes',
+            onPress: () => Linking.openURL(url),
+          },
+        ],
+        { cancelable: false },
+      );
+    };
+
+    if (locationPermissionStatus === RESULTS.GRANTED) {
+      try {
+        getCurrentLocation();
+        if (userLocation) {
+          const url = `https://www.google.com/maps/dir/?api=1&origin=${userLocation.latitude},${userLocation.longitude}&destination=${destinationLat},${destinationLng}&travelmode=driving`;
+          showMapAlert(url);
+        } else {
+          throw new Error('User location not available');
+        }
+      } catch (error) {
+        console.log('Error getting current location:', error);
+        const url = `https://www.google.com/maps/search/?api=1&query=${destinationLat},${destinationLng}`;
+        showMapAlert(url);
+      }
+    } else {
+      // If permission is not granted, use the search URL
+      const url = `https://www.google.com/maps/search/?api=1&query=${destinationLat},${destinationLng}`;
+      showMapAlert(url);
     }
   };
 
   const handleLocationPermission = async () => {
-    const status = await requestLocationPermission();
-    setLocationPermissionStatus(status);
-    if (status === RESULTS.GRANTED) {
-      getCurrentLocation();
-      fetchLockerLocation();
-      fetchRunnerLocation();
-      fetchRestaurantLocation();
-    } else if (status === RESULTS.DENIED) {
-      setSettingsMessage(
-        'Location permission is required for this feature. Please enable it in your device settings.',
-      );
-      setShowSettingsModal(true);
-    } else if (status === RESULTS.BLOCKED) {
-      setSettingsMessage('Location permission is blocked. Please enable it in your device settings.');
-      setShowSettingsModal(true);
+    if (orderStatus === 'delivered') {
+      const status = await requestLocationPermission();
+      setLocationPermissionStatus(status);
+      if (status === RESULTS.GRANTED) {
+        getCurrentLocation();
+      } else if (status === RESULTS.DENIED) {
+        setSettingsMessage(
+          'Location permission is required for this feature. Please enable it in your device settings.',
+        );
+        setShowSettingsModal(true);
+      } else if (status === RESULTS.BLOCKED) {
+        setSettingsMessage('Location permission is blocked. Please enable it in your device settings.');
+        setShowSettingsModal(true);
+      }
     }
+    fetchLockerLocation();
+    fetchRunnerLocation();
+    fetchRestaurantLocation();
   };
 
   const renderLocationPermissionMessage = () => {
@@ -113,19 +184,23 @@ const TrackOrderModal = ({ orderId, isVisible, onClose }) => {
   };
 
   const getCurrentLocation = () => {
-    if (isVisible) {
+    if (isVisible && orderStatus === 'delivered' && locationPermissionStatus === RESULTS.GRANTED) {
       setIsLoadingUser(true);
       Geolocation.getCurrentPosition(
         position => {
           const { latitude, longitude } = position.coords;
           setUserLocation({ latitude, longitude });
           setIsLoadingUser(false);
+          focusMapOnStatus(); // Add this line to update the map
         },
         error => {
+          console.log('Error getting current location:', error);
           setIsLoadingUser(false);
         },
         { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 },
       );
+    } else {
+      setIsLoadingUser(false);
     }
   };
 
@@ -201,17 +276,17 @@ const TrackOrderModal = ({ orderId, isVisible, onClose }) => {
                 }
               },
               error => {
-                console.error('Error in runner listener:', error);
+                console.log('Error in runner listener:', error);
               },
             );
           }
         },
         error => {
-          console.error('Error in order listener:', error);
+          console.log('Error in order listener:', error);
         },
       );
     } catch (error) {
-      console.error('Error fetching runner data:', error);
+      console.log('Error fetching runner data:', error);
     }
 
     return () => {
@@ -340,7 +415,7 @@ const TrackOrderModal = ({ orderId, isVisible, onClose }) => {
       fetchRunnerLocation();
       fetchRestaurantLocation();
     }
-  }, [isVisible]);
+  }, [isVisible, orderStatus]);
 
   useEffect(() => {
     if (mapRef.current && !isLoadingUser && !isLoadingLocker && !isLoadingRestaurant) {
@@ -363,15 +438,15 @@ const TrackOrderModal = ({ orderId, isVisible, onClose }) => {
       case 'received':
       case 'on the way':
       case 'ready':
-        return !isLoadingRestaurant;
+        return !isLoadingRestaurant && !isLoadingLocker;
       case 'picked':
         return !isLoadingLocker && runnerLocation;
       case 'delivered':
-        return !isLoadingUser && !isLoadingLocker;
+        return !isLoadingUser && !isLoadingLocker && locationPermissionStatus === RESULTS.GRANTED;
       case 'completed':
         return !isLoadingLocker;
       default:
-        return !isLoadingUser;
+        return true;
     }
   };
 
@@ -473,15 +548,16 @@ const TrackOrderModal = ({ orderId, isVisible, onClose }) => {
               <Image source={require('assets/images/close.png')} style={styles.closeButton} />
             </TouchableOpacity>
           </View>
-          {locationPermissionStatus === RESULTS.GRANTED ? (
+          {locationPermissionStatus === RESULTS.GRANTED || orderStatus !== 'delivered' ? (
             !isMapReady() ? (
               <View style={styles.loadingContainer}>
                 <ActivityIndicator size="large" color={colors.theme} />
               </View>
             ) : (
               <MapView
-                showsUserLocation={true}
-                followsUserLocation={true}
+                provider={PROVIDER_GOOGLE}
+                showsUserLocation={orderStatus === 'delivered'}
+                followsUserLocation={orderStatus === 'delivered'}
                 zoomControlEnabled={true}
                 zoomEnabled={true}
                 scrollEnabled={true}
@@ -494,7 +570,7 @@ const TrackOrderModal = ({ orderId, isVisible, onClose }) => {
                 {renderMarkers()}
                 {['received', 'on the way', 'ready', 'picked', 'delivered'].includes(orderStatus) &&
                   route?.length > 0 && (
-                    <Polyline coordinates={route} strokeColor={colors.theme} strokeWidth={2} />
+                    <Polyline coordinates={route} strokeColor={colors.theme} strokeWidth={4} />
                   )}
               </MapView>
             )
@@ -521,24 +597,29 @@ const TrackOrderModal = ({ orderId, isVisible, onClose }) => {
               </View>
               <View style={[styles.lineItem, styles.mv5]}>
                 <Text style={styles.lockerDetails}>Locker</Text>
-                <TouchableOpacity style={styles.lightBgCard}>
+                <TouchableOpacity
+                  style={styles.lightBgCard}
+                  onPress={() => openGoogleMaps(lockerLocation?.latitude, lockerLocation?.longitude)}
+                >
                   <Text style={[styles.text, { color: colors.theme }]}>
                     {lockerDetails?.campus}, {lockerDetails?.lockerName}
                   </Text>
-                  <View onPress={() => openGoogleMaps(lockerLocation.latitude, lockerLocation.longitude)}>
+                  <View>
                     <Image source={require('assets/images/map-icon.png')} style={styles.icon} />
                   </View>
                 </TouchableOpacity>
               </View>
-              <View style={[styles.lineItem, styles.mv5]}>
-                <Text style={styles.lockerDetails}>Runner</Text>
-                <View style={styles.lightBgCard}>
-                  <Text style={[styles.text, { color: colors.theme }]}>{runnerDetails?.name}</Text>
-                  <TouchableOpacity onPress={() => makeCall(`+91${runnerDetails?.mobile}`)}>
-                    <Image source={require('assets/images/call-icon.png')} style={styles.icon} />
-                  </TouchableOpacity>
+              {orderStatus === 'picked' && (
+                <View style={[styles.lineItem, styles.mv5]}>
+                  <Text style={styles.lockerDetails}>Runner</Text>
+                  <View style={styles.lightBgCard}>
+                    <Text style={[styles.text, { color: colors.theme }]}>{runnerDetails?.name}</Text>
+                    <TouchableOpacity onPress={() => makeCall(`+91${runnerDetails?.mobile}`)}>
+                      <Image source={require('assets/images/call-icon.png')} style={styles.icon} />
+                    </TouchableOpacity>
+                  </View>
                 </View>
-              </View>
+              )}
             </View>
             <View style={styles.lightBorder}>
               <View style={styles.restaurant}>
@@ -562,32 +643,11 @@ const TrackOrderModal = ({ orderId, isVisible, onClose }) => {
                 <Text style={[styles.mdText, styles.blackColor]}>₹{orderDetails?.totalPrice}</Text>
               </View>
             </View>
-            {/* <View style={styles.supportContainer}>
-              <Text style={styles.text}>
-                If you have any quries, please
-                <TouchableOpacity onPress={() => makeCall('+919884713398')}>
-                  <Text style={styles.text}>Call Support</Text>
-                </TouchableOpacity>{' '}
-              </Text>
-            </View> */}
             <TouchableOpacity style={styles.button} onPress={() => makeCall('+919884713398')}>
               <Image style={styles.phone} source={require('assets/images/phone.png')} />
               <Text style={styles.buttonText}>Customer Care</Text>
             </TouchableOpacity>
           </ScrollView>
-          {/* <View style={styles.bottomSection}>
-             <OrderStatus mapScreen orderId={orderId} />
-            <View style={styles.buttonsContainer}>
-              <TouchableOpacity style={styles.button}>
-                <Image style={styles.phone} source={require('assets/images/phone.png')} />
-                <Text style={styles.buttonText}>Call Runner</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.button}>
-                <Image style={styles.phone} source={require('assets/images/phone.png')} />
-                <Text style={styles.buttonText}>Customer Care</Text>
-              </TouchableOpacity>
-            </View>
-          </View> */}
         </SafeAreaView>
       </SafeAreaProvider>
     </Modal>
@@ -669,12 +729,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   mainContent: {
-    // backgroundColor: '#fff',
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
     paddingHorizontal: 14,
     paddingTop: 20,
     height: '20%',
+    borderTopColor: colors.themeLight,
+    borderTopWidth: 1,
   },
   lockerDetails: {
     fontSize: 14,
@@ -696,12 +755,6 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     borderWidth: 1,
     marginVertical: 20,
-  },
-  darkBorder: {
-    borderRadius: 8,
-    padding: 8,
-    borderColor: colors.theme,
-    borderWidth: 2,
   },
   restaurant: {
     flexDirection: 'row',
@@ -750,22 +803,7 @@ const styles = StyleSheet.create({
   blackColor: {
     color: '#000',
   },
-  // foodItemsText: {
-  //   fontSize: 14,
-  //   color: '#666',
-  //   fontWeight: '600',
-  // },
-  // buttonsContainer: {
-  //   flexDirection: 'row',
-  //   justifyContent: 'center',
-  //   gap: 8,
-  //   padding: 10,
-  //   width: '100%',
-  // },
-  // bottomSection: {
-  //   position: 'realtive',
-  //   bottom: 0,
-  // },
+
   button: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -774,9 +812,7 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 10,
     flex: 1,
-    // borderColor: 'rgb(156, 220, 255)',
-    // borderWidth: 3,
-    marginBottom: 20,
+    marginBottom: 30,
   },
   phone: {
     width: 20,
@@ -802,16 +838,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 20,
   },
-  // lightBgCard: {
-  //   flexDirection: 'row',
-  //   justifyContent: 'space-around',
-  //   alignItems: 'center',
-  //   backgroundColor: '#2E5E821A',
-  //   borderRadius: 6,
-  //   paddingHorizontal: 8,
-  //   paddingVertical: 12,
-  //   width: 160,
-  // },
   text: {
     color: colors.darkGray,
     fontWeight: '600',
@@ -834,10 +860,5 @@ const styles = StyleSheet.create({
   icon: {
     width: 26,
     height: 26,
-  },
-  supportContainer: {
-    flexDirection: 'row',
-    marginBottom: 20,
-    paddingHorizontal: 10,
   },
 });

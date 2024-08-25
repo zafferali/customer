@@ -20,16 +20,17 @@ const customTextProps = {
     fontWeight: '600',
   },
 };
+
 setCustomText(customTextProps);
 
 const App = () => {
   const Stack = createStackNavigator();
   const { isAuthenticated, isFirstTime, manualLocation } = useSelector(state => state.authentication);
+  const [locationPermissionChecked, setLocationPermissionChecked] = useState(false);
   const [locationPermissionGranted, setLocationPermissionGranted] = useState(false);
 
   useEffect(() => {
     checkInitialPermission();
-
     const subscription = AppState.addEventListener('change', handleAppStateChange);
     return () => {
       subscription.remove();
@@ -39,6 +40,7 @@ const App = () => {
   const checkInitialPermission = async () => {
     const status = await checkLocationPermission();
     setLocationPermissionGranted(status === RESULTS.GRANTED);
+    setLocationPermissionChecked(true);
   };
 
   const handleAppStateChange = nextAppState => {
@@ -51,12 +53,20 @@ const App = () => {
     setLocationPermissionGranted(true);
   };
 
-  return (
-    <SafeAreaView style={styles.fullWidth}>
-      <NavigationContainer>
-        {!isAuthenticated ? (
+  if (!isAuthenticated) {
+    return (
+      <SafeAreaView style={styles.fullWidth}>
+        <NavigationContainer>
           <AuthStackNavigator />
-        ) : isFirstTime ? (
+        </NavigationContainer>
+      </SafeAreaView>
+    );
+  }
+
+  if (isFirstTime) {
+    return (
+      <SafeAreaView style={styles.fullWidth}>
+        <NavigationContainer>
           <Stack.Navigator
             screenOptions={{
               gestureEnabled: true,
@@ -66,7 +76,20 @@ const App = () => {
           >
             <Stack.Screen name="IntroScreen" component={IntroScreen} />
           </Stack.Navigator>
-        ) : !locationPermissionGranted && !manualLocation ? (
+        </NavigationContainer>
+      </SafeAreaView>
+    );
+  }
+
+  if (!locationPermissionChecked) {
+    // Show a loading screen or splash screen while checking permissions
+    return null;
+  }
+
+  return (
+    <SafeAreaView style={styles.fullWidth}>
+      <NavigationContainer>
+        {!locationPermissionGranted && !manualLocation ? (
           <LocationPermissionScreen onPermissionGranted={handlePermissionGranted} />
         ) : (
           <BottomTabNavigator />

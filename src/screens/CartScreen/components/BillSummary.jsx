@@ -1,8 +1,9 @@
 import { Text, View, StyleSheet } from 'react-native';
 import colors from 'constants/colors';
+import { GlobalStyles } from 'constants/GlobalStyles';
 
 const BillSummary = ({ cart }) => (
-  <View style={styles.itemsContainer}>
+  <View style={[styles.itemsContainer, GlobalStyles.lightBorder]}>
     <View style={styles.row}>
       <Text style={styles.description}>Item(s) total</Text>
       <Text style={styles.amount}>₹{cart.subTotal}</Text>

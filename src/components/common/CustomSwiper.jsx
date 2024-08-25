@@ -11,6 +11,8 @@ const CustomSwiper = ({ children }) => {
     setActiveIndex(index);
   };
 
+  const childrenArray = React.Children.toArray(children);
+
   return (
     <View style={styles.container}>
       <ScrollView
@@ -20,15 +22,19 @@ const CustomSwiper = ({ children }) => {
         onScroll={onScroll}
         scrollEventThrottle={16}
       >
-        {React.Children.map(children, child => (
-          <View style={[styles.slide, { width: screenWidth }]}>{child}</View>
+        {childrenArray.map((child, index) => (
+          <View key={index} style={[styles.slide, { width: screenWidth }]}>
+            {child}
+          </View>
         ))}
       </ScrollView>
-      <View style={styles.dotsContainer}>
-        {React.Children.map(children, (_, index) => (
-          <View key={index} style={[styles.dot, activeIndex === index ? styles.activeDot : null]} />
-        ))}
-      </View>
+      {childrenArray.length > 1 && (
+        <View style={styles.dotsContainer}>
+          {childrenArray.map((_, index) => (
+            <View key={index} style={[styles.dot, activeIndex === index ? styles.activeDot : null]} />
+          ))}
+        </View>
+      )}
     </View>
   );
 };
