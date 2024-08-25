@@ -28,6 +28,7 @@ const LockerScreen = ({ navigation }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [orderId, setOrderId] = useState('');
   const [isComponentMounted, setIsComponentMounted] = useState(true);
+  const [restaurant, setRestaurant] = useState(null);
 
   const cart = useSelector(state => state.cart);
   const items = cart.items.map(item => ({
@@ -40,8 +41,17 @@ const LockerScreen = ({ navigation }) => {
   const customer = useSelector(state => state.authentication.customer);
   const { currentRestaurant, selectedTimeSlot } = useSelector(state => state.restaurants);
   const customerRef = firestore().collection('customers').doc(customer.id);
-  const restaurantRef = firestore().collection('restaurants').doc(currentRestaurant.id);
   const lockerRef = firestore().collection('lockers').doc('GPfcvKf73QLEoh09yZfX');
+  const restaurantRef = firestore().collection('restaurants').doc(cart.restaurantId);
+
+  useEffect(() => {
+    const getRestaurant = async () => {
+      const restaurantDoc = await restaurantRef.get();
+      setRestaurant(restaurantDoc.data());
+    };
+
+    getRestaurant();
+  }, []);
 
   const briskit_logo =
     'https://firebasestorage.googleapis.com/v0/b/briskit-52b77.appspot.com/o/logo-black.png?alt=media&token=4bf8ca06-8031-41d4-9b54-5f9102a9b0ac';
@@ -140,18 +150,18 @@ const LockerScreen = ({ navigation }) => {
 
   const createBriskitOrder = async paymentData => {
     const generatedOrderId = await generateOrderID();
-    const pickupCode = await generatePickupCode(currentRestaurant.id, generatedOrderId);
+    const pickupCode = await generatePickupCode(cart.restaurantId, generatedOrderId);
 
     const orderData = {
       customer: customerRef,
       restaurant: restaurantRef,
       locker: lockerRef,
       customerId: customer.id,
-      restaurantId: currentRestaurant.id,
-      restaurantName: currentRestaurant.name,
+      restaurantId: cart.restaurantId,
+      restaurantName: restaurant.name,
       customerName: customer.name,
-      ...(currentRestaurant.branch && { branchName: currentRestaurant.branch }),
-      restaurantImage: currentRestaurant.thumbnailUrl || '',
+      ...(restaurant.branch && { branchName: restaurant.branch }),
+      restaurantImage: restaurant.thumbnailUrl || '',
       deliveryTime: selectedTimeSlot,
       orderNum: generatedOrderId,
       pickupCode,

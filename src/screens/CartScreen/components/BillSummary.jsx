@@ -5,7 +5,7 @@ import { GlobalStyles } from 'constants/GlobalStyles';
 const BillSummary = ({ cart }) => (
   <View style={[styles.itemsContainer, GlobalStyles.lightBorder]}>
     <View style={styles.row}>
-      <Text style={styles.description}>Item(s) total</Text>
+      <Text style={styles.description}>Item Total</Text>
       <Text style={styles.amount}>₹{cart.subTotal}</Text>
     </View>
     <View style={styles.row}>
@@ -18,9 +18,9 @@ const BillSummary = ({ cart }) => (
         <Text style={styles.amount}>-₹{cart.discount}</Text>
       </View>
     )}
-    <View style={styles.totalRow}>
-      <Text style={styles.description}>Total</Text>
-      <Text style={[styles.amount]}>₹{cart.total}</Text>
+    <View style={[styles.row, styles.noBorder]}>
+      <Text style={[styles.description, styles.bold]}>Total Bill</Text>
+      <Text style={[styles.amount, styles.bold]}>₹{cart.total}</Text>
     </View>
   </View>
 );
@@ -28,32 +28,30 @@ const BillSummary = ({ cart }) => (
 const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
-    justifyContent: 'flex-end',
+    justifyContent: 'space-between',
     gap: 15,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
     paddingVertical: 8,
+    paddingTop: 15,
   },
-  totalRow: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    gap: 15,
-    paddingVertical: 8,
-    borderTopColor: colors.border,
+  noBorder: {
+    borderBottomWidth: 0,
   },
   description: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: 'light',
     color: '#737373',
-    width: '90%',
     textAlign: 'right',
   },
   amount: {
-    fontSize: 12,
-    fontWeight: '600',
+    fontSize: 14,
+    fontWeight: 'light',
     color: colors.theme,
-    width: '12%',
     textAlign: 'left',
+  },
+  bold: {
+    fontWeight: 'bold',
   },
 });
 

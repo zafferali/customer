@@ -16,7 +16,7 @@ import SearchBar from 'components/common/SearchBar';
 import colors from 'constants/colors';
 import { useSelector, useDispatch } from 'react-redux';
 import firestore from '@react-native-firebase/firestore';
-import { setCart as loadCart, setRestaurantId } from 'redux/slices/cartSlice';
+import { setCart as loadCart } from 'redux/slices/cartSlice';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import CustomButton from 'components/common/CustomButton';
 import FoodItem from './components/FoodItem';
@@ -51,10 +51,6 @@ const RestaurantScreen = ({ navigation, route }) => {
   const [selectedItem, setSelectedItem] = useState(null);
   const [selectedCustomisations, setSelectedCustomisations] = useState({});
   const [lastUsedCustomisations, setLastUsedCustomisations] = useState({});
-
-  useEffect(() => {
-    dispatch(setRestaurantId(restaurantId));
-  }, [dispatch, restaurantId]);
 
   useEffect(() => {
     const loadStoredCart = async () => {
@@ -228,8 +224,9 @@ const RestaurantScreen = ({ navigation, route }) => {
   };
 
   const handleCartNavigation = async () => {
+    const restID = cart.items[0].restaurantId;
     navigation.navigate('CartScreen');
-    await createOrUpdateCart(cart, customerId, restaurantId);
+    await createOrUpdateCart(cart, customerId, restID);
   };
 
   return (

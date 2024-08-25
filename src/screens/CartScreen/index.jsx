@@ -27,9 +27,10 @@ const CartScreen = ({ navigation }) => {
   const [discountError, setDiscountError] = useState(null);
   const [additionalAmountNeeded, setAdditionalAmountNeeded] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [restaurant, setRestaurant] = useState(null);
 
   const cart = useSelector(state => state.cart);
-  const restaurantId = useSelector(state => state.restaurants.currentRestaurant.id);
+  const { restaurantId } = cart;
   const userOrderCount = useSelector(state => state.authentication.customer.orderCount);
   const appliedDiscount = useSelector(state => state.cart.discountCode);
 
@@ -157,10 +158,20 @@ const CartScreen = ({ navigation }) => {
 
   const hasItems = (cart?.items ?? []).length > 0;
 
+  useEffect(() => {
+    const getRestaurant = async () => {
+      const restaurantRef = firestore().collection('restaurants').doc(restaurantId);
+      const restaurantDoc = await restaurantRef.get();
+      setRestaurant(restaurantDoc.data());
+    };
+
+    getRestaurant();
+  }, []);
+
   return (
     <Layout
       navigation={navigation}
-      backTitle="My Cart"
+      backTitle={restaurant?.name}
       bottomBar
       rightButton
       btnText="Choose Pickup Point"

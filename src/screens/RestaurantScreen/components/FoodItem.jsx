@@ -2,7 +2,7 @@ import { View, Text, StyleSheet, Image } from 'react-native';
 import { useState } from 'react';
 import { useSelector } from 'react-redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { resetCart } from 'redux/slices/cartSlice';
+import { resetCart, setRestaurantId } from 'redux/slices/cartSlice';
 import colors from 'constants/colors';
 import { GlobalStyles } from 'constants/GlobalStyles';
 import Add from 'components/common/Add';
@@ -24,7 +24,10 @@ const FoodItem = ({ data, dispatch, openModal }) => {
   dataWithID.restaurantId = restaurantId;
 
   const handleOnPress = () => {
-    if ((cart.items.length && restaurantId === cart.items[0].restaurantId) || cart.items.length === 0) {
+    if (!cart.items.length || restaurantId === cart.items[0].restaurantId) {
+      if (!cart.items.length) {
+        dispatch(setRestaurantId(restaurantId));
+      }
       addItem(dataWithID, [], dispatch, openModal);
     } else {
       setVisible(true);
