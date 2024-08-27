@@ -164,6 +164,7 @@ const TimeSlotScreen = ({ navigation }) => {
         isVisible={showTrackOrderModal}
         onClose={() => setShowTrackOrderModal(false)}
         orderId={selectedOrderId}
+        showMap
       />
     </Layout>
   );

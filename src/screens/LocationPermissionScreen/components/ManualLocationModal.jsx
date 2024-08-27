@@ -15,19 +15,17 @@ import { useDispatch } from 'react-redux';
 import { setManualLocation } from 'redux/slices/authenticationSlice';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
-const { width, height } = Dimensions.get('window');
-
 const ManualLocationModal = ({ isVisible, onClose }) => {
   const dispatch = useDispatch();
 
   const cards = [
-    { id: 1, text: 'Mumbai', selectable: true },
-    { id: 2, text: 'New Delhi', selectable: false },
-    { id: 3, text: 'Bengaluru', selectable: false },
-    { id: 4, text: 'Chennai', selectable: false },
-    { id: 5, text: 'Hyderabad', selectable: false },
-    { id: 6, text: 'Ahmedabad', selectable: false },
-    { id: 7, text: 'Kolkata', selectable: false },
+    { id: 1, text: 'Mumbai', selectable: true, image: require('assets/images/mumbai.jpg') },
+    { id: 2, text: 'New Delhi', selectable: false, image: require('assets/images/delhi.jpg') },
+    { id: 3, text: 'Bengaluru', selectable: false, image: require('assets/images/bengaluru.jpg') },
+    { id: 4, text: 'Chennai', selectable: false, image: require('assets/images/chennai.jpg') },
+    { id: 5, text: 'Hyderabad', selectable: false, image: require('assets/images/hyderabad.jpg') },
+    { id: 6, text: 'Ahmedabad', selectable: false, image: require('assets/images/ahmedabad.jpg') },
+    { id: 7, text: 'Kolkata', selectable: false, image: require('assets/images/kolkata.jpg') },
   ];
 
   const handleLocationSelect = location => {
@@ -56,7 +54,7 @@ const ManualLocationModal = ({ isVisible, onClose }) => {
                 disabled={!card.selectable}
               >
                 <View style={styles.imageWrapper}>
-                  <ImageBackground source={require('assets/images/mumbai.jpg')} style={styles.cardImage}>
+                  <ImageBackground source={card.image} style={styles.cardImage}>
                     <View style={[styles.overlay, !card.selectable && styles.disabledOverlay]} />
                     <Text style={styles.cardText}>{card.text}</Text>
                   </ImageBackground>
@@ -102,7 +100,7 @@ const styles = StyleSheet.create({
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(0, 0, 0, 0.1)',
   },
   cardText: {
     color: '#fff',
@@ -122,10 +120,7 @@ const styles = StyleSheet.create({
     opacity: 0.4,
   },
   disabledOverlay: {
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-  },
-  mt20: {
-    marginTop: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.9)',
   },
 });
 

@@ -180,6 +180,7 @@ const OrderListScreen = () => {
         isVisible={isModalVisible}
         onClose={() => setModalVisible(false)}
         orderId={selectedOrderId}
+        showMap={selectedTab === 'ongoing'}
       />
     </Layout>
   );
@@ -189,7 +190,7 @@ export default OrderListScreen;
 
 const styles = StyleSheet.create({
   orderItem: {
-    marginBottom: 30,
+    marginBottom: 40,
   },
   orderDetails: {
     flexDirection: 'row',

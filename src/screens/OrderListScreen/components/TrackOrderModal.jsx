@@ -28,7 +28,7 @@ import { GlobalStyles } from 'constants/GlobalStyles';
 import { makeCall } from 'utils/makeCall';
 import OrderStatus from './OrderStatus';
 
-const TrackOrderModal = ({ orderId, isVisible, onClose }) => {
+const TrackOrderModal = ({ orderId, isVisible, onClose, showMap }) => {
   const [userLocation, setUserLocation] = useState(null);
   const [runnerLocation, setRunnerLocation] = useState(null);
   const [runnerDetails, setRunnerDetails] = useState(null);
@@ -554,25 +554,27 @@ const TrackOrderModal = ({ orderId, isVisible, onClose }) => {
                 <ActivityIndicator size="large" color={colors.theme} />
               </View>
             ) : (
-              <MapView
-                provider={PROVIDER_GOOGLE}
-                showsUserLocation={orderStatus === 'delivered'}
-                followsUserLocation={orderStatus === 'delivered'}
-                zoomControlEnabled={true}
-                zoomEnabled={true}
-                scrollEnabled={true}
-                pitchEnabled={true}
-                ref={mapRef}
-                style={styles.map}
-                loadingEnabled
-                loadingIndicatorColor={colors.theme}
-              >
-                {renderMarkers()}
-                {['received', 'on the way', 'ready', 'picked', 'delivered'].includes(orderStatus) &&
-                  route?.length > 0 && (
-                    <Polyline coordinates={route} strokeColor={colors.theme} strokeWidth={4} />
-                  )}
-              </MapView>
+              showMap && (
+                <MapView
+                  provider={PROVIDER_GOOGLE}
+                  showsUserLocation={orderStatus === 'delivered'}
+                  followsUserLocation={orderStatus === 'delivered'}
+                  zoomControlEnabled={true}
+                  zoomEnabled={true}
+                  scrollEnabled={true}
+                  pitchEnabled={true}
+                  ref={mapRef}
+                  style={styles.map}
+                  loadingEnabled
+                  loadingIndicatorColor={colors.theme}
+                >
+                  {renderMarkers()}
+                  {['received', 'on the way', 'ready', 'picked', 'delivered'].includes(orderStatus) &&
+                    route?.length > 0 && (
+                      <Polyline coordinates={route} strokeColor={colors.theme} strokeWidth={4} />
+                    )}
+                </MapView>
+              )
             )
           ) : (
             renderLocationPermissionMessage()
@@ -625,7 +627,8 @@ const TrackOrderModal = ({ orderId, isVisible, onClose }) => {
               <View style={styles.restaurant}>
                 <Image source={{ uri: restaurantDetails?.thumbnailUrl }} style={styles.restaurantImage} />
                 <Text style={styles.restaurantName}>
-                  {restaurantDetails?.name} {restaurantDetails?.branch && `, ' ${restaurantDetails?.branch}`}
+                  {restaurantDetails?.name}
+                  {restaurantDetails?.branch && `, ${restaurantDetails?.branch}`}
                 </Text>
               </View>
               <View style={styles.foodItems}>
@@ -733,7 +736,7 @@ const styles = StyleSheet.create({
     paddingTop: 20,
     height: '20%',
     borderTopColor: colors.themeLight,
-    borderTopWidth: 1,
+    borderTopWidth: 2,
   },
   lockerDetails: {
     fontSize: 14,
