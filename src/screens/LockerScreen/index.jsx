@@ -272,8 +272,6 @@ const LockerScreen = ({ navigation }) => {
   );
 };
 
-export default LockerScreen;
-
 const styles = StyleSheet.create({
   heading: {
     fontSize: 18,
@@ -337,11 +335,11 @@ const styles = StyleSheet.create({
   successSubText: {
     fontSize: 14,
     fontWeight: '600',
-    color: 'rgba(255,255,255,0.4)',
+    color: 'rgba(255, 255, 255, 0.4)',
   },
   overlayStyle: {
     position: 'absolute',
-    backgroundColor: 'rgb(255,255,255)',
+    backgroundColor: '#ffffff',
     width: '100%',
     height: '100%',
     justifyContent: 'center',
@@ -356,3 +354,5 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
 });
+
+export default LockerScreen;
