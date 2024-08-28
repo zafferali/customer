@@ -42,7 +42,6 @@ const LockerScreen = ({ navigation }) => {
   const customerRef = firestore().collection('customers').doc(customer.id);
   const restaurantRef = firestore().collection('restaurants').doc(currentRestaurant.id);
   const lockerRef = firestore().collection('lockers').doc('GPfcvKf73QLEoh09yZfX');
-  console.log('lock', lockerRef);
 
   const briskit_logo =
     'https://firebasestorage.googleapis.com/v0/b/briskit-52b77.appspot.com/o/logo-black.png?alt=media&token=4bf8ca06-8031-41d4-9b54-5f9102a9b0ac';
@@ -355,5 +354,5 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     marginBottom: 10,
-  }
+  },
 });

@@ -7,8 +7,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   Modal,
-  Dimensions,
-  Platform,
 } from 'react-native';
 import colors from 'constants/colors';
 import { useDispatch } from 'react-redux';

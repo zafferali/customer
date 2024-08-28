@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity, Image } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import firestore from '@react-native-firebase/firestore';
 import colors from 'constants/colors';
 import CustomButton from 'components/common/CustomButton';
@@ -32,14 +32,6 @@ const OrderStatus = ({ orderId, mapScreen, onPress }) => {
   }, [orderId]);
 
   const getOrderStatusInfo = status => {
-    // const calculateTimeDifference = deliveryTime => {
-    //   const [deliveryHour, deliveryMinute] = deliveryTime.split(':').map(Number);
-    //   const now = new Date();
-    //   const deliveryDate = new Date();
-    //   deliveryDate.setHours(deliveryHour, deliveryMinute, 0, 0);
-    //   const differenceInMinutes = Math.round((deliveryDate - now) / (1000 * 60));
-    //   return differenceInMinutes;
-    // };
     switch (status) {
       case 'received':
         return {
