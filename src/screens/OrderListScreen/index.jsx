@@ -53,7 +53,9 @@ const OrderListScreen = () => {
 
           return {
             id: orderDoc.id,
-            name: data.restaurantName,
+            items: data.items,
+            totalPrice: data.totalPrice,
+            restaurantName: data.restaurantName,
             branch: data.branchName,
             image: data.restaurantImage,
             orderNum: data.orderNum,
@@ -86,44 +88,59 @@ const OrderListScreen = () => {
 
   const filteredOrders = orders.filter(
     order =>
-      order.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
+      order.restaurantName.toLowerCase().includes(searchQuery.toLowerCase()) &&
       (selectedTab === 'ongoing' ? order.status === 'Ongoing' : order.status === 'Past'),
   );
 
   const RenderItem = useCallback(
     ({ item }) => (
-      <View style={[GlobalStyles.lightBorder, styles.orderItem]}>
+      <View style={styles.orderItem}>
         <View style={styles.orderDetails}>
-          <Image source={{ uri: item.image }} style={styles.thumbnail} />
+          {/* <Image source={{ uri: item.image }} style={styles.thumbnail} /> */}
           <View style={styles.infoContainer}>
             <Text style={styles.title}>
-              {item.name}
+              {item.restaurantName}
               {item.branch && `, ${item.branch}`}
             </Text>
-            {item.status === 'Past' && <Text style={styles.date}>{item.date}</Text>}
-            <Text style={styles.orderNum}>Order# {item.orderNum}</Text>
-            {item.status === 'Ongoing' && item.deliveryTime && (
-              <Text style={styles.date}>Pickup Time: {item.deliveryTime}</Text>
-            )}
+            <View>
+              <Text style={styles.orderNum}>Order #{item.orderNum}</Text>
+              {item.status === 'Past' && <Text style={styles.date}>{item.date}</Text>}
+            </View>
           </View>
         </View>
-        {item.status !== 'Past' && (
-          <View style={styles.dualBtnContainer}>
-            <TouchableOpacity style={styles.trackButton} onPress={() => {}}>
-              <Text style={styles.trackButtonText}>Order Details</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.trackButton}
-              onPress={() => {
-                setSelectedOrderId(item.id);
-                setModalVisible(true);
-              }}
-            >
-              <Image style={styles.navigateIcon} source={require('assets/images/navigate.png')} />
-              <Text style={styles.trackButtonText}>Track Order</Text>
-            </TouchableOpacity>
+        <Text style={styles.itemCount}>{item.items.length} item(s)</Text>
+        <View style={styles.itemsContainer}>
+          <View style={styles.items}>
+            <Text style={styles.foodItemsText}>
+              {item.items.map(
+                (foodItem, index) =>
+                  `${foodItem.name} x ${foodItem.quantity}${index < item.items.length - 1 ? ', ' : ''}`,
+              )}
+            </Text>
           </View>
-        )}
+          <Text style={styles.totalPrice}>₹ {item.totalPrice}</Text>
+        </View>
+        <View style={styles.dualBtnContainer}>
+          <TouchableOpacity
+            style={styles.borderBtn}
+            onPress={() => {
+              setSelectedOrderId(item.id);
+              setModalVisible(true);
+            }}
+          >
+            <Text style={styles.trackButtonText}>
+              {item.status !== 'Past' ? 'Track Order' : 'Order details'}
+            </Text>
+            {item.status !== 'Past' && (
+              <Image style={styles.navigateIcon} source={require('assets/images/arrow-fill.png')} />
+            )}
+          </TouchableOpacity>
+          {item.status === 'Ongoing' && item.deliveryTime && (
+            <Text style={styles.pickupTime}>
+              Pickup Time: <Text style={styles.time}>{item.deliveryTime}</Text>
+            </Text>
+          )}
+        </View>
       </View>
     ),
     [],
@@ -163,6 +180,7 @@ const OrderListScreen = () => {
         isVisible={isModalVisible}
         onClose={() => setModalVisible(false)}
         orderId={selectedOrderId}
+        showMap={selectedTab === 'ongoing'}
       />
     </Layout>
   );
@@ -172,22 +190,21 @@ export default OrderListScreen;
 
 const styles = StyleSheet.create({
   orderItem: {
-    // flexDirection: 'row',
-    marginBottom: 10,
+    marginBottom: 40,
   },
   orderDetails: {
     flexDirection: 'row',
     marginBottom: 10,
   },
-  thumbnail: {
-    width: 80,
-    height: 80,
-    resizeMode: 'cover',
-    borderRadius: 8,
-  },
+  // thumbnail: {
+  //   width: 80,
+  //   height: 80,
+  //   resizeMode: 'cover',
+  //   borderRadius: 8,
+  // },
   infoContainer: {
     flex: 1,
-    marginLeft: 20,
+    // marginLeft: 20,
     paddingVertical: 10,
   },
   title: {
@@ -202,10 +219,47 @@ const styles = StyleSheet.create({
     color: 'black',
   },
   orderNum: {
-    fontSize: 12,
-    fontWeight: '500',
+    fontSize: 14,
+    fontWeight: '600',
     color: 'black',
     marginBottom: 2,
+  },
+  itemsContainer: {
+    marginVertical: 12,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: 10,
+    borderBottomColor: colors.border,
+    borderBottomWidth: 1,
+    paddingBottom: 16,
+  },
+
+  itemCount: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#000',
+  },
+  items: {
+    width: '75%',
+  },
+  foodItemsText: {
+    fontSize: 14,
+    color: '#666',
+    fontWeight: '600',
+  },
+  totalPrice: {
+    color: colors.theme,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  pickupTime: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: 'gray',
+  },
+  time: {
+    color: '#000',
   },
   noOrderContainer: {
     flex: 1,
@@ -237,27 +291,27 @@ const styles = StyleSheet.create({
   },
   dualBtnContainer: {
     flexDirection: 'row',
-    gap: 4,
-  },
-  trackButton: {
-    backgroundColor: colors.theme,
-    flexDirection: 'row',
-    width: '50%',
-    justifyContent: 'center',
-    gap: 6,
-    padding: 8,
-    borderRadius: 6,
+    justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 5,
   },
   trackButtonText: {
-    color: 'white',
+    color: colors.theme,
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: 'bold',
   },
   navigateIcon: {
-    width: 14,
-    height: 14,
-    tintColor: 'white',
+    width: 10,
+    height: 10,
+    tintColor: colors.theme,
+  },
+  borderBtn: {
+    borderColor: colors.theme,
+    borderWidth: 2,
+    borderRadius: 6,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
 });

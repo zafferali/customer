@@ -24,16 +24,24 @@ import { generatePickupCode } from './generatePickupCode';
 const LockerScreen = ({ navigation }) => {
   const [selectedId, setSelectedId] = useState(1);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [orderId, setOrderId] = useState('');
   const [isComponentMounted, setIsComponentMounted] = useState(true);
 
   const cart = useSelector(state => state.cart);
-  const items = cart.items.map(item => ({ id: item.itemId, name: item.name, quantity: item.quantity }));
+  const items = cart.items.map(item => ({
+    id: item.itemId,
+    cartItemId: item.cartItemId,
+    price: item.price,
+    name: item.name,
+    quantity: item.quantity,
+  }));
   const customer = useSelector(state => state.authentication.customer);
   const { currentRestaurant, selectedTimeSlot } = useSelector(state => state.restaurants);
   const customerRef = firestore().collection('customers').doc(customer.id);
   const restaurantRef = firestore().collection('restaurants').doc(currentRestaurant.id);
+  const lockerRef = firestore().collection('lockers').doc('GPfcvKf73QLEoh09yZfX');
 
   const briskit_logo =
     'https://firebasestorage.googleapis.com/v0/b/briskit-52b77.appspot.com/o/logo-black.png?alt=media&token=4bf8ca06-8031-41d4-9b54-5f9102a9b0ac';
@@ -48,7 +56,7 @@ const LockerScreen = ({ navigation }) => {
       if (data && data.id) {
         startPayment(data.id, data.amount); // Razorpay checkout starts here
       } else {
-        console.error('Failed to create order');
+        console.log('Failed to create order');
       }
     } finally {
       setIsLoading(false);
@@ -83,7 +91,6 @@ const LockerScreen = ({ navigation }) => {
         console.log(`Success: ${data.razorpay_payment_id}`);
       })
       .catch(error => {
-        setIsLoading(false);
         console.log(`Error: ${error.code} | ${error.description}`);
       })
       .finally(() => {
@@ -92,17 +99,22 @@ const LockerScreen = ({ navigation }) => {
   };
 
   const verifyPayment = async paymentData => {
+    setIsProcessingPayment(true);
     try {
       const verificationResponse = await axios.post(RAZORPAY_VERIFY_PAYMENT, paymentData);
       if (verificationResponse.data.success) {
+        await createBriskitOrder(paymentData);
         setPaymentSuccess(true);
-        createBriskitOrder(paymentData);
       } else {
-        Alert.alert('Payment verification failed. Please contact customer support.');
+        throw new Error('Payment verification failed');
       }
     } catch (error) {
-      Alert.alert('There was an issue verifying your payment. Please contact customer support.');
-      console.error(error.response || error);
+      Alert.alert(
+        `${error.message}`,
+        'There was an issue verifying your payment. Please contact customer support.',
+      );
+    } finally {
+      setIsProcessingPayment(false);
     }
   };
 
@@ -133,6 +145,7 @@ const LockerScreen = ({ navigation }) => {
     const orderData = {
       customer: customerRef,
       restaurant: restaurantRef,
+      locker: lockerRef,
       customerId: customer.id,
       restaurantId: currentRestaurant.id,
       restaurantName: currentRestaurant.name,
@@ -165,23 +178,25 @@ const LockerScreen = ({ navigation }) => {
 
       return docRef.id; // Optionally return it if needed elsewhere
     } catch (error) {
-      console.error('Error adding document: ', error);
+      console.log('Error adding document: ', error);
     }
   };
 
   useEffect(() => {
     if (paymentSuccess && orderId) {
-      navigation.navigate('OrderListStackScreen', {
-        screen: 'OrderStatusScreen',
-        params: {
-          orderId,
-        },
-      });
-      // Reset the paymentSuccess state after navigation
-      setPaymentSuccess(false);
+      const timer = setTimeout(() => {
+        setPaymentSuccess(false);
+        navigation.navigate('HomeStackScreen', {
+          screen: 'HomeScreen',
+          params: {
+            orderId,
+          },
+        });
+      }, 2000); // Show success message for 2 seconds
+
+      return () => clearTimeout(timer);
     }
 
-    // Cleanup function to set isComponentMounted to false when the component is unmounted
     return () => {
       setIsComponentMounted(false);
     };
@@ -245,16 +260,17 @@ const LockerScreen = ({ navigation }) => {
           </View>
         </Modal>
       </Layout>
-      {isLoading && (
+      {(isLoading || isProcessingPayment) && (
         <View style={styles.overlayStyle}>
+          {isProcessingPayment && (
+            <Text style={styles.verifyPaymentText}> Verifying Payment. Please wait..</Text>
+          )}
           <ActivityIndicator size="large" color={colors.theme} />
         </View>
       )}
     </>
   );
 };
-
-export default LockerScreen;
 
 const styles = StyleSheet.create({
   heading: {
@@ -319,15 +335,24 @@ const styles = StyleSheet.create({
   successSubText: {
     fontSize: 14,
     fontWeight: '600',
-    color: 'rgba(255,255,255,0.4)',
+    color: 'rgba(255, 255, 255, 0.4)',
   },
   overlayStyle: {
     position: 'absolute',
-    backgroundColor: 'rgba(255,255,255,0.5)',
+    backgroundColor: '#ffffff',
     width: '100%',
     height: '100%',
     justifyContent: 'center',
     alignItems: 'center',
-    zIndex: 2, // Make sure this overlays all other content
+    zIndex: 2,
+  },
+  verifyPaymentText: {
+    color: 'gray',
+    textAlign: 'center',
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 10,
   },
 });
+
+export default LockerScreen;

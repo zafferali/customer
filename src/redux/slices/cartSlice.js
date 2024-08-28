@@ -25,7 +25,7 @@ const cartSlice = createSlice({
     discountCode: null,
     discountDescription: null,
     instructions: '',
-    restaurantId: '', // Add restaurantId to initial state
+    restaurantId: '',
   },
   reducers: {
     addToCart: (state, action) => {

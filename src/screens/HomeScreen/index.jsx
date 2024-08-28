@@ -362,6 +362,7 @@ const HomeScreen = ({ navigation, route }) => {
         isVisible={showTrackOrderModal}
         onClose={() => setShowTrackOrderModal(false)}
         orderId={orderId}
+        showMap
       />
     </Layout>
   );
