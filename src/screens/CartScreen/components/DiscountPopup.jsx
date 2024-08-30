@@ -7,7 +7,7 @@ import DiscountItem from './DiscountItem';
 
 const DiscountPopup = ({ isVisible, onClose }) => {
   const [discountCodes, setDiscountCodes] = useState([]);
-  const restaurantId = useSelector(state => state.restaurants.currentRestaurant.id);
+  const restaurantId = useSelector(state => state.cart.restaurantId);
   const userOrderCount = useSelector(state => state.authentication.customer.orderCount);
   const subTotal = useSelector(state => state.cart.subTotal);
   const appliedDiscountCode = useSelector(state => state.cart.discountCode);

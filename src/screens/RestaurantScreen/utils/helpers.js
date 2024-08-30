@@ -15,9 +15,88 @@ export const addItem = (item, customisations, dispatch, openModal) => {
         temperature: item.temperature,
         thumbnailUrl: item.thumbnailUrl,
         customisations: [],
+        restaurantId: item.restaurantId,
       }),
     );
   }
+};
+
+export const confirmAddItem = (
+  item,
+  dispatch,
+  closeModal,
+  restaurantId,
+  selectedCustomisations,
+  setLastUsedCustomisations,
+) => {
+  const customisationsWithPrice = Object.entries(selectedCustomisations).map(([key, choices]) => {
+    const originalCustomisation = item.customisations.find(c => c.title === key);
+    return {
+      title: key,
+      choices: Array.isArray(choices)
+        ? choices.map(choice => ({
+            name: choice.name,
+            price: Number(choice.price) || 0,
+          }))
+        : [],
+      multiOption: originalCustomisation ? originalCustomisation.multiOption : false,
+    };
+  });
+
+  setLastUsedCustomisations(prev => ({
+    ...prev,
+    [item.id]: selectedCustomisations,
+  }));
+
+  dispatch(
+    addToCart({
+      name: item.name,
+      itemId: item.id,
+      quantity: 1,
+      price: Number(item.price) || 0,
+      temperature: item.temperature,
+      thumbnailUrl: item.thumbnailUrl,
+      customisations: customisationsWithPrice,
+      restaurantId,
+    }),
+  );
+
+  closeModal();
+};
+
+export const handleCustomisationSelect = (
+  customisationTitle,
+  choice,
+  multiOption,
+  limit,
+  setSelectedCustomisations,
+) => {
+  setSelectedCustomisations(prevSelections => {
+    const updatedSelections = { ...prevSelections };
+    if (!updatedSelections[customisationTitle]) {
+      updatedSelections[customisationTitle] = [];
+    }
+
+    const choiceExists = updatedSelections[customisationTitle].some(
+      selectedChoice => selectedChoice.name === choice.name,
+    );
+
+    if (choiceExists) {
+      updatedSelections[customisationTitle] = updatedSelections[customisationTitle].filter(
+        selectedChoice => selectedChoice.name !== choice.name,
+      );
+    } else {
+      if (multiOption) {
+        if (updatedSelections[customisationTitle].length < limit) {
+          updatedSelections[customisationTitle].push({ name: choice.name, price: choice.price });
+        }
+      } else {
+        updatedSelections[customisationTitle] = [{ name: choice.name, price: choice.price }];
+      }
+    }
+
+    return updatedSelections;
+  });
 };
 
 export const removeItem = (cartItemId, dispatch) => {

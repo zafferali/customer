@@ -28,11 +28,14 @@ const cartSlice = createSlice({
     restaurantId: '',
   },
   reducers: {
+    setCart: (state, action) => {
+      return { ...state, ...action.payload };
+    },
     addToCart: (state, action) => {
       const { itemId, customisations, quantity, cartItemId, restaurantId } = action.payload;
 
       // Reset the cart if the restaurantId is different
-      if (state.restaurantId && state.restaurantId !== restaurantId) {
+      if (state.items.length === 0 || (state.restaurantId && state.restaurantId !== restaurantId)) {
         state.items = [];
         state.total = 0;
         state.tax = 0;
@@ -41,8 +44,6 @@ const cartSlice = createSlice({
         state.discountCode = null;
         state.discountDescription = null;
         state.instructions = '';
-        state.restaurantId = restaurantId;
-      } else {
         state.restaurantId = restaurantId;
       }
 
@@ -123,7 +124,10 @@ const cartSlice = createSlice({
   },
 });
 
+// store the whole cart inside async storage
 export const {
+  setCart,
+  loadCart,
   addToCart,
   removeFromCart,
   applyDiscount,

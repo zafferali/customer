@@ -16,12 +16,20 @@ import SearchBar from 'components/common/SearchBar';
 import colors from 'constants/colors';
 import { useSelector, useDispatch } from 'react-redux';
 import firestore from '@react-native-firebase/firestore';
-import { addToCart, setRestaurantId } from 'redux/slices/cartSlice';
+import { setCart as loadCart } from 'redux/slices/cartSlice';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import CustomButton from 'components/common/CustomButton';
 import FoodItem from './components/FoodItem';
 import UnavailableFoodItem from './components/UnavailableFoodItem';
 import { CustomCheckbox, CustomRadioButton, MultiSelectButton } from './components/CustomFormEl';
-import { createOrUpdateCart, checkAvailability, parseTime, generateSubtitle } from './utils/helpers';
+import {
+  createOrUpdateCart,
+  checkAvailability,
+  parseTime,
+  generateSubtitle,
+  confirmAddItem,
+  handleCustomisationSelect,
+} from './utils/helpers';
 
 const RestaurantScreen = ({ navigation, route }) => {
   const restaurant = useSelector(state => state.restaurants.currentRestaurant);
@@ -45,8 +53,19 @@ const RestaurantScreen = ({ navigation, route }) => {
   const [lastUsedCustomisations, setLastUsedCustomisations] = useState({});
 
   useEffect(() => {
-    dispatch(setRestaurantId(restaurantId));
-  }, [dispatch, restaurantId]);
+    const loadStoredCart = async () => {
+      try {
+        const storedCart = await AsyncStorage.getItem('cart');
+        if (storedCart) {
+          const parsedCart = JSON.parse(storedCart);
+          dispatch(loadCart(parsedCart));
+        }
+      } catch (error) {
+        console.error('Error loading cart from AsyncStorage:', error);
+      }
+    };
+    loadStoredCart();
+  }, []);
 
   useEffect(() => {
     setIsLoading(true);
@@ -204,73 +223,10 @@ const RestaurantScreen = ({ navigation, route }) => {
     setSelectedItem(null);
   };
 
-  const confirmAddItem = () => {
-    const customisationsWithPrice = Object.entries(selectedCustomisations).map(([key, choices]) => {
-      const originalCustomisation = selectedItem.customisations.find(c => c.title === key);
-      return {
-        title: key,
-        choices: Array.isArray(choices)
-          ? choices.map(choice => ({
-              name: choice.name,
-              price: Number(choice.price) || 0,
-            }))
-          : [],
-        multiOption: originalCustomisation ? originalCustomisation.multiOption : false,
-      };
-    });
-
-    setLastUsedCustomisations(prev => ({
-      ...prev,
-      [selectedItem.id]: selectedCustomisations,
-    }));
-
-    dispatch(
-      addToCart({
-        name: selectedItem.name,
-        itemId: selectedItem.id,
-        quantity: 1,
-        price: Number(selectedItem.price) || 0,
-        temperature: selectedItem.temperature,
-        thumbnailUrl: selectedItem.thumbnailUrl,
-        customisations: customisationsWithPrice,
-      }),
-    );
-
-    closeModal();
-  };
-
-  const handleCustomisationSelect = (customisationTitle, choice, multiOption, limit) => {
-    setSelectedCustomisations(prevSelections => {
-      const updatedSelections = { ...prevSelections };
-      if (!updatedSelections[customisationTitle]) {
-        updatedSelections[customisationTitle] = [];
-      }
-
-      const choiceExists = updatedSelections[customisationTitle].some(
-        selectedChoice => selectedChoice.name === choice.name,
-      );
-
-      if (choiceExists) {
-        updatedSelections[customisationTitle] = updatedSelections[customisationTitle].filter(
-          selectedChoice => selectedChoice.name !== choice.name,
-        );
-      } else {
-        if (multiOption) {
-          if (updatedSelections[customisationTitle].length < limit) {
-            updatedSelections[customisationTitle].push({ name: choice.name, price: choice.price });
-          }
-        } else {
-          updatedSelections[customisationTitle] = [{ name: choice.name, price: choice.price }];
-        }
-      }
-
-      return updatedSelections;
-    });
-  };
-
   const handleCartNavigation = async () => {
+    const restID = cart.items[0].restaurantId;
     navigation.navigate('CartScreen');
-    await createOrUpdateCart(cart, customerId, restaurantId);
+    await createOrUpdateCart(cart, customerId, restID);
   };
 
   return (
@@ -397,6 +353,7 @@ const RestaurantScreen = ({ navigation, route }) => {
                                             choice,
                                             customisation.multiOption,
                                             customisation.limit,
+                                            setSelectedCustomisations,
                                           )
                                         }
                                       />
@@ -413,6 +370,7 @@ const RestaurantScreen = ({ navigation, route }) => {
                                             choice,
                                             customisation.multiOption,
                                             customisation.limit,
+                                            setSelectedCustomisations,
                                           )
                                         }
                                       />
@@ -425,7 +383,20 @@ const RestaurantScreen = ({ navigation, route }) => {
                         ))}
                     </ScrollView>
                   )}
-                  <CustomButton style={styles.button} title="Add to Cart" onPress={confirmAddItem} />
+                  <CustomButton
+                    style={styles.button}
+                    title="Add to Cart"
+                    onPress={() =>
+                      confirmAddItem(
+                        selectedItem,
+                        dispatch,
+                        closeModal,
+                        restaurantId,
+                        selectedCustomisations,
+                        setLastUsedCustomisations,
+                      )
+                    }
+                  />
                 </TouchableOpacity>
               </TouchableOpacity>
             </Modal>

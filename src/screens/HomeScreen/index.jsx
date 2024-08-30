@@ -20,10 +20,12 @@ import Restaurant from 'components/restaurant/Restaurant';
 import colors from 'constants/colors';
 import moment from 'moment-timezone';
 import TrackOrderModal from 'screens/OrderListScreen/components/TrackOrderModal';
+import CartButton from './components/CartButton';
 
 const HomeScreen = ({ navigation, route }) => {
   const dispatch = useDispatch();
   const { available, unavailable, selectedTimeSlot } = useSelector(state => state.restaurants);
+  const cart = useSelector(state => state.cart);
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [filteredAvailable, setFilteredAvailable] = useState([]);
@@ -33,6 +35,7 @@ const HomeScreen = ({ navigation, route }) => {
   const [categorySearchQuery, setCategorySearchQuery] = useState('');
   const [filteredCategories, setFilteredCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const [cartRestaurant, setCartRestaurant] = useState(null);
   const [showTrackOrderModal, setShowTrackOrderModal] = useState(false);
   const { orderId } = route.params;
 
@@ -96,6 +99,13 @@ const HomeScreen = ({ navigation, route }) => {
         const availableRestaurants = [];
         const unavailableRestaurants = [];
 
+        if (cart.items.length) {
+          const filterRestaurants = fetchedRestaurants.filter(restaurant => {
+            return restaurant.id === cart.restaurantId;
+          });
+          if (filterRestaurants.length) setCartRestaurant(filterRestaurants[0]);
+        }
+
         fetchedRestaurants.forEach(restaurant => {
           let isOpenNow = false;
           let nextAvailableFrom = '';
@@ -155,7 +165,7 @@ const HomeScreen = ({ navigation, route }) => {
     };
 
     fetchRestaurants();
-  }, [selectedTimeSlot, dispatch]);
+  }, [selectedTimeSlot, dispatch, cart.restaurantId]);
 
   useEffect(() => {
     const filterRestaurants = (restaurants, query) => {
@@ -364,6 +374,16 @@ const HomeScreen = ({ navigation, route }) => {
         orderId={orderId}
         showMap
       />
+      {cart.items.length && cartRestaurant ? (
+        <CartButton
+          navigation={navigation}
+          targetScreen="CartScreen"
+          restaurantName={cartRestaurant?.name}
+          itemCount={cart.items.length}
+          restaurantLogo={cartRestaurant?.thumbnailUrl}
+          buttonText="View Cart"
+        />
+      ) : null}
     </Layout>
   );
 };

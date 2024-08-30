@@ -3,7 +3,7 @@ import React from 'react';
 import colors from 'constants/colors';
 import BottomBarButton from './BottomBarButton';
 
-const BottomBar = ({ navigation, price, btnText, icon, next }) => {
+const BottomBar = ({ price, btnText, icon, next }) => {
   return (
     <View style={styles.container}>
       <View style={styles.leftSection}>
