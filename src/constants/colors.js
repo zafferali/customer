@@ -11,4 +11,5 @@ export default {
   danger: '#DF001B',
   lightGray: '#F4F4F4',
   darkGray: '#646464',
+  skeletonBackground: 'rgba(0,0,0,0.25)',
 };

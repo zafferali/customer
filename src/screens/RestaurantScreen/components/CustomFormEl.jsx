@@ -32,7 +32,13 @@ export const MultiSelectButton = ({ label, selectedFilters, setSelectedFilters }
         onPress={handlePress}
         style={[styles.multiSelectButton, isSelected && styles.selectedButton]}
       >
-        <Text style={[styles.multiSelectButtonText, isSelected && styles.selectedButtonText]}>{label}</Text>
+        <View
+          style={[
+            styles.dot,
+            label === 'Veg' ? styles.bgVeg : label === 'Non-Veg' ? styles.bgNonVeg : styles.bgVegan,
+          ]}
+        />
+        <Text style={[styles.multiSelectButtonText, isSelected && styles.selectedButtonText]}>  {label}</Text>
         {isSelected && (
           <TouchableOpacity onPress={handlePress}>
             <Image style={styles.clearButtonImage} source={require('assets/images/close.png')} />
@@ -100,5 +106,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginLeft: 10,
+  },
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  bgVeg: {
+    backgroundColor: 'rgba(156, 255, 42, 1)',
+  },
+  bgNonVeg: {
+    backgroundColor: 'rgba(255, 42, 42, 1)',
+  },
+  bgVegan: {
+    backgroundColor: 'rgba(0, 151, 105, 1)',
   },
 });

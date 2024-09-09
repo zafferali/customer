@@ -9,12 +9,14 @@ import Add from 'components/common/Add';
 import { addItem, selectItemQuantity } from 'screens/RestaurantScreen/utils/helpers';
 import ItemCounter from './ItemCounter';
 import ResetCartModal from './ResetCartModal';
+import VegTag from './VegTag';
 
 const FoodItem = ({ data, dispatch, openModal }) => {
   const count = useSelector(state => selectItemQuantity(state, data));
   const restaurantId = useSelector(state => state.restaurants.currentRestaurant.id);
   const cart = useSelector(state => state.cart);
   const [visible, setVisible] = useState(false);
+  console.log('data', data.type)
 
   const onClose = () => {
     setVisible(false);
@@ -47,9 +49,12 @@ const FoodItem = ({ data, dispatch, openModal }) => {
       <View style={[styles.foodItemContainer, GlobalStyles.lightBorder]}>
         <View style={styles.itemWrap}>
           {data.thumbnailUrl && <Image style={styles.thumbnail} source={{ uri: data.thumbnailUrl }} />}
-          <View>
-            <Text style={styles.title}>{data.name}</Text>
-            <Text style={styles.price}>₹{data.price}</Text>
+          <View style={styles.column}>
+            <View>
+              <Text style={styles.title}>{data.name}</Text>
+              <Text style={styles.price}>₹{data.price}</Text>
+            </View>
+            {data.type.includes('Veg') && <VegTag />}
           </View>
         </View>
         <View>
@@ -64,6 +69,8 @@ const FoodItem = ({ data, dispatch, openModal }) => {
   );
 };
 
+export default FoodItem;
+
 const styles = StyleSheet.create({
   foodItemContainer: {
     flexDirection: 'row',
@@ -77,22 +84,23 @@ const styles = StyleSheet.create({
     gap: 10,
     width: '50%',
   },
+  column: {
+    gap: 10,
+  },
   thumbnail: {
-    width: 70,
-    height: 70,
+    width: 80,
+    height: 80,
     resizeMode: 'cover',
     borderRadius: 8,
   },
   title: {
-    fontSize: 14,
+    fontSize: 18,
     color: 'black',
     fontWeight: '600',
   },
   price: {
     color: colors.theme,
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '500',
   },
 });
-
-export default FoodItem;

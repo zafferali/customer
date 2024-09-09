@@ -263,11 +263,11 @@ const RestaurantScreen = ({ navigation, route }) => {
                 setSelectedFilters={setSelectedFilters}
                 label="Non-Veg"
               />
-              <MultiSelectButton
+              {/* <MultiSelectButton
                 selectedFilters={selectedFilters}
                 setSelectedFilters={setSelectedFilters}
                 label="Vegan"
-              />
+              /> */}
             </View>
             <TouchableOpacity style={styles.floatingButton} onPress={() => setMenuModalVisible(true)}>
               <Image style={styles.menuIcon} source={require('assets/images/menuIcon.png')} />

@@ -118,7 +118,7 @@ const styles = StyleSheet.create({
     opacity: 0.4,
   },
   disabledOverlay: {
-    backgroundColor: 'rgba(0, 0, 0, 0.9)',
+    backgroundColor: 'rgba(0, 0, 0, 0.1)',
   },
 });
 

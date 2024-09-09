@@ -12,12 +12,14 @@ import {
 } from 'react-native';
 import Layout from 'components/common/Layout';
 import colors from 'constants/colors';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import axios from 'axios';
 import RazorpayCheckout from 'react-native-razorpay';
 import KEYS from 'constants/KEYS';
 import firestore from '@react-native-firebase/firestore';
 import { GlobalStyles } from 'constants/GlobalStyles';
+import { setCurrentOrderId } from 'redux/slices/ordersSlice';
+import { resetCart } from 'redux/slices/cartSlice';
 import { generateOrderID } from './generateOrderID';
 import { generatePickupCode } from './generatePickupCode';
 
@@ -29,6 +31,7 @@ const LockerScreen = ({ navigation }) => {
   const [orderId, setOrderId] = useState('');
   const [isComponentMounted, setIsComponentMounted] = useState(true);
   const [restaurant, setRestaurant] = useState(null);
+  const dispatch = useDispatch();
 
   const cart = useSelector(state => state.cart);
   const items = cart.items.map(item => ({
@@ -196,11 +199,13 @@ const LockerScreen = ({ navigation }) => {
     if (paymentSuccess && orderId) {
       const timer = setTimeout(() => {
         setPaymentSuccess(false);
+        dispatch(setCurrentOrderId(orderId));
+        dispatch(resetCart());
         navigation.navigate('HomeStackScreen', {
           screen: 'HomeScreen',
-          params: {
-            orderId,
-          },
+          // params: {
+          //   orderId,
+          // },
         });
       }, 2000); // Show success message for 2 seconds
 
