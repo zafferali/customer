@@ -2,6 +2,7 @@ import { StyleSheet, Text, View, Image } from 'react-native';
 import { GlobalStyles } from 'constants/GlobalStyles';
 import colors from 'constants/colors';
 import { TouchableOpacity } from 'react-native-gesture-handler';
+import FastImage from 'react-native-fast-image';
 
 const Restaurant = ({ data, style, onPress, availabilityText }) => {
   return (
@@ -10,7 +11,14 @@ const Restaurant = ({ data, style, onPress, availabilityText }) => {
       style={[styles.container, GlobalStyles.lightBorder, style]}
     >
       {data.thumbnailUrl ? (
-        <Image style={styles.thumbnail} source={{ uri: data.thumbnailUrl }} />
+        <FastImage
+          style={styles.thumbnail}
+          source={{
+            uri: data.thumbnailUrl,
+            priority: FastImage.priority.high,
+          }}
+          resizeMode={FastImage.resizeMode.cover}
+        />
       ) : (
         <View style={styles.thumbnailFallback}>
           <Image style={styles.logoGreen} source={require('assets/images/logoGreen.png')} />
@@ -25,10 +33,10 @@ const Restaurant = ({ data, style, onPress, availabilityText }) => {
         <View style={styles.middleSection}>
           <View style={styles.ratingsContainer}>
             <Image source={require('assets/images/star.png')} style={styles.starIcon} />
-            <Text style={styles.rating}>4.5</Text>
+            <Text style={styles.rating}>{data.rating || '4.5'}</Text>
           </View>
           <View style={styles.separator} />
-          <Text style={styles.time}>15 min(s)</Text>
+          <Text style={styles.time}>{data.deliveryTime || '15 min(s)'}</Text>
         </View>
         <View style={styles.cuisineContainer}>
           {data.cuisines?.map((item, index) => {

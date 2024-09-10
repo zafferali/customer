@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { View, Image, Dimensions, StyleSheet, Animated, TouchableOpacity } from 'react-native';
 import Carousel from 'react-native-reanimated-carousel';
+import FastImage from 'react-native-fast-image';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -25,7 +26,12 @@ const BannerCarousel = ({ banners, onPress }) => {
 
   const renderItem = ({ item, index }) => (
     <TouchableOpacity onPress={() => onPress(item.id)} style={styles.bannerContainer}>
-      <Image source={{ uri: item.imageUrl }} style={styles.banner} onLoad={() => onImageLoad(index)} />
+      <FastImage
+        source={{ uri: item.imageUrl, priority: FastImage.priority.high }}
+        style={styles.banner}
+        resizeMode={FastImage.resizeMode.cover}
+        onLoad={() => onImageLoad(index)}
+      />
     </TouchableOpacity>
   );
 

@@ -21,6 +21,7 @@ import Restaurant from 'components/restaurant/Restaurant';
 import colors from 'constants/colors';
 import moment from 'moment-timezone';
 import TrackOrderModal from 'screens/OrderListScreen/components/TrackOrderModal';
+import FastImage from 'react-native-fast-image';
 import CartButton from './components/CartButton';
 import BannerCarousel from './components/BannerCarousel';
 
@@ -393,7 +394,11 @@ const HomeScreen = ({ navigation }) => {
               style={styles.categoryItem}
               onPress={() => handleCategoryPress(category.name)}
             >
-              <Image source={{ uri: category.photoUrl }} style={styles.categoryImage} />
+              <FastImage
+                source={{ uri: category.photoUrl, priority: FastImage.priority.high }}
+                style={styles.categoryImage}
+                resizeMode={FastImage.resizeMode.cover}
+              />
               <Text style={styles.categoryText}>{category.name}</Text>
             </TouchableOpacity>
           ))}
@@ -410,7 +415,7 @@ const HomeScreen = ({ navigation }) => {
   );
 
   return (
-    <Layout navigation={navigation}>
+    <Layout navigation={navigation} noTitle>
       <Animated.View
         style={[
           styles.header,

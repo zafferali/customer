@@ -7,6 +7,7 @@ import colors from 'constants/colors';
 import { GlobalStyles } from 'constants/GlobalStyles';
 import Add from 'components/common/Add';
 import { addItem, selectItemQuantity } from 'screens/RestaurantScreen/utils/helpers';
+import FastImage from 'react-native-fast-image';
 import ItemCounter from './ItemCounter';
 import ResetCartModal from './ResetCartModal';
 import VegTag from './VegTag';
@@ -16,7 +17,7 @@ const FoodItem = ({ data, dispatch, openModal }) => {
   const restaurantId = useSelector(state => state.restaurants.currentRestaurant.id);
   const cart = useSelector(state => state.cart);
   const [visible, setVisible] = useState(false);
-  console.log('data', data.type)
+  console.log('data', data.type);
 
   const onClose = () => {
     setVisible(false);
@@ -48,7 +49,13 @@ const FoodItem = ({ data, dispatch, openModal }) => {
       <ResetCartModal visible={visible} onClose={onClose} onReset={handleReset} />
       <View style={[styles.foodItemContainer, GlobalStyles.lightBorder]}>
         <View style={styles.itemWrap}>
-          {data.thumbnailUrl && <Image style={styles.thumbnail} source={{ uri: data.thumbnailUrl }} />}
+          {data.thumbnailUrl && (
+            <FastImage
+              style={styles.thumbnail}
+              source={{ uri: data.thumbnailUrl, priority: FastImage.priority.high }}
+              resizeMode={FastImage.resizeMode.cover}
+            />
+          )}
           <View style={styles.column}>
             <View>
               <Text style={styles.title}>{data.name}</Text>
