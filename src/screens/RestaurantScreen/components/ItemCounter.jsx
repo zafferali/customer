@@ -1,25 +1,32 @@
+import React, { useCallback, useMemo } from 'react';
 import { TouchableOpacity, Image, View, Text, StyleSheet } from 'react-native';
 import { addItem, removeItem } from 'screens/RestaurantScreen/utils/helpers';
 import colors from 'constants/colors';
 import { useSelector } from 'react-redux';
 
-const ItemCounter = ({ count, dispatch, data, openModal }) => {
+const ItemCounter = React.memo(({ count, dispatch, data, openModal }) => {
   const cartItems = useSelector(state => state.cart.items);
-  const filteredCartItems = cartItems.filter(item => item.itemId === data.id);
-  const customisations = useSelector(
-    state => state.cart.items.find(item => item.itemId === data.id)?.customisations || [],
+  
+  const filteredCartItems = useMemo(() => 
+    cartItems.filter(item => item.itemId === data.id),
+    [cartItems, data.id]
+  );
+  
+  const customisations = useMemo(() => 
+    cartItems.find(item => item.itemId === data.id)?.customisations || [],
+    [cartItems, data.id]
   );
 
-  const handleIncrement = () => {
+  const handleIncrement = useCallback(() => {
     addItem(data, customisations, dispatch, openModal);
-  };
+  }, [data, customisations, dispatch, openModal]);
 
-  const handleDecrement = () => {
+  const handleDecrement = useCallback(() => {
     if (filteredCartItems.length > 0) {
       const lastAddedItem = filteredCartItems[filteredCartItems.length - 1];
       removeItem(lastAddedItem.cartItemId, dispatch);
     }
-  };
+  }, [filteredCartItems, dispatch]);
 
   return (
     <View style={styles.counterContainer}>
@@ -32,7 +39,9 @@ const ItemCounter = ({ count, dispatch, data, openModal }) => {
       </TouchableOpacity>
     </View>
   );
-};
+});
+
+export default ItemCounter;
 
 const styles = StyleSheet.create({
   counterContainer: {
@@ -61,4 +70,3 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ItemCounter;

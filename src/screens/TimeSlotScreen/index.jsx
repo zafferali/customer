@@ -44,7 +44,7 @@ const TimeSlotScreen = ({ navigation }) => {
 
   const onGetStarted = () => {
     dispatch(setTimeSlot(selectedTime));
-    navigation.navigate('HomeScreen', { orderId: null });
+    navigation.navigate('HomeScreen');
     firestore()
       .collection('customers')
       .doc(customer.id)

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   FlatList,
   ScrollView,
@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
   Modal,
   SafeAreaView,
+  Animated,
 } from 'react-native';
 import firestore from '@react-native-firebase/firestore';
 import { useDispatch, useSelector } from 'react-redux';
@@ -20,11 +21,18 @@ import Restaurant from 'components/restaurant/Restaurant';
 import colors from 'constants/colors';
 import moment from 'moment-timezone';
 import TrackOrderModal from 'screens/OrderListScreen/components/TrackOrderModal';
+import FastImage from 'react-native-fast-image';
 import CartButton from './components/CartButton';
+import BannerCarousel from './components/BannerCarousel';
 
-const HomeScreen = ({ navigation, route }) => {
+const HEADER_MAX_HEIGHT = 170;
+const HEADER_MIN_HEIGHT = 0;
+const HEADER_SCROLL_DISTANCE = HEADER_MAX_HEIGHT - HEADER_MIN_HEIGHT;
+
+const HomeScreen = ({ navigation }) => {
   const dispatch = useDispatch();
   const { available, unavailable, selectedTimeSlot } = useSelector(state => state.restaurants);
+  const orderId = useSelector(state => state.orders.currentOrderId);
   const cart = useSelector(state => state.cart);
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -37,7 +45,35 @@ const HomeScreen = ({ navigation, route }) => {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [cartRestaurant, setCartRestaurant] = useState(null);
   const [showTrackOrderModal, setShowTrackOrderModal] = useState(false);
-  const { orderId } = route.params;
+  const [banners, setBanners] = useState([]);
+  const [showViewAllButton, setShowViewAllButton] = useState(false);
+
+  const scrollY = useRef(new Animated.Value(0)).current;
+
+  const headerHeight = scrollY.interpolate({
+    inputRange: [0, HEADER_SCROLL_DISTANCE * 2],
+    outputRange: [HEADER_MAX_HEIGHT, HEADER_MIN_HEIGHT],
+    extrapolate: 'clamp',
+  });
+
+  const headerOpacity = scrollY.interpolate({
+    inputRange: [0, HEADER_SCROLL_DISTANCE / 2, HEADER_SCROLL_DISTANCE],
+    outputRange: [1, 1, 0],
+    extrapolate: 'clamp',
+  });
+  const CART_BUTTON_HEIGHT = 160; // Adjust this based on the CartButton height
+
+  const cartButtonTranslateY = scrollY.interpolate({
+    inputRange: [0, HEADER_SCROLL_DISTANCE * 2],
+    outputRange: [0, CART_BUTTON_HEIGHT],
+    extrapolate: 'clamp',
+  });
+
+  const cartButtonOpacity = scrollY.interpolate({
+    inputRange: [0, HEADER_SCROLL_DISTANCE, HEADER_SCROLL_DISTANCE * 2],
+    outputRange: [1, 1, 0],
+    extrapolate: 'clamp',
+  });
 
   function isTimeSlotWithin(selected, from, until) {
     const [selectedHour, selectedMinute] = selected.split(':').map(Number);
@@ -56,6 +92,22 @@ const HomeScreen = ({ navigation, route }) => {
       setShowTrackOrderModal(true);
     }
   }, [orderId]);
+
+  useEffect(() => {
+    const fetchBanners = async () => {
+      try {
+        const snapshot = await firestore().collection('banners').get();
+        const fetchedBanners = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc?.data(),
+        }));
+        setBanners(fetchedBanners);
+      } catch (err) {
+        console.log(err.message);
+      }
+    };
+    fetchBanners();
+  }, []);
 
   useEffect(() => {
     setIsLoading(true);
@@ -89,9 +141,9 @@ const HomeScreen = ({ navigation, route }) => {
                 return newOcc;
               });
             }
-            if (data.orders) {
-              data.orders = data.orders.map(orderRef => orderRef.path);
-            }
+            // if (data.orders) {
+            //   data.orders = data.orders.map(orderRef => orderRef.path);
+            // }
             return { id: doc.id, ...data, menuItems };
           }),
         );
@@ -275,19 +327,52 @@ const HomeScreen = ({ navigation, route }) => {
     </TouchableOpacity>
   );
 
-  return (
-    <Layout title="Home" navigation={navigation}>
-      <TouchableOpacity onPress={() => navigation.navigate('TimeSlotScreen')} style={styles.topBar}>
-        <Text style={styles.pickupText}>You are picking up your food at</Text>
-        <Text style={styles.pickupTime}>{selectedTimeSlot}</Text>
-        <Image style={styles.chevron} source={require('assets/images/right.png')} />
-      </TouchableOpacity>
-      <SearchBar
-        style={styles.mb20}
-        placeholder="Search Restaurants.."
-        value={searchQuery}
-        onSearch={setSearchQuery}
-      />
+  const onBannerPress = async bannerId => {
+    try {
+      const bannerDoc = await firestore().collection('banners').doc(bannerId).get();
+      const banner = bannerDoc.data();
+
+      if (banner) {
+        if (banner.isList) {
+          // Filter the existing restaurants based on the banner's list of restaurant references
+          const filteredAvailableRestaurants = available.filter(restaurant =>
+            banner.restaurants.some(ref => ref.path === `restaurants/${restaurant.id}`),
+          );
+          const filteredUnavailableRestaurants = unavailable.filter(restaurant =>
+            banner.restaurants.some(ref => ref.path === `restaurants/${restaurant.id}`),
+          );
+
+          setFilteredAvailable(filteredAvailableRestaurants);
+          setFilteredUnavailable(filteredUnavailableRestaurants);
+          setShowViewAllButton(true);
+        } else {
+          // Handle single restaurant
+          const restaurantRef = banner.restaurants[0];
+          const restaurantId = restaurantRef.path.split('/').pop();
+
+          // Find the restaurant in the available or unavailable list
+          const singleRestaurant = [...available, ...unavailable].find(
+            restaurant => restaurant.id === restaurantId,
+          );
+          if (singleRestaurant) {
+            dispatch(setCurrentRestaurant(singleRestaurant));
+            navigation.navigate('RestaurantScreen', { restaurantId: singleRestaurant.id });
+          }
+        }
+      }
+    } catch (err) {
+      console.log('Error fetching banner data:', err.message);
+    }
+  };
+
+  const handleViewAllRestaurants = () => {
+    setFilteredAvailable(available);
+    setFilteredUnavailable(unavailable);
+    setShowViewAllButton(false);
+  };
+  const renderHeader = () => (
+    <>
+      <BannerCarousel banners={banners} onPress={onBannerPress} />
       <View style={styles.categoriesContainer}>
         <View style={styles.categoriesHeaderContainer}>
           <Text style={styles.categoriesheader}>CRAVING SOMETHING?</Text>
@@ -295,8 +380,8 @@ const HomeScreen = ({ navigation, route }) => {
             style={styles.seeAllButton}
             onPress={() => {
               setModalVisible(true);
-              setCategorySearchQuery(''); // reset the search query
-              setFilteredCategories(categories); // reset the filtered categories
+              setCategorySearchQuery('');
+              setFilteredCategories(categories);
             }}
           >
             <Text style={styles.seeAll}>See all</Text>
@@ -309,20 +394,54 @@ const HomeScreen = ({ navigation, route }) => {
               style={styles.categoryItem}
               onPress={() => handleCategoryPress(category.name)}
             >
-              <Image source={{ uri: category.photoUrl }} style={styles.categoryImage} />
+              <FastImage
+                source={{ uri: category.photoUrl, priority: FastImage.priority.high }}
+                style={styles.categoryImage}
+                resizeMode={FastImage.resizeMode.cover}
+              />
               <Text style={styles.categoryText}>{category.name}</Text>
             </TouchableOpacity>
           ))}
         </ScrollView>
       </View>
       <View style={styles.filterHeader}>
-        {selectedCategory && (
-          <TouchableOpacity onPress={() => setSelectedCategory(null)}>
+        {(selectedCategory || showViewAllButton) && (
+          <TouchableOpacity onPress={handleViewAllRestaurants}>
             <Text style={styles.clearFilterText}>View all Restaurants</Text>
           </TouchableOpacity>
         )}
       </View>
+    </>
+  );
 
+  return (
+    <Layout navigation={navigation} noTitle>
+      <Animated.View
+        style={[
+          styles.header,
+          {
+            height: headerHeight,
+            opacity: headerOpacity,
+          },
+        ]}
+      >
+        <TouchableOpacity onPress={() => navigation.navigate('TimeSlotScreen')} style={styles.topBar}>
+          <View style={styles.column}>
+            <Text style={styles.pickupText}>You are picking up your food at</Text>
+            <Text style={styles.pickupTime}>{selectedTimeSlot}</Text>
+          </View>
+          <View style={styles.changeTimeContainer}>
+            <Text style={styles.changeTimeText}>Change Time</Text>
+            {/* <Image style={styles.chevron} source={require('assets/images/right.png')} /> */}
+          </View>
+        </TouchableOpacity>
+        <SearchBar
+          style={styles.mb20}
+          placeholder="Search Restaurants.."
+          value={searchQuery}
+          onSearch={setSearchQuery}
+        />
+      </Animated.View>
       {isLoading ? (
         <ActivityIndicator size="large" />
       ) : (
@@ -330,8 +449,14 @@ const HomeScreen = ({ navigation, route }) => {
           data={filteredAvailable}
           renderItem={renderRestaurantItem}
           keyExtractor={item => item.id}
+          ListHeaderComponent={renderHeader}
           ListFooterComponent={renderFooter}
           contentContainerStyle={styles.flatListContent}
+          showsVerticalScrollIndicator={false}
+          onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], {
+            useNativeDriver: false,
+          })}
+          scrollEventThrottle={16}
         />
       )}
       <Modal
@@ -375,14 +500,25 @@ const HomeScreen = ({ navigation, route }) => {
         showMap
       />
       {cart.items.length && cartRestaurant ? (
-        <CartButton
-          navigation={navigation}
-          targetScreen="CartScreen"
-          restaurantName={cartRestaurant?.name}
-          itemCount={cart.items.length}
-          restaurantLogo={cartRestaurant?.thumbnailUrl}
-          buttonText="View Cart"
-        />
+        <Animated.View
+          style={[
+            styles.cartButtonContainer,
+            {
+              transform: [{ translateY: cartButtonTranslateY }],
+              opacity: cartButtonOpacity,
+            },
+          ]}
+        >
+          <CartButton
+            navigation={navigation}
+            targetScreen="CartScreen"
+            onPress={() => handleRestaurantPress(cartRestaurant)}
+            restaurantName={cartRestaurant?.name}
+            itemCount={cart.items.length}
+            restaurantLogo={cartRestaurant?.thumbnailUrl}
+            buttonText="View Cart"
+          />
+        </Animated.View>
       ) : null}
     </Layout>
   );
@@ -399,6 +535,25 @@ const styles = StyleSheet.create({
   },
   unavailable: {
     opacity: 0.55,
+  },
+  header: {
+    position: 'relative',
+    top: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'white',
+    overflow: 'hidden',
+    zIndex: 1,
+  },
+  cartButtonContainer: {
+    position: 'absolute',
+    bottom: 10,
+    left: 20,
+    right: 20,
+    // width: '100%',
+    paddingRighte: 20,
+    alignItems: 'center',
+    zIndex: 1,
   },
   unavailableHeading: {
     color: 'gray',
@@ -418,30 +573,45 @@ const styles = StyleSheet.create({
     backgroundColor: colors.theme,
     borderRadius: 10,
     marginBottom: 8,
-    justifyContent: 'center',
-    padding: 10,
-    gap: 5,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 14,
+    paddingVertical: 30,
+  },
+  changeTimeContainer: {
+    borderColor: '#fff',
+    borderWidth: 1,
+    borderRadius: 40,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  changeTimeText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: 'white',
   },
   pickupText: {
     fontSize: 12,
     fontWeight: '500',
     color: 'white',
+    marginBottom: 6,
   },
   pickupTime: {
     fontSize: 14,
     fontWeight: '600',
     color: 'white',
   },
-  chevron: {
-    position: 'absolute',
-    right: 12,
-    top: '75%',
-    transform: [{ translateY: -12 }],
-    width: 24,
-    height: 24,
-  },
+  // chevron: {
+  //   position: 'absolute',
+  //   right: 12,
+  //   top: '75%',
+  //   transform: [{ translateY: -12 }],
+  //   width: 24,
+  //   height: 24,
+  // },
   categoriesContainer: {
-    marginBottom: 20,
+    marginVertical: 20,
   },
   categoriesHeaderContainer: {
     flexDirection: 'row',

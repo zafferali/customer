@@ -9,6 +9,7 @@ const Add = ({ onPress }) => {
     </TouchableOpacity>
   );
 };
+export default Add;
 
 const styles = StyleSheet.create({
   button: {
@@ -34,4 +35,3 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Add;

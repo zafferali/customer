@@ -2,6 +2,7 @@ import { StyleSheet, Text, View, Image } from 'react-native';
 import { GlobalStyles } from 'constants/GlobalStyles';
 import colors from 'constants/colors';
 import { TouchableOpacity } from 'react-native-gesture-handler';
+import FastImage from 'react-native-fast-image';
 
 const Restaurant = ({ data, style, onPress, availabilityText }) => {
   return (
@@ -10,7 +11,14 @@ const Restaurant = ({ data, style, onPress, availabilityText }) => {
       style={[styles.container, GlobalStyles.lightBorder, style]}
     >
       {data.thumbnailUrl ? (
-        <Image style={styles.thumbnail} source={{ uri: data.thumbnailUrl }} />
+        <FastImage
+          style={styles.thumbnail}
+          source={{
+            uri: data.thumbnailUrl,
+            priority: FastImage.priority.high,
+          }}
+          resizeMode={FastImage.resizeMode.cover}
+        />
       ) : (
         <View style={styles.thumbnailFallback}>
           <Image style={styles.logoGreen} source={require('assets/images/logoGreen.png')} />
@@ -22,6 +30,14 @@ const Restaurant = ({ data, style, onPress, availabilityText }) => {
           {data.name}
           {data.branch && `, ${data.branch}`}
         </Text>
+        <View style={styles.middleSection}>
+          <View style={styles.ratingsContainer}>
+            <Image source={require('assets/images/star.png')} style={styles.starIcon} />
+            <Text style={styles.rating}>{data.rating || '4.5'}</Text>
+          </View>
+          <View style={styles.separator} />
+          <Text style={styles.time}>{data.deliveryTime || '15 min(s)'}</Text>
+        </View>
         <View style={styles.cuisineContainer}>
           {data.cuisines?.map((item, index) => {
             return (
@@ -47,8 +63,8 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   thumbnail: {
-    width: 70,
-    height: 70,
+    width: 100,
+    height: 100,
     resizeMode: 'cover',
     borderRadius: 8,
   },
@@ -68,8 +84,8 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   thumbnailFallback: {
-    width: 125,
-    height: 125,
+    width: 100,
+    height: 100,
     borderRadius: 8,
     backgroundColor: '#DCFFB1',
     position: 'relative',
@@ -85,7 +101,7 @@ const styles = StyleSheet.create({
     right: 10,
   },
   capital: {
-    fontSize: 68,
+    fontSize: 42,
     fontWeight: 'bold',
   },
   infoContainer: {
@@ -96,5 +112,38 @@ const styles = StyleSheet.create({
     marginTop: 5,
     fontSize: 12,
     color: 'gray',
+  },
+  middleSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginVertical: 4,
+  },
+  separator: {
+    width: 1,
+    height: 12,
+    backgroundColor: 'rgb(142, 142, 142)',
+  },
+  starIcon: {
+    width: 12,
+    height: 12,
+  },
+  ratingsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    backgroundColor: 'rgba(255, 213, 182, 0.25)',
+    borderRadius: 12,
+    padding: 6,
+  },
+  rating: {
+    color: 'rgba(255, 161, 52, 1)',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  time: {
+    color: 'rgb(125, 125, 125)',
+    fontSize: 11,
+    fontWeight: '600',
   },
 });

@@ -2,15 +2,15 @@ import React from 'react';
 import { View, TouchableOpacity, Text, StyleSheet, Dimensions, Image } from 'react-native';
 import colors from 'constants/colors';
 
-const CartButton = ({ navigation, targetScreen, restaurantName, itemCount, restaurantLogo }) => {
+const CartButton = ({ navigation, targetScreen, restaurantName, itemCount, restaurantLogo, onPress }) => {
   const screenWidth = Dimensions.get('window').width;
 
   return (
     <View style={[styles.container, { width: screenWidth - 30 }]}>
-      <View style={styles.restaurantInfo}>
+      <TouchableOpacity style={styles.restaurantInfo} onPress={onPress}>
         <Image source={{ uri: restaurantLogo }} style={styles.logo} />
         <Text style={styles.restaurantName}>{restaurantName}</Text>
-      </View>
+      </TouchableOpacity>
       <TouchableOpacity style={styles.button} onPress={() => navigation.navigate(targetScreen)}>
         <Text style={styles.buttonTitle}>View Cart</Text>
         <Text style={styles.itemCount}>{itemCount} items</Text>
@@ -21,10 +21,10 @@ const CartButton = ({ navigation, targetScreen, restaurantName, itemCount, resta
 
 const styles = StyleSheet.create({
   container: {
-    position: 'absolute',
-    bottom: 15,
-    left: 15,
-    right: 15,
+    // position: 'absolute',
+    // bottom: 15,
+    // left: 15,
+    // right: 15,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',

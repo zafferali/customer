@@ -1,27 +1,31 @@
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
-import TabItem from 'components/common/TabItem';
-import { HomeStackScreen, OrderListStackScreen, ProfileStackScreen } from './StackNavigator';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
+import { getFocusedRouteNameFromRoute } from '@react-navigation/native'
+import TabItem from 'components/common/TabItem'
+import { HomeStackScreen, OrderListStackScreen, ProfileStackScreen } from './StackNavigator'
 
-const Tab = createBottomTabNavigator();
+const Tab = createBottomTabNavigator()
 
 const tabIt = (focused, tabName) => {
-  let iconSrc;
+  let iconSrc
   switch (tabName) {
     case 'Home':
-      iconSrc = require('assets/images/home-icon.png');
-      break;
+      iconSrc = require('assets/images/home-icon.png')
+      break
     case 'Orders':
-      iconSrc = require('assets/images/orders-icon.png');
-      break;
+      iconSrc = require('assets/images/orders-icon.png')
+      break
     case 'Profile':
-      iconSrc = require('assets/images/user-icon.png');
-      break;
+      iconSrc = require('assets/images/user-icon.png')
+      break
     default:
-      iconSrc = null;
+      iconSrc = null
   }
-  return <TabItem focused={focused} iconSrc={iconSrc} tabName={tabName} />;
-};
+  return <TabItem focused={focused} iconSrc={iconSrc} tabName={tabName} />
+}
+
+const getRouteName = (route, defaultRouteName) => {
+  return getFocusedRouteNameFromRoute(route) ?? defaultRouteName
+}
 
 const BottomTabNavigator = () => {
   return (
@@ -38,23 +42,15 @@ const BottomTabNavigator = () => {
         component={HomeStackScreen}
         listeners={({ navigation }) => ({
           tabPress: e => {
-            e.preventDefault();
+            e.preventDefault()
             navigation.navigate('HomeStackScreen', {
               screen: 'HomeScreen',
-              params: { orderId: null },
-            });
+            })
           },
         })}
         options={({ route }) => {
-          const hideOnScreens = [
-            'TimeSlotScreen',
-            'RestaurantScreen',
-            'CartScreen',
-            'LockerScreen',
-            'PaymentScreen',
-            'OrderStatusScreen',
-          ];
-          const routeName = getFocusedRouteNameFromRoute(route) ?? 'TimeSlotScreen';
+          const hideOnScreens = ['TimeSlotScreen', 'RestaurantScreen', 'CartScreen', 'LockerScreen']
+          const routeName = getRouteName(route, 'HomeScreen') // Default to HomeScreen
 
           return {
             tabBarStyle: {
@@ -63,7 +59,7 @@ const BottomTabNavigator = () => {
               paddingTop: 10,
             },
             tabBarIcon: ({ focused }) => tabIt(focused, 'Home'),
-          };
+          }
         }}
       />
 
@@ -72,7 +68,7 @@ const BottomTabNavigator = () => {
         name="OrderListStackScreen"
         component={OrderListStackScreen}
         options={({ route }) => {
-          const routeName = getFocusedRouteNameFromRoute(route);
+          const routeName = getRouteName(route, 'OrderListScreen') // Default to OrderListScreen
           return {
             tabBarStyle: {
               display: routeName === 'OrderStatusScreen' ? 'none' : 'flex',
@@ -80,7 +76,7 @@ const BottomTabNavigator = () => {
               paddingTop: 10,
             },
             tabBarIcon: ({ focused }) => tabIt(focused, 'Orders'),
-          };
+          }
         }}
       />
 
@@ -89,7 +85,7 @@ const BottomTabNavigator = () => {
         name="ProfileStackScreen"
         component={ProfileStackScreen}
         options={({ route }) => {
-          const routeName = getFocusedRouteNameFromRoute(route);
+          const routeName = getRouteName(route, 'ProfileScreen') // Default to ProfileScreen
           return {
             tabBarStyle: {
               display: routeName === 'SettingsScreen' ? 'none' : 'flex',
@@ -98,11 +94,11 @@ const BottomTabNavigator = () => {
               paddingTop: 10,
             },
             tabBarIcon: ({ focused }) => tabIt(focused, 'Profile'),
-          };
+          }
         }}
       />
     </Tab.Navigator>
-  );
-};
+  )
+}
 
-export default BottomTabNavigator;
+export default BottomTabNavigator

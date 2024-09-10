@@ -16,6 +16,7 @@ const Layout = ({
   navigation,
   title,
   title2,
+  noTitle,
   backTitle,
   onBtnPress,
   rightButton,
@@ -39,21 +40,23 @@ const Layout = ({
       <StatusBar barStyle="dark-content" backgroundColor="white" />
       <SafeAreaView style={styles.fullWidth}>
         <View style={styles.container}>
-          <View style={styles.headerContainer}>
-            {backTitle ? (
-              <View style={styles.headerLeft}>
-                <TouchableOpacity onPress={() => navigation.goBack()}>
-                  <Image style={styles.backBtn} source={require('assets/images/back.png')} />
-                </TouchableOpacity>
-                <Text style={styles.backTitle}>{backTitle}</Text>
-              </View>
-            ) : (
-              <View style={styles.titleContainer}>
-                <Text style={styles.title}>{title}</Text>
-                {title2 && <Text style={styles.title2}>{title2}</Text>}
-              </View>
-            )}
-          </View>
+          {!noTitle && (
+            <View style={styles.headerContainer}>
+              {backTitle ? (
+                <View style={styles.headerLeft}>
+                  <TouchableOpacity onPress={() => navigation.goBack()}>
+                    <Image style={styles.backBtn} source={require('assets/images/back.png')} />
+                  </TouchableOpacity>
+                  <Text style={styles.backTitle}>{backTitle}</Text>
+                </View>
+              ) : (
+                <View style={styles.titleContainer}>
+                  <Text style={styles.title}>{title}</Text>
+                  {title2 && <Text style={styles.title2}>{title2}</Text>}
+                </View>
+              )}
+            </View>
+          )}
           {children}
         </View>
         {bottomBar && items.length !== 0 && (

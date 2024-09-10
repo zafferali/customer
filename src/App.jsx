@@ -9,6 +9,7 @@
 // import { RESULTS } from 'react-native-permissions';
 // import LocationPermissionScreen from 'screens/LocationPermissionScreen';
 // import { initializeCart } from 'redux/slices/initializeCart';
+// import { setTimeSlot } from 'redux/slices/restaurantsSlice';
 // import BottomTabNavigator from './navigators/BottomTabNavigator';
 // import { AuthStackNavigator } from './navigators/AuthStackNavigator';
 // import { checkLocationPermission } from './utils/permissions';
@@ -29,6 +30,8 @@
 //   const { isAuthenticated, isFirstTime, manualLocation } = useSelector(state => state.authentication);
 //   const [locationPermissionChecked, setLocationPermissionChecked] = useState(false);
 //   const [locationPermissionGranted, setLocationPermissionGranted] = useState(false);
+
+//   const dispatch = useDispatch();
 
 //   useEffect(() => {
 //     checkInitialPermission();
@@ -54,21 +57,10 @@
 //     setLocationPermissionGranted(true);
 //   };
 
-//   const dispatch = useDispatch();
-
 //   useEffect(() => {
+//     dispatch(setTimeSlot(selectedTime));
 //     dispatch(initializeCart());
 //   }, [dispatch]);
-
-//   return (
-//     <SafeAreaView style={styles.fullWidth}>
-//       <NavigationContainer>
-//         {!isAuthenticated ? (
-//           <AuthStackNavigator />
-//         </NavigationContainer>
-//       </SafeAreaView>
-//     );
-//   }
 
 //   if (isFirstTime) {
 //     return (
@@ -96,7 +88,9 @@
 //   return (
 //     <SafeAreaView style={styles.fullWidth}>
 //       <NavigationContainer>
-//         {!locationPermissionGranted && !manualLocation ? (
+//         {!isAuthenticated ? (
+//           <AuthStackNavigator />
+//         ) : !locationPermissionGranted && !manualLocation ? (
 //           <LocationPermissionScreen onPermissionGranted={handlePermissionGranted} />
 //         ) : (
 //           <BottomTabNavigator />
@@ -124,6 +118,7 @@ import IntroScreen from 'screens/IntroScreen';
 import { RESULTS } from 'react-native-permissions';
 import LocationPermissionScreen from 'screens/LocationPermissionScreen';
 import { initializeCart } from 'redux/slices/initializeCart';
+import { setTimeSlot } from 'redux/slices/restaurantsSlice';
 import BottomTabNavigator from './navigators/BottomTabNavigator';
 import { AuthStackNavigator } from './navigators/AuthStackNavigator';
 import { checkLocationPermission } from './utils/permissions';
@@ -131,9 +126,9 @@ import { checkLocationPermission } from './utils/permissions';
 const customTextProps = {
   style: {
     fontFamily: 'Inter-SemiBold',
-    fontSize: 28,
+    fontSize: 14,
     color: 'black',
-    fontWeight: '600',
+    fontWeight: '500',
   },
 };
 
@@ -144,6 +139,7 @@ const App = () => {
   const { isAuthenticated, isFirstTime, manualLocation } = useSelector(state => state.authentication);
   const [locationPermissionChecked, setLocationPermissionChecked] = useState(false);
   const [locationPermissionGranted, setLocationPermissionGranted] = useState(false);
+  const [selectedTime, setSelectedTime] = useState('');
 
   const dispatch = useDispatch();
 
@@ -172,8 +168,38 @@ const App = () => {
   };
 
   useEffect(() => {
+    const roundToNext15 = date => {
+      const minutes = date.getMinutes();
+      const remainder = minutes % 15;
+      if (remainder > 0) {
+        date.setMinutes(minutes + (15 - remainder));
+      }
+      date.setSeconds(0);
+      date.setMilliseconds(0);
+      return date;
+    };
+
+    const currentTime = new Date();
+    const timeIn60Mins = new Date(currentTime.getTime() + 60 * 60 * 1000); // 60 minutes later
+
+    const roundedTime = roundToNext15(timeIn60Mins);
+
+    // Format the time to 'HH:mm'
+    const formattedTime = roundedTime.toLocaleTimeString([], {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    });
+
+    setSelectedTime(formattedTime);
+  }, []);
+
+  useEffect(() => {
+    if (selectedTime) {
+      dispatch(setTimeSlot(selectedTime));
+    }
     dispatch(initializeCart());
-  }, [dispatch]);
+  }, [dispatch, selectedTime]);
 
   if (isFirstTime) {
     return (
